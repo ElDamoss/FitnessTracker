@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#07090a"/>
+<title>MuscuTrack Pro</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css"/>
+<script>
+(function(){const t=localStorage.getItem('mt_theme');
+const d=window.matchMedia('(prefers-color-scheme:dark)').matches;
+document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
+</script>
+</head>
+<body>
+
+<!-- SVG ICONS -->
+<svg width="0" height="0" style="position:absolute;pointer-events:none">
+<defs>
+<symbol id="ic-barbell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3.5" y1="12" x2="20.5" y2="12"/><circle cx="6.5" cy="12" r="3.2"/><circle cx="17.5" cy="12" r="3.2"/><line x1="6.5" y1="8.8" x2="6.5" y2="15.2" stroke-width="1.4"/><line x1="17.5" y1="8.8" x2="17.5" y2="15.2" stroke-width="1.4"/></symbol>
+<symbol id="ic-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></symbol>
+<symbol id="ic-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></symbol>
+<symbol id="ic-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="ic-trend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 16.5 L9 10.5 L13 14 L20.5 5.5"/><path d="M15 5.5 L20.5 5.5 L20.5 11"/></symbol>
+<symbol id="ic-caliper" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5 L4 10 M20 5 L20 10"/><path d="M4 7.5 L20 7.5"/><path d="M7 7.5 L4.5 19"/><path d="M17 7.5 L19.5 19"/><path d="M9.3 14 L14.7 14" stroke-width="1.4"/></symbol>
+<symbol id="ic-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3.2c1 2.4-.6 3.6-1.7 4.9-1.3 1.6-2 3-2 4.7a3.7 3.7 0 0 0 7.4 0c0-1.1-.3-2-1-3 .2 1.6-.5 2.3-1.2 2.3-1 0-1.4-.9-1.1-1.9.6-2 1.6-3 1.6-5.1 0-.7-.1-1.3-.4-1.9-.5.7-1 1.3-1.6 0z"/></symbol>
+<symbol id="ic-timer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 L12 13 L15 15"/><path d="M9.5 2.5 L14.5 2.5"/></symbol>
+<symbol id="ic-spark" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2.5 L13.6 9.6 L20.5 12 L13.6 14.4 L12 21.5 L10.4 14.4 L3.5 12 L10.4 9.6 Z"/></symbol>
+<symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.3" y1="15.3" x2="20.5" y2="20.5"/></symbol>
+<symbol id="ic-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 L19 12 M13 6 L19 12 L13 18"/></symbol>
+<symbol id="ic-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+<symbol id="ic-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4.5"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/></symbol>
+<symbol id="ic-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+</defs>
+</svg>
+
+<!-- ====== ÉCRAN DE CONNEXION ====== -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark"><svg><use href="#ic-barbell"/></svg></div>
+      <div>
+        <div class="brand-word display">MUSCUTRACK</div>
+        <div class="brand-badge">PRO</div>
+      </div>
+    </div>
+    <h2 class="auth-title display" id="auth-title">Connexion</h2>
+    <p class="auth-sub" id="auth-sub">Entre tes identifiants pour accéder à ton espace</p>
+
+    <form id="auth-form" onsubmit="return false">
+      <div class="field" id="auth-name-field" style="display:none">
+        <label>Prénom / Pseudo</label>
+        <input type="text" id="auth-display-name" placeholder="Ex: Damien"/>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="ton@email.com" required autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="auth-password" placeholder="••••••••" required autocomplete="current-password" minlength="6"/>
+      </div>
+      <div id="auth-error" class="auth-error"></div>
+      <button type="submit" class="btn-primary auth-submit" id="auth-submit">Se connecter</button>
+    </form>
+
+    <div class="auth-switch">
+      <span id="auth-switch-text">Pas encore de compte ?</span>
+      <button class="auth-switch-btn" id="auth-switch-btn">Créer un compte</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== APP SHELL (caché tant que pas connecté) ====== -->
+<div id="app-shell" class="app-shell hidden">
+
+  <!-- SIDEBAR (desktop) -->
+  <div class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><svg><use href="#ic-barbell"/></svg></div>
+      <div>
+        <div class="brand-word display">MUSCUTRACK</div>
+        <div class="brand-badge">PRO</div>
+      </div>
+    </div>
+    <nav id="sidebar-nav">
+      <div class="nav-item active" data-page="page-dashboard"><svg><use href="#ic-grid"/></svg>Tableau de bord</div>
+      <div class="nav-item" data-page="page-programs"><svg><use href="#ic-cal"/></svg>Programmes</div>
+      <div class="nav-item" data-page="page-history"><svg><use href="#ic-list"/></svg>Historique</div>
+      <div class="nav-item" data-page="page-stats"><svg><use href="#ic-trend"/></svg>Progrès</div>
+      <div class="nav-item" data-page="page-mensuration"><svg><use href="#ic-caliper"/></svg>Mensurations</div>
+      <div class="nav-item" data-page="page-exercises"><svg><use href="#ic-barbell"/></svg>Exercices</div>
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <div class="user-block">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div style="flex:1;min-width:0">
+        <div class="user-name" id="user-display-name">Utilisateur</div>
+        <div class="user-status"><span class="dot"></span><span>En ligne</span></div>
+      </div>
+      <button class="btn-icon" id="btn-logout" title="Déconnexion"><svg width="16" height="16"><use href="#ic-logout"/></svg></button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn-icon" id="btn-menu" onclick="document.getElementById('sidebar').classList.toggle('open')">
+          <svg width="18" height="18"><use href="#ic-menu"/></svg>
+        </button>
+        <div class="topbar-left">
+          <div class="topbar-title display" id="topbar-title">Tableau de bord</div>
+          <div class="topbar-date mono" id="topbar-date"></div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="theme-toggle" id="theme-toggle" title="Thème">🌙</button>
+      </div>
+    </div>
+
+    <!-- CONTENT AREA (pages) -->
+    <div class="content-area" id="content-area">
+
+      <!-- PAGE: DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="hero" id="hero-block">
+          <div class="hero-left">
+            <div class="hero-eyebrow"><span class="dot-live"></span><span id="hero-label">Prêt</span></div>
+            <div class="hero-title display" id="hero-title">Bonne séance 💪</div>
+            <div class="hero-sub" id="hero-sub">Sélectionne un programme pour commencer</div>
+          </div>
+          <div class="hero-figures">
+            <div class="hero-figure"><div class="hero-figure-value mono"><span id="dash-vol">0</span><span class="unit">kg</span></div><div class="hero-figure-label">Vol. semaine</div></div>
+            <div class="hero-figure"><div class="hero-figure-value mono"><span id="dash-sessions">0</span></div><div class="hero-figure-label">Séances mois</div></div>
+            <div class="hero-figure"><div class="hero-figure-value mono" style="color:var(--green-bright)"><span id="dash-prs">0</span></div><div class="hero-figure-label">Records</div></div>
+          </div>
+        </div>
+        <div class="row-3">
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon"><svg><use href="#ic-trend"/></svg></div><div class="stat-delta" id="delta-vol">—</div></div><div class="stat-value mono" id="stat-vol-week">0 kg</div><div class="stat-label">Volume — 7 jours</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon"><svg><use href="#ic-flame"/></svg></div><div class="stat-delta neutral" id="delta-streak">—</div></div><div class="stat-value mono" id="stat-streak">0j</div><div class="stat-label">Régularité</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon"><svg><use href="#ic-timer"/></svg></div><div class="stat-delta neutral">—</div></div><div class="stat-value mono" id="stat-dur">—</div><div class="stat-label">Durée moy.</div></div>
+        </div>
+        <div class="row-split">
+          <div class="panel"><div class="panel-head"><div class="panel-title">Volume hebdomadaire</div></div><div class="chart-wrap" id="chart-week-wrap"></div></div>
+          <div class="panel"><div class="panel-head"><div class="panel-title">Programme du jour</div><div class="panel-link" data-page="page-programs">Voir <svg><use href="#ic-arrow"/></svg></div></div><div id="dash-today"></div></div>
+        </div>
+        <div class="row-split2">
+          <div class="panel"><div class="panel-head"><div class="panel-title">Dernières séances</div><div class="panel-link" data-page="page-history">Tout <svg><use href="#ic-arrow"/></svg></div></div><div id="dash-recent"></div></div>
+          <div class="panel"><div class="panel-head"><div class="panel-title">Records</div><div class="panel-link" data-page="page-stats">Tout <svg><use href="#ic-arrow"/></svg></div></div><div id="dash-prs-list"></div></div>
+        </div>
+      </div>
+
+      <!-- PAGE: PROGRAMMES -->
+      <div class="page" id="page-programs">
+        <div class="page-header"><h2 class="page-h1 display">Programmes</h2><button class="btn-primary" id="btn-new-prog">+ Nouveau</button></div>
+        <div id="programs-list"></div>
+      </div>
+
+      <!-- PAGE: HISTORIQUE -->
+      <div class="page" id="page-history">
+        <div class="page-header"><h2 class="page-h1 display">Historique</h2></div>
+        <div class="search-bar"><input type="text" id="hist-search" placeholder="🔍 Rechercher…" class="search-input"/><select id="hist-month" class="select-sm"><option value="">Tous</option></select></div>
+        <div id="history-list"></div>
+      </div>
+
+      <!-- PAGE: STATS -->
+      <div class="page" id="page-stats">
+        <div class="page-header"><h2 class="page-h1 display">Progrès</h2></div>
+        <div class="stats-filters"><select id="stats-ex" class="select-sm" style="flex:1"><option value="">Exercice…</option></select><select id="stats-period" class="select-sm"><option value="30">30j</option><option value="90">3m</option><option value="365">1an</option><option value="9999">Tout</option></select></div>
+        <div class="row-split">
+          <div class="panel"><div class="panel-head"><div class="panel-title">Charge max</div></div><canvas id="chart-maxw" height="160"></canvas></div>
+          <div class="panel"><div class="panel-head"><div class="panel-title">Volume</div></div><canvas id="chart-vol" height="160"></canvas></div>
+        </div>
+        <div class="section-label">🏆 Records personnels</div>
+        <div id="pr-grid" class="pr-grid"></div>
+      </div>
+
+      <!-- PAGE: MENSURATIONS -->
+      <div class="page" id="page-mensuration">
+        <div class="page-header"><h2 class="page-h1 display">Mensurations</h2><button class="btn-primary" id="btn-add-mens">+ Saisir</button></div>
+        <div class="row-split2" id="mens-summary"></div>
+        <div class="panel" style="margin-bottom:14px"><div class="panel-head"><div class="panel-title">Évolution</div><select id="mens-metric" class="select-sm" style="min-width:150px"></select></div><canvas id="mens-chart" height="160"></canvas></div>
+        <div class="section-label">Historique</div>
+        <div class="panel" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table class="mens-table"><thead id="mens-thead"></thead><tbody id="mens-tbody"></tbody></table></div></div>
+      </div>
+
+      <!-- PAGE: EXERCICES -->
+      <div class="page" id="page-exercises">
+        <div class="page-header"><h2 class="page-h1 display">Exercices</h2><button class="btn-primary" id="btn-new-ex">+ Nouveau</button></div>
+        <div class="search-bar"><input type="text" id="ex-search" placeholder="🔍 Rechercher…" class="search-input"/></div>
+        <div class="muscle-chips" id="muscle-chips">
+          <button class="chip active" data-muscle="all">Tous</button>
+          <button class="chip" data-muscle="Pectoraux">Pectoraux</button>
+          <button class="chip" data-muscle="Dos">Dos</button>
+          <button class="chip" data-muscle="Épaules">Épaules</button>
+          <button class="chip" data-muscle="Biceps">Biceps</button>
+          <button class="chip" data-muscle="Triceps">Triceps</button>
+          <button class="chip" data-muscle="Jambes">Jambes</button>
+          <button class="chip" data-muscle="Abdominaux">Abdominaux</button>
+          <button class="chip" data-muscle="Autre">Autre</button>
+        </div>
+        <div id="ex-library" class="ex-library-list"></div>
+      </div>
+
+    </div><!-- /content-area -->
+
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="mobile-nav" id="mobile-nav">
+      <button class="mobile-nav-btn active" data-page="page-dashboard"><svg class="mobile-nav-icon" width="20" height="20"><use href="#ic-grid"/></svg><span>Accueil</span></button>
+      <button class="mobile-nav-btn" data-page="page-programs"><svg class="mobile-nav-icon" width="20" height="20"><use href="#ic-cal"/></svg><span>Prog.</span></button>
+      <button class="mobile-nav-btn" data-page="page-history"><svg class="mobile-nav-icon" width="20" height="20"><use href="#ic-list"/></svg><span>Histo.</span></button>
+      <button class="mobile-nav-btn" data-page="page-mensuration"><svg class="mobile-nav-icon" width="20" height="20"><use href="#ic-caliper"/></svg><span>Mensur.</span></button>
+      <button class="mobile-nav-btn" data-page="page-exercises"><svg class="mobile-nav-icon" width="20" height="20"><use href="#ic-barbell"/></svg><span>Exos</span></button>
+    </nav>
+  </div><!-- /main-area -->
+</div><!-- /app-shell -->
+
+<!-- ====== WORKOUT SCREEN ====== -->
+<div id="wk-screen" class="wk-screen hidden">
+  <div class="wk-header">
+    <div class="wk-left">
+      <div class="wk-day-name display" id="wk-day-name">Push</div>
+      <div class="wk-prog-name" id="wk-prog-name">Programme</div>
+    </div>
+    <div class="wk-chrono-box">
+      <span class="wk-chrono-label">Durée</span>
+      <span class="wk-chrono mono" id="wk-chrono">00:00</span>
+    </div>
+    <button class="btn-end-workout" id="btn-end-workout">Fin 🏁</button>
+  </div>
+  <div class="wk-body" id="wk-body"></div>
+</div>
+
+<!-- ====== MODALS ====== -->
+
+<!-- Modal: Programme -->
+<div class="modal-overlay hidden" id="modal-prog">
+  <div class="modal">
+    <div class="modal-head"><span id="modal-prog-title">Nouveau programme</span><button class="modal-close" data-close="modal-prog">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nom *</label><input type="text" id="prog-name" placeholder="Ex: Push Pull Legs"/></div>
+      <div class="field"><label>Objectif</label><select id="prog-goal" style="width:100%"><option>Prise de masse</option><option>Sèche</option><option>Force</option><option>Endurance</option><option>Général</option></select></div>
+      <input type="hidden" id="prog-edit-id"/>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" data-close="modal-prog">Annuler</button><button class="btn-primary" id="btn-save-prog">Créer</button></div>
+  </div>
+</div>
+
+<!-- Modal: Jour -->
+<div class="modal-overlay hidden" id="modal-day">
+  <div class="modal modal-tall">
+    <div class="modal-head"><span id="modal-day-title">Nouveau jour</span><button class="modal-close" data-close="modal-day">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nom *</label><input type="text" id="day-name" placeholder="Ex: Push, Lundi…"/></div>
+      <div class="field"><label>Exercices</label><div id="day-ex-list" class="day-ex-list"></div><button class="btn-ghost" id="btn-day-add-ex" style="margin-top:8px;width:100%">+ Ajouter exercice</button></div>
+      <input type="hidden" id="day-edit-id"/><input type="hidden" id="day-prog-id"/>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" data-close="modal-day">Annuler</button><button class="btn-primary" id="btn-save-day">Sauvegarder</button></div>
+  </div>
+</div>
+
+<!-- Modal: Picker exercice pour jour -->
+<div class="modal-overlay hidden" id="modal-day-picker">
+  <div class="modal">
+    <div class="modal-head"><span>Ajouter un exercice</span><button class="modal-close" data-close="modal-day-picker">✕</button></div>
+    <div class="modal-body">
+      <input type="text" id="day-picker-search" placeholder="🔍 Rechercher…" class="search-input"/>
+      <div id="day-picker-quick" class="picker-quick hidden">
+        <div class="picker-quick-lbl">Créer et ajouter :</div>
+        <div class="picker-quick-row"><span id="day-picker-qname" class="picker-quick-nm"></span><select id="day-picker-muscle" style="flex:1;min-width:100px"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Autre</option></select><button class="btn-primary btn-sm" id="btn-day-picker-create">Créer</button></div>
+      </div>
+      <div id="day-picker-list" class="picker-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Vue séance -->
+<div class="modal-overlay hidden" id="modal-sv">
+  <div class="modal modal-tall">
+    <div class="modal-head"><span id="sv-title">Séance</span><button class="modal-close" data-close="modal-sv">✕</button></div>
+    <div class="modal-body" id="sv-body"></div>
+    <div class="modal-footer"><button class="btn-danger" id="sv-delete">🗑 Supprimer</button><button class="btn-ghost" data-close="modal-sv">Fermer</button></div>
+  </div>
+</div>
+
+<!-- Modal: Exercice -->
+<div class="modal-overlay hidden" id="modal-ex">
+  <div class="modal">
+    <div class="modal-head"><span id="modal-ex-title">Exercice</span><button class="modal-close" data-close="modal-ex">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nom *</label><input type="text" id="ex-name" placeholder="Ex: Développé couché"/></div>
+      <div class="field"><label>Muscle</label><select id="ex-muscle" style="width:100%"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Autre</option></select></div>
+      <div class="field"><label>Description</label><textarea id="ex-desc" placeholder="Notes…"></textarea></div>
+      <input type="hidden" id="ex-edit-id"/>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" data-close="modal-ex">Annuler</button><button class="btn-primary" id="btn-save-ex">Sauvegarder</button></div>
+  </div>
+</div>
+
+<!-- Modal: Mensurations -->
+<div class="modal-overlay hidden" id="modal-mens">
+  <div class="modal modal-tall">
+    <div class="modal-head"><span>Saisir mensurations</span><button class="modal-close" data-close="modal-mens">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Date</label><input type="date" id="mens-date"/></div>
+      <div class="mens-grid" id="mens-form-grid"></div>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" data-close="modal-mens">Annuler</button><button class="btn-primary" id="btn-save-mens">Sauvegarder</button></div>
+  </div>
+</div>
+
+<!-- Modal: Récap -->
+<div class="modal-overlay hidden" id="modal-recap">
+  <div class="modal modal-tall">
+    <div class="modal-head"><span>🏁 Récap</span><span id="recap-time" class="mono" style="font-size:14px;color:var(--green-bright)"></span></div>
+    <div class="modal-body" id="recap-body"></div>
+    <div class="modal-footer"><button class="btn-ghost" id="btn-recap-discard">Abandonner</button><button class="btn-primary" id="btn-recap-save">💾 Sauvegarder</button></div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toast-area"></div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/programs.js"></script>
+<script src="js/exercises.js"></script>
+<script src="js/history.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/mensuration.js"></script>
+
+<!-- Service Worker -->
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
