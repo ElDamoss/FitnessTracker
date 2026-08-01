@@ -32,14 +32,22 @@ document.addEventListener('click', e => {
 function applyTheme(mode) {
   document.documentElement.setAttribute('data-theme', mode);
   const btn = document.getElementById('theme-toggle');
-  if (btn) btn.textContent = mode === 'light' ? '🌙' : '☀️';
+  if (btn) btn.textContent = mode === 'dark' ? '☀️' : '🌙';
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = mode === 'light' ? '#f4f6f3' : '#07090a';
+  if (meta) {
+    if (mode === 'light') meta.content = '#f4f6f3';
+    else if (mode === 'girly') meta.content = '#fff5f8';
+    else meta.content = '#07090a';
+  }
   localStorage.setItem('mt_theme', mode);
 }
 function toggleTheme() {
   const cur = document.documentElement.getAttribute('data-theme') || 'dark';
   applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+function toggleGirly() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(cur === 'girly' ? 'dark' : 'girly');
 }
 function initTheme() {
   const saved = localStorage.getItem('mt_theme');
@@ -288,6 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Theme toggle
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  document.getElementById('theme-girly').addEventListener('click', toggleGirly);
 
   // Logout
   document.getElementById('btn-logout').addEventListener('click', async () => {

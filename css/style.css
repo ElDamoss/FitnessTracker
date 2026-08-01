@@ -628,3 +628,47 @@ nav{display:flex;flex-direction:column;gap:2px;}
   animation:spin .7s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg);}}
+
+/* ===== MODE GIRLY 🎀 ===== */
+[data-theme="girly"]{
+  --bg-app:#fff5f8; --bg-sidebar:#fff0f5; --bg-panel:#ffffff;
+  --bg-raised:#ffe8f0; --line:#ffd1e0; --line-soft:#ffe4ee;
+  --ink:#4a1942; --ink-dim:#8b3a7a; --ink-faint:#c27aae;
+  --green:#e84b8a; --green-soft:rgba(232,75,138,.1); --green-bright:#d6236a;
+  --spark:#ff69b4; --danger:#e11d48; --warn:#f472b6;
+  --shadow:0 4px 20px rgba(232,75,138,.12);
+}
+[data-theme="girly"] .brand-mark{
+  background:linear-gradient(160deg,#ffe0ec,#ffc8dd);color:var(--green);}
+[data-theme="girly"] select option{background:#fff0f5;}
+[data-theme="girly"] .wk-screen{background:var(--bg-app);}
+[data-theme="girly"] .hero::after{
+  background:radial-gradient(circle,rgba(232,75,138,.08) 0%,transparent 70%);}
+[data-theme="girly"] .chart-bar{background:#ffd1e0;}
+[data-theme="girly"] .chart-bar.today{
+  background:linear-gradient(180deg,#ff69b4,#e84b8a);
+  box-shadow:0 0 16px rgba(232,75,138,.3);}
+[data-theme="girly"] .pr-card-stat{border-left-color:#ff69b4;}
+[data-theme="girly"] .pr-card-val{color:#ff69b4;}
+[data-theme="girly"] .recap-pr-badge{
+  background:rgba(255,105,180,.1);border-color:#ff69b4;color:#ff69b4;}
+[data-theme="girly"] .stat-delta{color:#d6236a;background:rgba(232,75,138,.1);}
+[data-theme="girly"] .chip.active{background:#e84b8a;border-color:#e84b8a;}
+[data-theme="girly"] .btn-primary{background:#e84b8a;}
+[data-theme="girly"] .btn-train{background:#e84b8a;}
+[data-theme="girly"] .nav-item.active{background:rgba(232,75,138,.1);}
+[data-theme="girly"] .nav-item.active::before{background:#e84b8a;}
+[data-theme="girly"] .nav-item.active svg{color:#d6236a;}
+[data-theme="girly"] .dot{background:#e84b8a;}
+[data-theme="girly"] .dot-live{background:#e84b8a;box-shadow:0 0 6px #e84b8a;}
+[data-theme="girly"] .user-avatar{background:linear-gradient(150deg,#ff69b4,#e84b8a);}
+[data-theme="girly"] .muscle-badge{color:#e84b8a;background:rgba(232,75,138,.1);}
+[data-theme="girly"] .rest-badge{background:rgba(232,75,138,.1);border-color:#e84b8a;color:#d6236a;}
+[data-theme="girly"] .rest-dot{background:#e84b8a;}
+[data-theme="girly"] .set-num.done{background:rgba(232,75,138,.1);border-color:#e84b8a;color:#d6236a;}
+[data-theme="girly"] .done-set-btn{background:rgba(232,75,138,.1);border-color:#e84b8a;color:#d6236a;}
+[data-theme="girly"] .brand-badge{color:#e84b8a;background:rgba(232,75,138,.1);}
+[data-theme="girly"] .mobile-nav-btn.active{color:#d6236a;}
+[data-theme="girly"] .mobile-nav-btn.active::before{background:#e84b8a;}
+[data-theme="girly"] .wk-chrono{color:#d6236a;}
+[data-theme="girly"] .toast.success{background:#e84b8a;}
