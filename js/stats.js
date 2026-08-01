@@ -30,8 +30,8 @@ async function renderStatCharts() {
   sessions.forEach(s => {
     const exd = (s.exercises||[]).find(e=>e.name===exName); if(!exd) return;
     const maxW = Math.max(0,...(exd.sets||[]).map(st=>parseFloat(st.weight)||0));
-    const vol = (exd.sets||[]).reduce((a,st)=>a+(parseFloat(st.weight)||0)*(parseInt(st.reps)||0),0);
-    pts.push({date:s.date, maxW, vol});
+    const totalReps = (exd.sets||[]).reduce((a,st)=>a+(parseInt(st.reps)||0),0);
+    pts.push({date:s.date, maxW, totalReps});
   });
 
   const labels = pts.map(p=>fDateS(p.date));
@@ -47,7 +47,7 @@ async function renderStatCharts() {
 
   const c2 = document.getElementById('chart-vol').getContext('2d');
   if (chartV) chartV.destroy();
-  chartV = new Chart(c2, {type:'bar',data:{labels,datasets:[{data:pts.map(p=>p.vol),
+  chartV = new Chart(c2, {type:'bar',data:{labels,datasets:[{data:pts.map(p=>p.totalReps),
     backgroundColor:'rgba(134,247,180,.25)',borderColor:'#86f7b4',
     borderWidth:2,borderRadius:5}]},options:co});
 }

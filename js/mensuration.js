@@ -2,7 +2,7 @@
    MUSCUTRACK PRO — Mensurations
    ============================================================ */
 
-const METRICS = [
+const DEFAULT_METRICS = [
   {key:'poids',label:'Poids',unit:'kg'},
   {key:'tour_bras_g',label:'Bras gauche',unit:'cm'},
   {key:'tour_bras_d',label:'Bras droit',unit:'cm'},
@@ -15,9 +15,25 @@ const METRICS = [
   {key:'tour_epaules',label:'Épaules',unit:'cm'},
 ];
 
+// Custom metrics stored in localStorage per user
+function getCustomMetrics() {
+  try { return JSON.parse(localStorage.getItem('mt_custom_metrics') || '[]'); } catch(e) { return []; }
+}
+function saveCustomMetrics(list) {
+  localStorage.setItem('mt_custom_metrics', JSON.stringify(list));
+}
+function getAllMetrics() {
+  return [...DEFAULT_METRICS, ...getCustomMetrics()];
+}
+
+// Remplace METRICS par getAllMetrics() partout
+var METRICS = getAllMetrics();
+];
+
 let mensChart = null;
 
 async function renderMensuration() {
+  METRICS = getAllMetrics();
   const data = await DB.getMensurations();
   renderMensSummary(data);
   renderMensChartUI(data);
@@ -99,8 +115,8 @@ function renderMensTable(data) {
 
 function openMensModal() {
   document.getElementById('mens-date').value = new Date().toISOString().split('T')[0];
+  METRICS = getAllMetrics(); // refresh
   const grid = document.getElementById('mens-form-grid');
-  // Pre-fill with latest values
   DB.getMensurations().then(data => {
     const last = data[0] || {};
     grid.innerHTML = METRICS.map(m => `
@@ -108,9 +124,26 @@ function openMensModal() {
         <label>${m.label}</label>
         <input type="number" step="0.1" min="0" id="mens-input-${m.key}" value="${last[m.key]||''}" placeholder="${m.unit}"/>
         <span class="mens-unit">${m.unit}</span>
-      </div>`).join('');
+      </div>`).join('') + `
+      <div class="mens-field" style="display:flex;align-items:flex-end">
+        <button class="btn-ghost btn-sm" onclick="addCustomMetricPrompt()" style="width:100%;margin-top:auto">+ Ajouter une zone</button>
+      </div>`;
   });
   openModal('modal-mens');
+}
+
+function addCustomMetricPrompt() {
+  var name = prompt('Nom de la zone (ex: Tour de cou, Avant-bras G)');
+  if (!name || !name.trim()) return;
+  var unit = prompt('Unité (cm ou kg)', 'cm') || 'cm';
+  var key = 'custom_' + name.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+  var customs = getCustomMetrics();
+  if (customs.some(function(c){ return c.key === key; })) { toast('Cette zone existe déjà','info'); return; }
+  customs.push({ key: key, label: name.trim(), unit: unit.trim() });
+  saveCustomMetrics(customs);
+  METRICS = getAllMetrics();
+  toast(name.trim() + ' ajouté ✓', 'success');
+  openMensModal(); // re-render
 }
 
 async function saveMens() {

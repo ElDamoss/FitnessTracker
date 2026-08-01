@@ -33,9 +33,12 @@ function applyTheme(mode) {
   document.documentElement.setAttribute('data-theme', mode);
   const btn = document.getElementById('theme-toggle');
   if (btn) btn.textContent = mode === 'dark' ? '☀️' : '🌙';
+  const funBtn = document.getElementById('theme-fun');
+  if (funBtn) funBtn.textContent = mode === 'girly' ? '🧵' : '🎀';
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
     if (mode === 'light') meta.content = '#f4f6f3';
+    else if (mode === 'stitch') meta.content = '#e8f4fd';
     else if (mode === 'girly') meta.content = '#fff5f8';
     else meta.content = '#07090a';
   }
@@ -47,7 +50,8 @@ function toggleTheme() {
 }
 function toggleGirly() {
   const cur = document.documentElement.getAttribute('data-theme') || 'dark';
-  applyTheme(cur === 'girly' ? 'dark' : 'girly');
+  applyTheme(cur === 'girly' ? 'stitch' : 'girly');
+  document.getElementById('theme-fun').textContent = (cur === 'girly') ? '🧵' : '🎀';
 }
 function initTheme() {
   const saved = localStorage.getItem('mt_theme');
@@ -60,7 +64,8 @@ let currentPage = 'page-dashboard';
 const pageTitles = {
   'page-dashboard':'Tableau de bord','page-programs':'Programmes',
   'page-history':'Historique','page-stats':'Progrès',
-  'page-mensuration':'Mensurations','page-exercises':'Exercices'
+  'page-mensuration':'Mensurations','page-performances':'Performances',
+  'page-exercises':'Exercices'
 };
 
 function navigate(pageId) {
@@ -79,6 +84,7 @@ function navigate(pageId) {
   if (pageId === 'page-history') renderHistory();
   if (pageId === 'page-stats') renderStats();
   if (pageId === 'page-mensuration') renderMensuration();
+  if (pageId === 'page-performances') renderPerformances();
   if (pageId === 'page-exercises') renderExLibrary();
   // Close mobile sidebar
   if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
@@ -296,7 +302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Theme toggle
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-  document.getElementById('theme-girly').addEventListener('click', toggleGirly);
+  document.getElementById('theme-fun').addEventListener('click', toggleGirly);
 
   // Logout
   document.getElementById('btn-logout').addEventListener('click', async () => {

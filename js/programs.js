@@ -115,7 +115,8 @@ function renderDayExList() {
     return;
   }
   el.innerHTML = editingDayExercises.map((ex,i) => `
-    <div class="day-ex-item">
+    <div class="day-ex-item" data-idx="${i}">
+      <div class="day-ex-handle" title="Glisser pour réorganiser">⠿</div>
       <div class="day-ex-infos">
         <div class="day-ex-nm">${ex.name}</div>
         <div class="day-ex-ms">${ex.muscle}</div>
@@ -127,6 +128,84 @@ function renderDayExList() {
       </div>
       <button class="day-ex-remove" onclick="editingDayExercises.splice(${i},1);renderDayExList()">✕</button>
     </div>`).join('');
+  initDayExDragDrop();
+}
+
+function initDayExDragDrop() {
+  var container = document.getElementById('day-ex-list');
+  var items = container.querySelectorAll('.day-ex-item');
+  var dragIdx = -1;
+
+  items.forEach(function(item) {
+    var handle = item.querySelector('.day-ex-handle');
+    if (!handle) return;
+
+    // TOUCH
+    handle.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      dragIdx = parseInt(item.dataset.idx);
+      item.classList.add('dragging');
+    }, {passive:false});
+
+    handle.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+      var touch = e.touches[0];
+      var el = document.elementFromPoint(touch.clientX, touch.clientY);
+      var over = el ? el.closest('.day-ex-item') : null;
+      if (over && over !== item) {
+        var overIdx = parseInt(over.dataset.idx);
+        if (overIdx !== dragIdx) {
+          var temp = editingDayExercises[dragIdx];
+          editingDayExercises.splice(dragIdx, 1);
+          editingDayExercises.splice(overIdx, 0, temp);
+          dragIdx = overIdx;
+          renderDayExList();
+        }
+      }
+    }, {passive:false});
+
+    handle.addEventListener('touchend', function() {
+      item.classList.remove('dragging');
+      dragIdx = -1;
+    });
+
+    // MOUSE
+    handle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      dragIdx = parseInt(item.dataset.idx);
+      item.classList.add('dragging');
+      function onMove(ev) {
+        var el = document.elementFromPoint(ev.clientX, ev.clientY);
+        var over = el ? el.closest('.day-ex-item') : null;
+        if (over && over !== item) {
+          var overIdx = parseInt(over.dataset.idx);
+          if (overIdx !== dragIdx) {
+            var temp = editingDayExercises[dragIdx];
+            editingDayExercises.splice(dragIdx, 1);
+            editingDayExercises.splice(overIdx, 0, temp);
+            dragIdx = overIdx;
+            renderDayExList();
+          }
+        }
+      }
+      function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        dragIdx = -1;
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  });
+}
+
+function moveDayEx(index, direction) {
+  var newIdx = index + direction;
+  if (newIdx < 0 || newIdx >= editingDayExercises.length) return;
+  var temp = editingDayExercises[index];
+  editingDayExercises[index] = editingDayExercises[newIdx];
+  editingDayExercises[newIdx] = temp;
+  renderDayExList();
 }
 
 async function saveDay() {
@@ -236,10 +315,14 @@ function renderWorkoutBody() {
 
 function renderSetHTML(ei, si, set, restSec) {
   if (set.done && set.restLeft > 0) {
+    var pauseIcon = set.restPaused ? '▶' : '⏸';
+    var pauseTitle = set.restPaused ? 'Reprendre' : 'Pause';
     return `<div class="wk-set-row" id="sr-${ei}-${si}">
       <div class="set-num done">${si+1}</div>
       <div class="set-done-info">${set.weight||'—'} kg × ${set.reps||'—'}${set.rpe?' · RPE '+set.rpe:''}</div>
-      <div class="rest-badge"><span class="rest-dot"></span> ${fDur(set.restLeft)}</div>
+      <div class="rest-badge${set.restPaused?' paused':''}"><span class="rest-dot${set.restPaused?' paused':''}"></span> ${fDur(set.restLeft)}</div>
+      <button class="adj" onclick="wkPauseTimer(${ei},${si})" title="${pauseTitle}" style="margin-left:4px">${pauseIcon}</button>
+      <button class="adj" onclick="wkStopTimer(${ei},${si})" title="Stop" style="margin-left:2px;color:var(--danger)">✕</button>
     </div>`;
   }
   if (set.done) {
@@ -283,20 +366,26 @@ function wkDoneSet(ei, si, restSec) {
   if (wi) set.weight = wi.value;
   if (ri) set.reps = ri.value;
   set.done = true; set.doneTs = Date.now(); set.restLeft = restSec;
+  set.restPaused = false;
 
-  // PR check
-  const w = parseFloat(set.weight)||0, r = parseInt(set.reps)||0;
-  if (w>0 && r>0) {
-    const sessions = []; // on check en mémoire locale
-    const prs = computePRs(sessions); // empty = all new are PRs on first use
-    // Simple check: will be validated on save
-    toast('✓ Série validée', 'success', 1500);
-  }
+  // Stop any other running timer first
+  wkState.exercises.forEach(function(ex, exi) {
+    ex.sets.forEach(function(s, ssi) {
+      if (s.restTimer && !(exi===ei && ssi===si)) {
+        clearInterval(s.restTimer); s.restTimer = null; s.restLeft = 0;
+        var oldRow = document.getElementById('sr-'+exi+'-'+ssi);
+        if (oldRow) oldRow.outerHTML = renderSetHTML(exi, ssi, s, ex.restSec);
+      }
+    });
+  });
+
+  toast('✓ Série validée', 'success', 1500);
 
   // Rest timer
-  set.restTimer = setInterval(() => {
+  set.restTimer = setInterval(function() {
+    if (set.restPaused) return;
     set.restLeft = Math.max(0, restSec - Math.floor((Date.now()-set.doneTs)/1000));
-    const row = document.getElementById('sr-'+ei+'-'+si);
+    var row = document.getElementById('sr-'+ei+'-'+si);
     if (row) row.outerHTML = renderSetHTML(ei, si, set, restSec);
     if (set.restLeft <= 0) {
       clearInterval(set.restTimer); set.restTimer = null;
@@ -305,8 +394,32 @@ function wkDoneSet(ei, si, restSec) {
     }
   }, 1000);
 
-  const row = document.getElementById('sr-'+ei+'-'+si);
+  var row = document.getElementById('sr-'+ei+'-'+si);
   if (row) row.outerHTML = renderSetHTML(ei, si, set, restSec);
+}
+
+function wkPauseTimer(ei, si) {
+  var set = wkState.exercises[ei].sets[si];
+  if (!set.restTimer) return;
+  if (set.restPaused) {
+    // Resume: adjust doneTs to account for paused time
+    set.doneTs = Date.now() - ((wkState.exercises[ei].restSec - set.restLeft) * 1000);
+    set.restPaused = false;
+    toast('▶ Repos repris', 'info', 1200);
+  } else {
+    set.restPaused = true;
+    toast('⏸ Repos en pause', 'info', 1200);
+  }
+  var row = document.getElementById('sr-'+ei+'-'+si);
+  if (row) row.outerHTML = renderSetHTML(ei, si, set, wkState.exercises[ei].restSec);
+}
+
+function wkStopTimer(ei, si) {
+  var set = wkState.exercises[ei].sets[si];
+  if (set.restTimer) { clearInterval(set.restTimer); set.restTimer = null; }
+  set.restLeft = 0;
+  var row = document.getElementById('sr-'+ei+'-'+si);
+  if (row) row.outerHTML = renderSetHTML(ei, si, set, wkState.exercises[ei].restSec);
 }
 
 function wkAddSet(ei) {

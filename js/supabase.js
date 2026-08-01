@@ -145,68 +145,67 @@ var DB = {
 
 // ── SEED DEFAULTS ──
 async function seedDefaults() {
-  // Seed exercises
-  var exCheck = await sb.from('exercises').select('id').eq('is_default', true).limit(1);
-  if (!exCheck.data || exCheck.data.length === 0) {
-    var defaults = [
-      {name:'Presse Pectoraux',muscle:'Pectoraux',description:'Machine presse pectoraux'},
-      {name:'Presse Pectoraux Inclinée',muscle:'Pectoraux',description:'Machine presse inclinée'},
-      {name:'Pecfly',muscle:'Pectoraux',description:'Écarté machine'},
-      {name:'Extensions Triceps Poulie Haute',muscle:'Triceps',description:'Câble poulie haute'},
-      {name:'Élévations Latérales Haltères',muscle:'Épaules',description:'Isolation deltoïdes'},
-      {name:'Crunch Swiss Ball',muscle:'Abdominaux',description:'Crunch ballon suisse'},
-      {name:'Tirage Horizontal Guidé',muscle:'Dos',description:'Rowing machine guidée'},
-      {name:'Tirage Vertical Poulie Haute',muscle:'Dos',description:'Lat pulldown'},
-      {name:'Rowing Coude Ouvert Banc Arrondi',muscle:'Dos',description:'Rowing haltère'},
-      {name:'Curl Biceps',muscle:'Biceps',description:'Curl barre ou haltères'},
-      {name:'Curl Biceps Poulie Basse',muscle:'Biceps',description:'Curl câble poulie basse'},
-      {name:'Extensions Banc Lombaire',muscle:'Dos',description:'Hyperextensions'},
-      {name:'V Squat',muscle:'Jambes',description:'Squat machine en V'},
-      {name:'Presse Horizontale Unilatérale',muscle:'Jambes',description:'Presse unilatérale'},
-      {name:'Leg Extension',muscle:'Jambes',description:'Extension quadriceps'},
-      {name:'Leg Curl',muscle:'Jambes',description:'Flexion ischio-jambiers'},
-      {name:'Machine Abduction',muscle:'Jambes',description:'Abducteurs machine'},
-      {name:'Machine Adduction',muscle:'Jambes',description:'Adducteurs machine'},
-      {name:'Presse Épaules',muscle:'Épaules',description:'Presse militaire machine'},
-      {name:'Gainage',muscle:'Abdominaux',description:'Planche isométrique'},
-      {name:'Développé couché',muscle:'Pectoraux',description:'Banc plat'},
-      {name:'Développé incliné',muscle:'Pectoraux',description:'Banc incliné'},
-      {name:'Tractions',muscle:'Dos',description:'Pronation ou supination'},
-      {name:'Rowing barre',muscle:'Dos',description:'Buste penché'},
-      {name:'Soulevé de terre',muscle:'Dos',description:'Compound complet'},
-      {name:'Développé militaire',muscle:'Épaules',description:'Barre ou haltères'},
-      {name:'Curl haltères',muscle:'Biceps',description:'Alternés ou simultanés'},
-      {name:'Dips triceps',muscle:'Triceps',description:'Barres parallèles'},
-      {name:'Squat',muscle:'Jambes',description:'Barre sur les épaules'},
-      {name:'Leg press',muscle:'Jambes',description:'Presse à cuisses'},
-      {name:'Fentes',muscle:'Jambes',description:'Avant, arrière, latérales'},
-      {name:'Mollets machine',muscle:'Jambes',description:'Debout ou assis'},
-      {name:'Crunch',muscle:'Abdominaux',description:'Au sol ou machine'},
-      {name:'Planche',muscle:'Abdominaux',description:'Gainage iso'},
-    ];
-    var rows = defaults.map(function(d) {
+  // Seed exercises — ajoute les manquants
+  var defaults = [
+    {name:'Presse Pectoraux',muscle:'Pectoraux',description:'Machine presse pectoraux'},
+    {name:'Presse Pectoraux Inclinée',muscle:'Pectoraux',description:'Machine presse inclinée'},
+    {name:'Pecfly',muscle:'Pectoraux',description:'Écarté machine'},
+    {name:'Extensions Triceps Poulie Haute',muscle:'Triceps',description:'Câble poulie haute'},
+    {name:'Élévations Latérales Haltères',muscle:'Épaules',description:'Isolation deltoïdes'},
+    {name:'Crunch Swiss Ball',muscle:'Abdominaux',description:'Crunch ballon suisse'},
+    {name:'Tirage Horizontal Guidé',muscle:'Dos',description:'Rowing machine guidée'},
+    {name:'Tirage Vertical Poulie Haute',muscle:'Dos',description:'Lat pulldown'},
+    {name:'Rowing Coude Ouvert Banc Arrondi',muscle:'Dos',description:'Rowing haltère'},
+    {name:'Curl Biceps',muscle:'Biceps',description:'Curl barre ou haltères'},
+    {name:'Curl Biceps Poulie Basse',muscle:'Biceps',description:'Curl câble poulie basse'},
+    {name:'Extensions Banc Lombaire',muscle:'Dos',description:'Hyperextensions'},
+    {name:'V Squat',muscle:'Jambes',description:'Squat machine en V'},
+    {name:'Presse Horizontale Unilatérale',muscle:'Jambes',description:'Presse unilatérale'},
+    {name:'Leg Extension',muscle:'Jambes',description:'Extension quadriceps'},
+    {name:'Leg Curl',muscle:'Jambes',description:'Flexion ischio-jambiers'},
+    {name:'Machine Abduction',muscle:'Jambes',description:'Abducteurs machine'},
+    {name:'Machine Adduction',muscle:'Jambes',description:'Adducteurs machine'},
+    {name:'Presse Épaules',muscle:'Épaules',description:'Presse militaire machine'},
+    {name:'Gainage',muscle:'Abdominaux',description:'Planche isométrique'},
+    {name:'Développé couché',muscle:'Pectoraux',description:'Banc plat'},
+    {name:'Développé incliné',muscle:'Pectoraux',description:'Banc incliné'},
+    {name:'Tractions',muscle:'Dos',description:'Pronation ou supination'},
+    {name:'Rowing barre',muscle:'Dos',description:'Buste penché'},
+    {name:'Soulevé de terre',muscle:'Dos',description:'Compound complet'},
+    {name:'Développé militaire',muscle:'Épaules',description:'Barre ou haltères'},
+    {name:'Curl haltères',muscle:'Biceps',description:'Alternés ou simultanés'},
+    {name:'Dips triceps',muscle:'Triceps',description:'Barres parallèles'},
+    {name:'Squat',muscle:'Jambes',description:'Barre sur les épaules'},
+    {name:'Leg press',muscle:'Jambes',description:'Presse à cuisses'},
+    {name:'Fentes',muscle:'Jambes',description:'Avant, arrière, latérales'},
+    {name:'Mollets machine',muscle:'Jambes',description:'Debout ou assis'},
+    {name:'Crunch',muscle:'Abdominaux',description:'Au sol ou machine'},
+    {name:'Planche',muscle:'Abdominaux',description:'Gainage iso'},
+    {name:'Abduction avec élastique',muscle:'Fessiers',description:'Travail fessiers et abducteurs avec élastique'},
+    {name:'Abduction debout avec élastique',muscle:'Fessiers',description:'Galbe extérieur haut de jambe et fessier'},
+    {name:'Abduction allongée avec élastique',muscle:'Fessiers',description:'Isolation fessiers position allongée'},
+    {name:'Donkey Kick',muscle:'Fessiers',description:'Exercice au sol ciblant les fessiers'},
+    {name:'Élévations latérales jambes tendues',muscle:'Fessiers',description:'Allongé sur le côté, lever la jambe'},
+    {name:'Hip Thrust',muscle:'Fessiers',description:'Référence pour muscler les fessiers'},
+    {name:'Hip Thrust barre',muscle:'Fessiers',description:'Hip thrust lesté à la barre'},
+    {name:'TRX Hip Thrust',muscle:'Fessiers',description:'Hip thrust pieds dans les sangles TRX'},
+  ];
+
+  // Récupérer les exercices existants
+  var existing = await DB.getExercises();
+  var existingNames = existing.map(function(e) { return e.name.toLowerCase(); });
+
+  // Filtrer les manquants
+  var missing = defaults.filter(function(d) {
+    return existingNames.indexOf(d.name.toLowerCase()) === -1;
+  });
+
+  if (missing.length > 0) {
+    var rows = missing.map(function(d) {
       return Object.assign({}, d, { created_by: getUserId(), is_default: true });
     });
     await sb.from('exercises').insert(rows);
   }
 
-  // Seed programme Vigouroux
-  var progs = await DB.getPrograms();
-  if (progs.length === 0) {
-    var exs = await DB.getExercises();
-    var find = function(n) { return exs.find(function(e){return e.name===n;}); };
-    var ex = function(n,s,r,rest) {
-      var found = find(n);
-      return { id: found?found.id:n, name:n, muscle:found?found.muscle:'Autre', sets:s, repsTarget:r, restSec:rest };
-    };
-    await DB.addProgram({
-      name:'Programme Vigouroux', goal:'Prise de masse', day_type:'named',
-      days:[
-        {id:crypto.randomUUID(),name:'Push',exercises:[ex('Presse Pectoraux',4,'8-12',150),ex('Presse Pectoraux Inclinée',4,'10-15',150),ex('Pecfly',4,'12-18',120),ex('Extensions Triceps Poulie Haute',4,'12-15',120),ex('Élévations Latérales Haltères',4,'12-15',60),ex('Crunch Swiss Ball',4,'10-15',60)]},
-        {id:crypto.randomUUID(),name:'Pull',exercises:[ex('Tirage Horizontal Guidé',4,'8-12',150),ex('Tirage Vertical Poulie Haute',4,'10-15',120),ex('Rowing Coude Ouvert Banc Arrondi',4,'10-15',120),ex('Curl Biceps',6,'10-15',90),ex('Extensions Banc Lombaire',3,'10-15',60)]},
-        {id:crypto.randomUUID(),name:'Bas du corps',exercises:[ex('V Squat',4,'8-12',150),ex('Presse Horizontale Unilatérale',4,'12-15',120),ex('Leg Extension',4,'12-15',90),ex('Leg Curl',4,'12-15',90),ex('Machine Abduction',3,'12-15',60),ex('Machine Adduction',3,'12-15',60),ex('Extensions Banc Lombaire',3,'max',30)]},
-        {id:crypto.randomUUID(),name:'Haut du corps',exercises:[ex('Presse Pectoraux',4,'10-15',120),ex('Presse Épaules',4,'10-15',120),ex('Tirage Vertical Poulie Haute',4,'10-15',120),ex('Tirage Horizontal Guidé',4,'10-15',120),ex('Curl Biceps Poulie Basse',4,'10-15',90),ex('Extensions Triceps Poulie Haute',4,'10-15',90),ex('Gainage',3,'max',30)]}
-      ]
-    });
-  }
+  // (Programme par défaut retiré — l'utilisateur crée le sien)
 }

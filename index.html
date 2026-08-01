@@ -96,6 +96,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="nav-item" data-page="page-history"><svg><use href="#ic-list"/></svg>Historique</div>
       <div class="nav-item" data-page="page-stats"><svg><use href="#ic-trend"/></svg>Progrès</div>
       <div class="nav-item" data-page="page-mensuration"><svg><use href="#ic-caliper"/></svg>Mensurations</div>
+      <div class="nav-item" data-page="page-performances"><svg><use href="#ic-trend"/></svg>Performances</div>
       <div class="nav-item" data-page="page-exercises"><svg><use href="#ic-barbell"/></svg>Exercices</div>
     </nav>
     <div class="sidebar-spacer"></div>
@@ -124,7 +125,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       </div>
       <div class="topbar-actions">
         <button class="theme-toggle" id="theme-toggle" title="Thème sombre/clair">🌙</button>
-        <button class="theme-toggle" id="theme-girly" title="Mode Girly 🎀" style="font-size:15px">🎀</button>
+        <button class="theme-toggle" id="theme-fun" title="Kitty / Stitch">🎀</button>
       </div>
     </div>
 
@@ -179,7 +180,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
         <div class="stats-filters"><select id="stats-ex" class="select-sm" style="flex:1"><option value="">Exercice…</option></select><select id="stats-period" class="select-sm"><option value="30">30j</option><option value="90">3m</option><option value="365">1an</option><option value="9999">Tout</option></select></div>
         <div class="row-split">
           <div class="panel"><div class="panel-head"><div class="panel-title">Charge max</div></div><canvas id="chart-maxw" height="160"></canvas></div>
-          <div class="panel"><div class="panel-head"><div class="panel-title">Volume</div></div><canvas id="chart-vol" height="160"></canvas></div>
+          <div class="panel"><div class="panel-head"><div class="panel-title">Répétitions</div></div><canvas id="chart-vol" height="160"></canvas></div>
         </div>
         <div class="section-label">🏆 Records personnels</div>
         <div id="pr-grid" class="pr-grid"></div>
@@ -192,6 +193,44 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
         <div class="panel" style="margin-bottom:14px"><div class="panel-head"><div class="panel-title">Évolution</div><select id="mens-metric" class="select-sm" style="min-width:150px"></select></div><canvas id="mens-chart" height="160"></canvas></div>
         <div class="section-label">Historique</div>
         <div class="panel" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table class="mens-table"><thead id="mens-thead"></thead><tbody id="mens-tbody"></tbody></table></div></div>
+      </div>
+
+      <!-- PAGE: PERFORMANCES -->
+      <div class="page" id="page-performances">
+        <div class="page-header">
+          <h2 class="page-h1 display">Performances</h2>
+          <button class="btn-ghost btn-sm" id="btn-export-report">📄 Exporter rapport</button>
+        </div>
+
+        <div class="stats-filters">
+          <select id="perf-exercise" class="select-sm" style="flex:1"><option value="">Choisir un exercice…</option></select>
+          <select id="perf-period" class="select-sm">
+            <option value="30">30j</option>
+            <option value="90">3 mois</option>
+            <option value="365">1 an</option>
+            <option value="9999">Tout</option>
+          </select>
+        </div>
+
+        <div class="panel" style="margin-bottom:14px">
+          <div class="panel-head"><div class="panel-title">Évolution charge max</div></div>
+          <canvas id="perf-chart-weight" height="160"></canvas>
+        </div>
+
+        <div class="panel" style="margin-bottom:14px">
+          <div class="panel-head"><div class="panel-title">Volume par séance</div></div>
+          <canvas id="perf-chart-volume" height="160"></canvas>
+        </div>
+
+        <div class="section-label">Historique détaillé</div>
+        <div id="perf-history-table" class="panel" style="padding:0;overflow:hidden">
+          <div style="overflow-x:auto">
+            <table class="perf-table" id="perf-table">
+              <thead><tr><th>Date</th><th>Exercice</th><th>Séries</th><th>Charge max</th><th>Volume</th></tr></thead>
+              <tbody id="perf-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- PAGE: EXERCICES -->
@@ -207,6 +246,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
           <button class="chip" data-muscle="Triceps">Triceps</button>
           <button class="chip" data-muscle="Jambes">Jambes</button>
           <button class="chip" data-muscle="Abdominaux">Abdominaux</button>
+          <button class="chip" data-muscle="Fessiers">Fessiers</button>
           <button class="chip" data-muscle="Autre">Autre</button>
         </div>
         <div id="ex-library" class="ex-library-list"></div>
@@ -277,7 +317,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <input type="text" id="day-picker-search" placeholder="🔍 Rechercher…" class="search-input"/>
       <div id="day-picker-quick" class="picker-quick hidden">
         <div class="picker-quick-lbl">Créer et ajouter :</div>
-        <div class="picker-quick-row"><span id="day-picker-qname" class="picker-quick-nm"></span><select id="day-picker-muscle" style="flex:1;min-width:100px"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Autre</option></select><button class="btn-primary btn-sm" id="btn-day-picker-create">Créer</button></div>
+        <div class="picker-quick-row"><span id="day-picker-qname" class="picker-quick-nm"></span><select id="day-picker-muscle" style="flex:1;min-width:100px"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Fessiers</option><option>Autre</option></select><button class="btn-primary btn-sm" id="btn-day-picker-create">Créer</button></div>
       </div>
       <div id="day-picker-list" class="picker-list"></div>
     </div>
@@ -299,7 +339,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
     <div class="modal-head"><span id="modal-ex-title">Exercice</span><button class="modal-close" data-close="modal-ex">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Nom *</label><input type="text" id="ex-name" placeholder="Ex: Développé couché"/></div>
-      <div class="field"><label>Muscle</label><select id="ex-muscle" style="width:100%"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Autre</option></select></div>
+      <div class="field"><label>Muscle</label><select id="ex-muscle" style="width:100%"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Fessiers</option><option>Autre</option></select></div>
       <div class="field"><label>Description</label><textarea id="ex-desc" placeholder="Notes…"></textarea></div>
       <input type="hidden" id="ex-edit-id"/>
     </div>
@@ -341,6 +381,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 <script src="js/history.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/mensuration.js"></script>
+<script src="js/performances.js"></script>
 
 <!-- Service Worker -->
 <script>
