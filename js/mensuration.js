@@ -149,14 +149,26 @@ function addCustomMetricPrompt() {
 async function saveMens() {
   const date = document.getElementById('mens-date').value;
   if (!date) { toast('Sélectionne une date','error'); return; }
-  const entry = { date };
+
+  // Colonnes connues dans la table Supabase
+  const dbColumns = ['poids','tour_bras_g','tour_bras_d','tour_pec','tour_taille','tour_hanches','tour_cuisse_g','tour_cuisse_d','tour_mollet','tour_epaules'];
+  const entry = { date: date };
   let hasVal = false;
-  METRICS.forEach(m => {
-    const v = document.getElementById('mens-input-'+m.key).value;
-    if (v) { entry[m.key] = parseFloat(v); hasVal = true; }
+
+  // Colonnes standard → vers Supabase
+  dbColumns.forEach(function(key) {
+    var input = document.getElementById('mens-input-' + key);
+    if (input && input.value) {
+      entry[key] = parseFloat(input.value);
+      hasVal = true;
+    }
   });
+
+  // Colonnes custom → on les ignore pour Supabase (pas de colonne)
+  // TODO: ajouter une colonne JSONB "custom_data" si besoin plus tard
+
   if (!hasVal) { toast('Renseigne au moins une mesure','error'); return; }
-  try { await DB.addMensuration(entry); } catch(e) { toast(e.message,'error'); return; }
+  try { await DB.addMensuration(entry); } catch(e) { toast('Erreur: ' + (e.message||e),'error'); return; }
   closeModal('modal-mens'); toast('Mensurations sauvegardées ✓','success');
   renderMensuration();
 }

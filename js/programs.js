@@ -125,6 +125,9 @@ function renderDayExList() {
           <div class="mini-field"><div class="mini-label">Reps</div><input type="text" class="mini-input" value="${ex.repsTarget||'8-12'}" style="width:70px" onchange="editingDayExercises[${i}].repsTarget=this.value"/></div>
           <div class="mini-field"><div class="mini-label">Repos(s)</div><input type="number" class="mini-input" value="${ex.restSec||120}" min="0" step="15" onchange="editingDayExercises[${i}].restSec=+this.value"/></div>
         </div>
+        <div class="day-ex-note-wrap">
+          <input type="text" class="day-ex-note" placeholder="Note / commentaire…" value="${ex.note||''}" onchange="editingDayExercises[${i}].note=this.value"/>
+        </div>
       </div>
       <button class="day-ex-remove" onclick="editingDayExercises.splice(${i},1);renderDayExList()">✕</button>
     </div>`).join('');
@@ -155,11 +158,8 @@ function initDayExDragDrop() {
       if (over && over !== item) {
         var overIdx = parseInt(over.dataset.idx);
         if (overIdx !== dragIdx) {
-          var temp = editingDayExercises[dragIdx];
-          editingDayExercises.splice(dragIdx, 1);
-          editingDayExercises.splice(overIdx, 0, temp);
+          swapDayExAnimated(dragIdx, overIdx);
           dragIdx = overIdx;
-          renderDayExList();
         }
       }
     }, {passive:false});
@@ -180,11 +180,8 @@ function initDayExDragDrop() {
         if (over && over !== item) {
           var overIdx = parseInt(over.dataset.idx);
           if (overIdx !== dragIdx) {
-            var temp = editingDayExercises[dragIdx];
-            editingDayExercises.splice(dragIdx, 1);
-            editingDayExercises.splice(overIdx, 0, temp);
+            swapDayExAnimated(dragIdx, overIdx);
             dragIdx = overIdx;
-            renderDayExList();
           }
         }
       }
@@ -197,6 +194,24 @@ function initDayExDragDrop() {
       document.addEventListener('mouseup', onUp);
     });
   });
+}
+
+function swapDayExAnimated(fromIdx, toIdx) {
+  // Swap dans le tableau
+  var temp = editingDayExercises[fromIdx];
+  editingDayExercises[fromIdx] = editingDayExercises[toIdx];
+  editingDayExercises[toIdx] = temp;
+  // Re-render
+  renderDayExList();
+  // Ajouter animation sur l'item déplacé
+  var container = document.getElementById('day-ex-list');
+  var items = container.querySelectorAll('.day-ex-item');
+  var movedItem = items[toIdx];
+  if (movedItem) {
+    var animClass = toIdx > fromIdx ? 'move-down' : 'move-up';
+    movedItem.classList.add(animClass);
+    setTimeout(function() { movedItem.classList.remove(animClass); }, 260);
+  }
 }
 
 function moveDayEx(index, direction) {
@@ -278,11 +293,47 @@ async function startWorkout(progId, dayId) {
   const p = progs.find(x=>x.id===progId); if(!p) return;
   const day = (p.days||[]).find(d=>d.id===dayId); if(!day) return;
 
+  // Chercher la dernière séance avec le même nom de jour
+  const sessions = await DB.getSessions();
+  const lastSame = sessions.find(function(s) {
+    return s.name && s.name.toLowerCase().includes(day.name.toLowerCase());
+  });
+
+  if (lastSame) {
+    // Afficher le récap de la dernière séance identique
+    var html = '<div style="margin-bottom:16px;font-size:13px;color:var(--ink-faint)">Dernière séance <strong style="color:var(--ink)">' + day.name + '</strong> — ' + fDate(lastSame.date) + '</div>';
+    (lastSame.exercises||[]).forEach(function(ex) {
+      html += '<div class="sv-ex" style="margin-bottom:12px">';
+      html += '<div class="sv-ex-head">' + ex.name + ' <span class="muscle-badge">' + (ex.muscle||'') + '</span></div>';
+      html += '<table class="sv-table"><thead><tr><th>#</th><th>Poids</th><th>Reps</th></tr></thead><tbody>';
+      (ex.sets||[]).forEach(function(st, i) {
+        html += '<tr><td>' + (i+1) + '</td><td>' + (st.weight ? st.weight+' kg' : '—') + '</td><td>' + (st.reps||'—') + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    });
+    html += '<div style="display:flex;gap:10px;margin-top:16px">';
+    html += '<button class="btn-ghost" style="flex:1" onclick="closeModal(\'modal-last-session\')">Annuler</button>';
+    html += '<button class="btn-primary" style="flex:1" onclick="closeModal(\'modal-last-session\');launchWorkout(\'' + progId + '\',\'' + dayId + '\')">▶ Lancer la séance</button>';
+    html += '</div>';
+    document.getElementById('last-session-body').innerHTML = html;
+    document.getElementById('last-session-title').textContent = '📋 Dernière séance : ' + day.name;
+    openModal('modal-last-session');
+  } else {
+    // Pas de séance précédente, lancer directement
+    launchWorkout(progId, dayId);
+  }
+}
+
+async function launchWorkout(progId, dayId) {
+  const progs = await DB.getPrograms();
+  const p = progs.find(x=>x.id===progId); if(!p) return;
+  const day = (p.days||[]).find(d=>d.id===dayId); if(!day) return;
+
   wkState = {
     progId, dayId, dayName: day.name, progName: p.name,
     startTs: Date.now(), timer: null,
     exercises: (day.exercises||[]).map(ex => ({
-      id:ex.id, name:ex.name, muscle:ex.muscle, restSec:ex.restSec||120,
+      id:ex.id, name:ex.name, muscle:ex.muscle, restSec:ex.restSec||120, note:ex.note||'',
       sets: Array.from({length:ex.sets||4}, ()=>({weight:'',reps:'',rpe:'',done:false,restTimer:null,restLeft:0,doneTs:0}))
     }))
   };
@@ -306,6 +357,7 @@ function renderWorkoutBody() {
     wkState.exercises.map((ex,ei) => `
       <div class="wk-ex-block">
         <div class="wk-ex-head"><span class="wk-ex-nm">${ex.name}</span><span class="muscle-badge">${ex.muscle}</span></div>
+        ${ex.note?'<div style="padding:6px 14px;font-size:12px;color:var(--ink-faint);font-style:italic;border-bottom:1px solid var(--line-soft)">💬 '+ex.note+'</div>':''}
         <div class="wk-sets" id="wk-sets-${ei}">
           ${ex.sets.map((s,si) => renderSetHTML(ei,si,s,ex.restSec)).join('')}
           <div class="add-set-row" onclick="wkAddSet(${ei})">+ Ajouter une série</div>

@@ -694,8 +694,18 @@ nav{display:flex;flex-direction:column;gap:2px;}
   touch-action:none;line-height:1;
 }
 .day-ex-handle:active{cursor:grabbing;color:var(--green);}
-.day-ex-item.dragging{opacity:.5;border-color:var(--green);background:var(--green-soft);}
-.day-ex-item{transition:opacity .15s,border-color .15s;}
+.day-ex-item.dragging{
+  opacity:.6;border-color:var(--green);background:var(--green-soft);
+  transform:scale(1.02);box-shadow:0 4px 20px rgba(63,166,107,.2);
+  z-index:10;position:relative;
+}
+.day-ex-item{
+  transition:transform .25s ease, opacity .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.day-ex-item.move-up{animation:slideUp .25s ease;}
+.day-ex-item.move-down{animation:slideDown .25s ease;}
+@keyframes slideUp{from{transform:translateY(10px);opacity:.7;}to{transform:translateY(0);opacity:1;}}
+@keyframes slideDown{from{transform:translateY(-10px);opacity:.7;}to{transform:translateY(0);opacity:1;}}
 
 /* ===== Performances table ===== */
 .perf-table{width:100%;border-collapse:collapse;font-size:13px;min-width:500px;}
@@ -753,3 +763,20 @@ nav{display:flex;flex-direction:column;gap:2px;}
 input[type=number]{-moz-appearance:textfield;}
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+
+/* ===== Day exercise note ===== */
+.day-ex-note-wrap{margin-top:8px;}
+.day-ex-note{padding:6px 10px;font-size:12px;background:var(--bg-app);
+  border:1px solid var(--line-soft);border-radius:6px;width:100%;
+  color:var(--ink-dim);font-style:italic;}
+.day-ex-note:focus{border-color:var(--green);font-style:normal;color:var(--ink);}
+.day-ex-note::placeholder{color:var(--ink-faint);font-style:italic;}
+
+/* ===== Exercise info modal ===== */
+.ex-info-img{width:100%;max-width:300px;border-radius:12px;margin-bottom:16px;
+  border:1px solid var(--line);}
+.ex-info-placeholder{padding:32px 0;display:flex;flex-direction:column;align-items:center;}
+.ex-info-details{text-align:left;margin-top:12px;}
+.ex-info-muscle{margin-bottom:8px;}
+.ex-info-desc{font-size:13px;color:var(--ink-dim);line-height:1.6;}
+.ex-info-btn{font-size:13px!important;}

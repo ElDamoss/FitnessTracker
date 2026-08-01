@@ -113,8 +113,8 @@ async function renderPerfTable() {
 
 // ── EXPORT RAPPORT HTML ──
 async function exportReport() {
-  var exName = document.getElementById('perf-exercise').value;
-  var days = parseInt(document.getElementById('perf-period').value);
+  var exName = document.getElementById('stats-ex').value;
+  var days = parseInt(document.getElementById('stats-period').value);
   var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
   var sessions = (await DB.getSessions())
     .filter(function(s) { return new Date(s.date+'T00:00:00') >= cutoff; });
@@ -192,7 +192,5 @@ async function exportReport() {
 
 // ── EVENT LISTENERS ──
 document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('perf-exercise').addEventListener('change', function() { renderPerfCharts(); renderPerfTable(); });
-  document.getElementById('perf-period').addEventListener('change', function() { renderPerfCharts(); renderPerfTable(); });
   document.getElementById('btn-export-report').addEventListener('click', exportReport);
 });

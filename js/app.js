@@ -64,8 +64,7 @@ let currentPage = 'page-dashboard';
 const pageTitles = {
   'page-dashboard':'Tableau de bord','page-programs':'Programmes',
   'page-history':'Historique','page-stats':'Progrès',
-  'page-mensuration':'Mensurations','page-performances':'Performances',
-  'page-exercises':'Exercices'
+  'page-mensuration':'Mensurations','page-exercises':'Exercices'
 };
 
 function navigate(pageId) {
@@ -84,10 +83,9 @@ function navigate(pageId) {
   if (pageId === 'page-history') renderHistory();
   if (pageId === 'page-stats') renderStats();
   if (pageId === 'page-mensuration') renderMensuration();
-  if (pageId === 'page-performances') renderPerformances();
   if (pageId === 'page-exercises') renderExLibrary();
   // Close mobile sidebar
-  if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar').classList.remove('open');
 }
 
 document.addEventListener('click', e => {
