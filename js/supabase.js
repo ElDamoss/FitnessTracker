@@ -23,9 +23,23 @@ function getUserName() {
 async function authSignUp(email, password, displayName) {
   var result = await sb.auth.signUp({
     email: email, password: password,
-    options: { data: { display_name: displayName || email.split('@')[0] } }
+    options: {
+      data: { display_name: displayName || email.split('@')[0] },
+      emailRedirectTo: undefined
+    }
   });
   if (result.error) throw result.error;
+  // Auto-login après inscription (bypass confirmation)
+  if (result.data.session) {
+    currentUser = result.data.session.user;
+    return result.data;
+  }
+  // Si pas de session (email confirm activé), on tente un login direct
+  var login = await sb.auth.signInWithPassword({ email: email, password: password });
+  if (!login.error && login.data.session) {
+    currentUser = login.data.session.user;
+    return login.data;
+  }
   return result.data;
 }
 
