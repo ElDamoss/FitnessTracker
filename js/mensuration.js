@@ -28,7 +28,6 @@ function getAllMetrics() {
 
 // Remplace METRICS par getAllMetrics() partout
 var METRICS = getAllMetrics();
-];
 
 let mensChart = null;
 
