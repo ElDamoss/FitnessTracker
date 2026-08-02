@@ -131,9 +131,17 @@ var DB = {
     return r.data || [];
   },
   addMensuration: async function(e) {
-    var r = await sb.from('mensurations')
-      .insert(Object.assign({}, e, { user_id: getUserId() }))
-      .select().single();
+    var uid = getUserId();
+    if (!uid) throw new Error('Non connecté — impossible de sauvegarder');
+    var payload = Object.assign({}, e, { user_id: uid });
+    // Nettoyer les valeurs null/undefined/vides
+    Object.keys(payload).forEach(function(k) {
+      if (payload[k] === '' || payload[k] === null || payload[k] === undefined) delete payload[k];
+    });
+    // Garder user_id et date obligatoires
+    payload.user_id = uid;
+    if (!payload.date) throw new Error('Date manquante');
+    var r = await sb.from('mensurations').insert(payload);
     if (r.error) throw r.error;
     return r.data;
   },

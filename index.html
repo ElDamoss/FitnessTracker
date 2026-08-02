@@ -91,12 +91,15 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       </div>
     </div>
     <nav id="sidebar-nav">
+      <div class="nav-item" data-page="page-home"><svg><use href="#ic-barbell"/></svg>Accueil</div>
       <div class="nav-item active" data-page="page-dashboard"><svg><use href="#ic-grid"/></svg>Tableau de bord</div>
       <div class="nav-item" data-page="page-programs"><svg><use href="#ic-cal"/></svg>Programmes</div>
       <div class="nav-item" data-page="page-history"><svg><use href="#ic-list"/></svg>Historique</div>
       <div class="nav-item" data-page="page-stats"><svg><use href="#ic-trend"/></svg>Progrès</div>
       <div class="nav-item" data-page="page-mensuration"><svg><use href="#ic-caliper"/></svg>Mensurations</div>
       <div class="nav-item" data-page="page-exercises"><svg><use href="#ic-barbell"/></svg>Exercices</div>
+      <div class="nav-eyebrow">Infos</div>
+      <div class="nav-item" data-page="page-updates"><svg><use href="#ic-spark"/></svg>Mises à jour</div>
     </nav>
     <div class="sidebar-spacer"></div>
     <div class="user-block">
@@ -135,17 +138,35 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="page active" id="page-home">
         <div class="home-container">
           <div class="home-brand">
-            <svg width="48" height="48" style="color:var(--green-bright)"><use href="#ic-barbell"/></svg>
+            <svg width="40" height="40" style="color:var(--green-bright)"><use href="#ic-barbell"/></svg>
             <h1 class="home-title display">FitnessTracker</h1>
             <p class="home-sub">Ton suivi musculation personnel</p>
           </div>
           <div class="home-grid">
-            <button class="home-btn" data-page="page-dashboard"><span class="home-btn-icon">📊</span><span>Tableau de bord</span></button>
-            <button class="home-btn" data-page="page-programs"><span class="home-btn-icon">📅</span><span>Programmes</span></button>
-            <button class="home-btn" data-page="page-history"><span class="home-btn-icon">📋</span><span>Historique</span></button>
-            <button class="home-btn" data-page="page-stats"><span class="home-btn-icon">📈</span><span>Progrès</span></button>
-            <button class="home-btn" data-page="page-mensuration"><span class="home-btn-icon">📏</span><span>Mensurations</span></button>
-            <button class="home-btn" data-page="page-exercises"><span class="home-btn-icon">🏋️</span><span>Exercices</span></button>
+            <button class="home-card" data-page="page-dashboard">
+              <svg class="home-card-icon" width="32" height="32"><use href="#ic-grid"/></svg>
+              <span class="home-card-label">Tableau de bord</span>
+            </button>
+            <button class="home-card" data-page="page-programs">
+              <svg class="home-card-icon" width="32" height="32"><use href="#ic-barbell"/></svg>
+              <span class="home-card-label">Programmes</span>
+            </button>
+            <button class="home-card" data-page="page-mensuration">
+              <svg class="home-card-icon" width="32" height="32"><use href="#ic-caliper"/></svg>
+              <span class="home-card-label">Mensurations</span>
+            </button>
+            <button class="home-card" data-page="page-stats">
+              <svg class="home-card-icon" width="32" height="32"><use href="#ic-trend"/></svg>
+              <span class="home-card-label">Progrès</span>
+            </button>
+            <button class="home-card" data-page="page-history">
+              <svg class="home-card-icon" width="32" height="32"><use href="#ic-timer"/></svg>
+              <span class="home-card-label">Historique</span>
+            </button>
+            <button class="home-card" data-page="page-exercises">
+              <svg class="home-card-icon" width="32" height="32"><use href="#ic-gear"/></svg>
+              <span class="home-card-label">Exercices</span>
+            </button>
           </div>
         </div>
       </div>
@@ -218,6 +239,79 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
         <div class="panel" style="margin-bottom:14px"><div class="panel-head"><div class="panel-title">Évolution</div><select id="mens-metric" class="select-sm" style="min-width:150px"></select></div><canvas id="mens-chart" height="160"></canvas></div>
         <div class="section-label">Historique</div>
         <div class="panel" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table class="mens-table"><thead id="mens-thead"></thead><tbody id="mens-tbody"></tbody></table></div></div>
+      </div>
+
+      <!-- PAGE: MISES A JOUR -->
+      <div class="page" id="page-updates">
+        <div class="page-header"><h2 class="page-h1 display">Mises à jour</h2></div>
+        <div id="updates-content">
+
+          <div class="update-block">
+            <div class="update-version"><span class="version-badge">v1.4.0</span> <span class="update-date">1 août 2026</span></div>
+            <div class="update-title">V3 — Refonte interface + export</div>
+            <ul class="update-list">
+              <li class="update-feat">Page d'accueil avec boutons de navigation</li>
+              <li class="update-feat">Tableau de bord revu (séances, courbe poids, mensurations)</li>
+              <li class="update-feat">Récap fin de séance centré avec animation pop</li>
+              <li class="update-feat">Commentaire de fin de séance</li>
+              <li class="update-feat">Historique : sélection multiple + export rapport HTML</li>
+              <li class="update-fix">Fix alignement inputs kg/reps</li>
+              <li class="update-fix">Fix mensuration (insert Supabase robuste)</li>
+              <li class="update-fix">Fix sidebar qui ne se fermait pas</li>
+              <li class="update-ui">Animation drag & drop renforcée</li>
+              <li class="update-ui">Renommage MuscuTrack → FitnessTracker</li>
+            </ul>
+          </div>
+
+          <div class="update-block">
+            <div class="update-version"><span class="version-badge">v1.5.0</span> <span class="update-date">1 août 2026</span></div>
+            <div class="update-title">V4 — Accueil redesigné + changelog</div>
+            <ul class="update-list">
+              <li class="update-feat">Bouton Accueil dans la sidebar</li>
+              <li class="update-feat">Redesign page d'accueil (dark cards + icônes SVG)</li>
+              <li class="update-feat">Onglet "Mises à jour" dans l'app</li>
+              <li class="update-fix">Fix mensuration (nettoyage payload, vérif connexion)</li>
+            </ul>
+          </div>
+
+          <div class="update-block">
+            <div class="update-version"><span class="version-badge">v1.3.0</span> <span class="update-date">1 août 2026</span></div>
+            <div class="update-title">TacheV2 — Retours utilisateurs</div>
+            <ul class="update-list">
+              <li class="update-feat">Modal récap dernière séance avant lancement</li>
+              <li class="update-feat">Notes/commentaires par exercice dans les programmes</li>
+              <li class="update-feat">Bulle info ℹ️ sur chaque exercice (image API)</li>
+              <li class="update-feat">Thème Stitch 🧵 + Thème Kitty 🎀</li>
+              <li class="update-feat">8 exercices Fessiers ajoutés</li>
+              <li class="update-feat">Timer repos : pause ⏸ + stop ✕</li>
+              <li class="update-feat">Réorganisation exercices par glisser-déposer</li>
+              <li class="update-fix">Seed exercices manquants ajoutés automatiquement</li>
+            </ul>
+          </div>
+
+          <div class="update-block">
+            <div class="update-version"><span class="version-badge">v1.1.0</span> <span class="update-date">23 juillet 2026</span></div>
+            <div class="update-title">PWA + Supabase</div>
+            <ul class="update-list">
+              <li class="update-feat">Conversion en PWA installable</li>
+              <li class="update-feat">Connexion Supabase (auth + données cloud)</li>
+              <li class="update-feat">Chaque utilisateur voit uniquement ses données</li>
+              <li class="update-feat">Déploiement auto GitHub → Netlify</li>
+            </ul>
+          </div>
+
+          <div class="update-block">
+            <div class="update-version"><span class="version-badge">v1.0.0</span> <span class="update-date">22 juillet 2026</span></div>
+            <div class="update-title">Version initiale</div>
+            <ul class="update-list">
+              <li class="update-feat">Dashboard, Programmes, Workout, Historique, Stats, Mensurations</li>
+              <li class="update-feat">Mode entraînement (chrono, timer repos, saisie poids/reps)</li>
+              <li class="update-feat">34 exercices pré-chargés (7 catégories)</li>
+              <li class="update-ui">Design dark mode + mode clair</li>
+            </ul>
+          </div>
+
+        </div>
       </div>
 
       <!-- PAGE: EXERCICES -->

@@ -64,7 +64,8 @@ let currentPage = 'page-home';
 const pageTitles = {
   'page-home':'Accueil','page-dashboard':'Tableau de bord','page-programs':'Programmes',
   'page-history':'Historique','page-stats':'Progrès',
-  'page-mensuration':'Mensurations','page-exercises':'Exercices'
+  'page-mensuration':'Mensurations','page-exercises':'Exercices',
+  'page-updates':'Mises à jour'
 };
 
 function navigate(pageId) {

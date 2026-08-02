@@ -805,15 +805,45 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 
 /* ===== Page d'accueil ===== */
 .home-container{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;padding:32px 16px;}
-.home-brand{text-align:center;margin-bottom:32px;}
+.home-brand{text-align:center;margin-bottom:36px;}
 .home-brand svg{margin-bottom:12px;}
-.home-title{font-size:28px;margin-bottom:6px;}
+.home-title{font-size:26px;margin-bottom:6px;}
 .home-sub{font-size:14px;color:var(--ink-faint);}
-.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:360px;}
-.home-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:8px;padding:20px 12px;background:var(--bg-panel);border:1px solid var(--line-soft);
-  border-radius:16px;font-size:13px;font-weight:600;color:var(--ink);
-  transition:all .2s;cursor:pointer;}
-.home-btn:hover{border-color:var(--green);background:var(--green-soft);}
-.home-btn:active{transform:scale(.96);}
-.home-btn-icon{font-size:28px;line-height:1;}
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:400px;}
+.home-card{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:28px 16px;
+  background:var(--bg-panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  color:var(--ink);
+  font-size:14px;font-weight:600;
+  transition:all .2s;cursor:pointer;
+  position:relative;overflow:hidden;
+}
+.home-card::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,var(--green-soft) 0%,transparent 70%);
+  opacity:0;transition:opacity .3s;
+}
+.home-card:hover::before{opacity:1;}
+.home-card:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.home-card:active{transform:scale(.96);}
+.home-card-icon{color:var(--green-bright);position:relative;z-index:1;}
+.home-card-label{position:relative;z-index:1;}
+
+/* ===== Page Mises à jour ===== */
+.update-block{background:var(--bg-panel);border:1px solid var(--line-soft);
+  border-radius:14px;padding:18px;margin-bottom:14px;}
+.update-version{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.version-badge{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+  color:var(--green-bright);background:var(--green-soft);
+  padding:2px 8px;border-radius:6px;border:1px solid var(--green);}
+.update-date{font-size:11px;color:var(--ink-faint);}
+.update-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;margin-bottom:10px;}
+.update-list{list-style:none;padding:0;margin:0;}
+.update-list li{font-size:13px;color:var(--ink-dim);padding:4px 0 4px 20px;position:relative;}
+.update-list li::before{content:"";position:absolute;left:0;top:10px;width:8px;height:8px;border-radius:50%;}
+.update-feat::before{background:var(--green);}
+.update-fix::before{background:#ef4444;}
+.update-ui::before{background:#2196f3;}
