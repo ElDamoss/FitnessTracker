@@ -75,6 +75,9 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <span id="auth-switch-text">Pas encore de compte ?</span>
       <button class="auth-switch-btn" id="auth-switch-btn">Créer un compte</button>
     </div>
+    <div class="auth-forgot">
+      <button class="auth-forgot-btn" id="auth-forgot-btn">Mot de passe oublié ?</button>
+    </div>
   </div>
 </div>
 
@@ -84,7 +87,14 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
   <!-- SIDEBAR (desktop) -->
   <div class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="brand-mark"><svg><use href="#ic-barbell"/></svg></div>
+      <div class="brand-mark">
+        <svg width="22" height="22" viewBox="0 0 56 56" fill="none">
+          <line x1="14" y1="28" x2="42" y2="28" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <rect x="16" y="22" width="5" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="35" y="22" width="5" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M24 32 L28 26 L32 29 L38 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+        </svg>
+      </div>
       <div>
         <div class="brand-word display">FITNESSTRACKER</div>
         <div class="brand-badge">PRO</div>
@@ -102,7 +112,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="nav-item" data-page="page-updates"><svg><use href="#ic-spark"/></svg>Mises à jour</div>
     </nav>
     <div class="sidebar-spacer"></div>
-    <div class="user-block">
+    <div class="user-block" style="cursor:pointer" onclick="navigate('page-profile')">
       <div class="user-avatar" id="user-avatar">?</div>
       <div style="flex:1;min-width:0">
         <div class="user-name" id="user-display-name">Utilisateur</div>
@@ -138,33 +148,72 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="page active" id="page-home">
         <div class="home-container">
           <div class="home-brand">
-            <svg width="40" height="40" style="color:var(--green-bright)"><use href="#ic-barbell"/></svg>
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" class="home-logo">
+              <rect width="56" height="56" rx="14" fill="var(--bg-panel)" stroke="var(--line)" stroke-width="1"/>
+              <line x1="14" y1="28" x2="42" y2="28" stroke="var(--green-bright)" stroke-width="2.5" stroke-linecap="round"/>
+              <rect x="16" y="22" width="5" height="12" rx="2" fill="none" stroke="var(--green-bright)" stroke-width="1.8"/>
+              <rect x="35" y="22" width="5" height="12" rx="2" fill="none" stroke="var(--green-bright)" stroke-width="1.8"/>
+              <path d="M24 32 L28 26 L32 29 L38 21" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+              <circle cx="38" cy="21" r="2" fill="var(--green)" opacity=".7"/>
+            </svg>
             <h1 class="home-title display">FitnessTracker</h1>
             <p class="home-sub">Ton suivi musculation personnel</p>
           </div>
           <div class="home-grid">
             <button class="home-card" data-page="page-dashboard">
-              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                <path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z"/>
+                <circle cx="5" cy="11" r="1.2" fill="currentColor" stroke="none"/>
+                <circle cx="12" cy="6" r="1.2" fill="currentColor" stroke="none"/>
+                <circle cx="19" cy="2" r="1.2" fill="currentColor" stroke="none"/>
+              </svg>
               <span class="home-card-label">Tableau de bord</span>
             </button>
             <button class="home-card" data-page="page-programs">
-              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="3.5" y1="12" x2="20.5" y2="12"/><circle cx="8" cy="12" r="3.5"/><circle cx="16" cy="12" r="3.5"/><line x1="8" y1="8.5" x2="8" y2="15.5" stroke-width="1.3"/><line x1="16" y1="8.5" x2="16" y2="15.5" stroke-width="1.3"/></svg>
+              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                <rect x="2" y="9" width="4" height="6" rx="1"/>
+                <rect x="18" y="9" width="4" height="6" rx="1"/>
+                <rect x="5" y="7" width="3" height="10" rx="1.2"/>
+                <rect x="16" y="7" width="3" height="10" rx="1.2"/>
+                <line x1="8" y1="12" x2="16" y2="12" stroke-width="2"/>
+              </svg>
               <span class="home-card-label">Programmes</span>
             </button>
             <button class="home-card" data-page="page-mensuration">
-              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7.5 L20 7.5"/><path d="M4 5 L4 10 M8 6 L8 9 M12 5 L12 10 M16 6 L16 9 M20 5 L20 10"/><path d="M7 12 C7 16 9 19 12 19 C15 19 17 16 17 12"/></svg>
+              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                <path d="M12 2C8 2 5 5.5 5 10c0 3 1.5 5.5 3.5 7l.5 3h6l.5-3c2-1.5 3.5-4 3.5-7 0-4.5-3-8-7-8z"/>
+                <line x1="8" y1="10" x2="10" y2="10" stroke-width="1.2"/>
+                <line x1="14" y1="10" x2="16" y2="10" stroke-width="1.2"/>
+                <line x1="8" y1="13" x2="10" y2="13" stroke-width="1.2"/>
+                <line x1="14" y1="13" x2="16" y2="13" stroke-width="1.2"/>
+                <line x1="9" y1="20" x2="15" y2="20"/>
+              </svg>
               <span class="home-card-label">Mensurations</span>
             </button>
             <button class="home-card" data-page="page-stats">
-              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17 L8 11 L12 14 L21 5"/><path d="M16 5 L21 5 L21 10"/></svg>
+              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                <path d="M2 20 L7 13 L11 16 L16 9 L22 4"/>
+                <path d="M16 4 L22 4 L22 10"/>
+                <circle cx="7" cy="13" r="1.5" fill="currentColor" stroke="none" opacity=".5"/>
+                <circle cx="11" cy="16" r="1.5" fill="currentColor" stroke="none" opacity=".5"/>
+                <circle cx="16" cy="9" r="1.5" fill="currentColor" stroke="none" opacity=".5"/>
+              </svg>
               <span class="home-card-label">Progrès</span>
             </button>
             <button class="home-card" data-page="page-history">
-              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="13" r="8"/><path d="M12 9 L12 13 L15.5 15"/><path d="M9.5 2.5 L14.5 2.5"/><line x1="12" y1="2.5" x2="12" y2="5"/></svg>
+              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 7v5l3.5 3.5"/>
+                <path d="M3 12h2 M19 12h2 M12 3v2 M12 19v2" stroke-width="1" opacity=".4"/>
+              </svg>
               <span class="home-card-label">Historique</span>
             </button>
             <button class="home-card" data-page="page-exercises">
-              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 3.5 L12 6 M12 18 L12 20.5 M20.5 12 L18 12 M6 12 L3.5 12"/><path d="M17.5 6.5 L16 8 M8 16 L6.5 17.5 M17.5 17.5 L16 16 M8 8 L6.5 6.5"/></svg>
+              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                <path d="M12 2L4 7v10l8 5 8-5V7z"/>
+                <path d="M12 12L4 7 M12 12l8-5 M12 12v10" opacity=".5"/>
+                <circle cx="12" cy="12" r="2.5"/>
+              </svg>
               <span class="home-card-label">Exercices</span>
             </button>
           </div>
@@ -239,6 +288,74 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
         <div class="panel" style="margin-bottom:14px"><div class="panel-head"><div class="panel-title">Évolution</div><select id="mens-metric" class="select-sm" style="min-width:150px"></select></div><canvas id="mens-chart" height="160"></canvas></div>
         <div class="section-label">Historique</div>
         <div class="panel" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table class="mens-table"><thead id="mens-thead"></thead><tbody id="mens-tbody"></tbody></table></div></div>
+      </div>
+
+      <!-- PAGE: PROFIL & SÉCURITÉ -->
+      <div class="page" id="page-profile">
+        <div class="page-header"><h2 class="page-h1 display">Mon profil</h2></div>
+
+        <!-- Tabs Profil / Sécurité -->
+        <div class="profile-tabs">
+          <button class="profile-tab active" id="tab-profile" onclick="switchProfileTab('profile')">Profil</button>
+          <button class="profile-tab" id="tab-security" onclick="switchProfileTab('security')">Sécurité</button>
+        </div>
+
+        <!-- TAB: Profil -->
+        <div class="profile-section" id="section-profile">
+          <div class="panel" style="margin-bottom:14px">
+            <div class="panel-head"><div class="panel-title">Informations personnelles</div></div>
+            <div class="profile-field">
+              <label>Email</label>
+              <div class="profile-value" id="profile-email">—</div>
+            </div>
+            <div class="profile-field">
+              <label>Prénom / Pseudo</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="text" id="profile-name-input" placeholder="Ton prénom..." style="flex:1"/>
+                <button class="btn-primary btn-sm" id="btn-save-profile-name">Enregistrer</button>
+              </div>
+            </div>
+            <div class="profile-field">
+              <label>Téléphone (optionnel)</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="tel" id="profile-phone-input" placeholder="06 12 34 56 78" style="flex:1"/>
+                <button class="btn-ghost btn-sm" id="btn-save-profile-phone">Enregistrer</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="border-color:rgba(239,68,68,.3)">
+            <div class="panel-head"><div class="panel-title" style="color:var(--danger)">Zone dangereuse</div></div>
+            <p style="font-size:13px;color:var(--ink-faint);margin-bottom:12px">La suppression de ton compte est irréversible. Toutes tes données seront perdues.</p>
+            <button class="btn-danger" id="btn-delete-account">🗑 Supprimer mon compte</button>
+          </div>
+        </div>
+
+        <!-- TAB: Sécurité -->
+        <div class="profile-section hidden" id="section-security">
+          <div class="panel" style="margin-bottom:14px">
+            <div class="panel-head"><div class="panel-title">Changer le mot de passe</div></div>
+            <p style="font-size:13px;color:var(--ink-faint);margin-bottom:12px">Un email de réinitialisation sera envoyé à ton adresse.</p>
+            <button class="btn-primary" id="btn-reset-password">📧 Envoyer le lien de réinitialisation</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Authentification à deux facteurs (MFA)</div></div>
+            <p style="font-size:13px;color:var(--ink-faint);margin-bottom:12px">Protège ton compte avec une app d'authentification (Google Authenticator, Authy...).</p>
+            <div id="mfa-status"></div>
+            <button class="btn-primary" id="btn-enable-mfa" style="margin-top:10px">🔐 Activer la MFA</button>
+            <div id="mfa-setup" class="hidden" style="margin-top:14px">
+              <div id="mfa-qr" style="text-align:center;margin-bottom:12px"></div>
+              <div class="field">
+                <label>Code de vérification (6 chiffres)</label>
+                <div style="display:flex;gap:8px">
+                  <input type="text" id="mfa-code" placeholder="123456" maxlength="6" style="flex:1;text-align:center;font-size:18px;letter-spacing:4px"/>
+                  <button class="btn-primary btn-sm" id="btn-verify-mfa">Vérifier</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- PAGE: MISES A JOUR -->
@@ -485,6 +602,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 <script src="js/stats.js"></script>
 <script src="js/mensuration.js"></script>
 <script src="js/performances.js"></script>
+<script src="js/profile.js"></script>
 
 <!-- Service Worker -->
 <script>

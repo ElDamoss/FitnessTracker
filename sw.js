@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'fitnesstracker-v1';
+﻿const CACHE_NAME = 'fitnesstracker-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const ASSETS = [
   './js/stats.js',
   './js/mensuration.js',
   './js/performances.js',
+  './js/profile.js',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',

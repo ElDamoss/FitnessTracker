@@ -65,7 +65,32 @@ const pageTitles = {
   'page-home':'Accueil','page-dashboard':'Tableau de bord','page-programs':'Programmes',
   'page-history':'Historique','page-stats':'Progrès',
   'page-mensuration':'Mensurations','page-exercises':'Exercices',
-  'page-updates':'Mises à jour'
+  'page-updates':'Mises à jour','page-profile':'Mon profil'
+};
+
+const pageRoutes = {
+  '/':'page-home',
+  '/accueil':'page-home',
+  '/dashboard':'page-dashboard',
+  '/programmes':'page-programs',
+  '/historique':'page-history',
+  '/progres':'page-stats',
+  '/mensurations':'page-mensuration',
+  '/exercices':'page-exercises',
+  '/mises-a-jour':'page-updates',
+  '/profil':'page-profile'
+};
+
+const routeFromPage = {
+  'page-home':'/',
+  'page-dashboard':'/dashboard',
+  'page-programs':'/programmes',
+  'page-history':'/historique',
+  'page-stats':'/progres',
+  'page-mensuration':'/mensurations',
+  'page-exercises':'/exercices',
+  'page-updates':'/mises-a-jour',
+  'page-profile':'/profil'
 };
 
 function navigate(pageId) {
@@ -78,6 +103,13 @@ function navigate(pageId) {
   pg.classList.add('active');
   currentPage = pageId;
   document.getElementById('topbar-title').textContent = pageTitles[pageId] || '';
+
+  // Update URL without reload
+  const route = routeFromPage[pageId] || '/';
+  if (window.location.pathname !== route) {
+    history.pushState({page: pageId}, '', route);
+  }
+
   // Render pages
   if (pageId === 'page-dashboard') renderDashboard();
   if (pageId === 'page-programs') renderPrograms();
@@ -85,8 +117,25 @@ function navigate(pageId) {
   if (pageId === 'page-stats') renderStats();
   if (pageId === 'page-mensuration') renderMensuration();
   if (pageId === 'page-exercises') renderExLibrary();
+  if (pageId === 'page-profile') renderProfile();
   // Close mobile sidebar
   document.getElementById('sidebar').classList.remove('open');
+}
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', function(e) {
+  if (e.state && e.state.page) {
+    navigate(e.state.page);
+  } else {
+    navigateFromURL();
+  }
+});
+
+// Navigate based on current URL
+function navigateFromURL() {
+  var path = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
+  var pageId = pageRoutes[path] || 'page-home';
+  navigate(pageId);
 }
 
 document.addEventListener('click', e => {
@@ -105,6 +154,21 @@ function setupAuthUI() {
   const sub = document.getElementById('auth-sub');
   const submit = document.getElementById('auth-submit');
   const nameField = document.getElementById('auth-name-field');
+
+  // Mot de passe oublié
+  document.getElementById('auth-forgot-btn').addEventListener('click', async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    if (!email) { toast('Entre ton email d\'abord', 'error'); return; }
+    try {
+      var r = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://fitnesstracker.bzh/index.html'
+      });
+      if (r.error) throw r.error;
+      toast('📧 Email de réinitialisation envoyé à ' + email, 'success', 5000);
+    } catch(e) {
+      toast('Erreur: ' + (e.message || e), 'error');
+    }
+  });
 
   switchBtn.addEventListener('click', () => {
     isSignUp = !isSignUp;
@@ -166,8 +230,8 @@ async function initApp() {
   document.getElementById('topbar-date').textContent =
     new Date().toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-  // Navigate to home
-  navigate('page-home');
+  // Navigate based on URL
+  navigateFromURL();
 }
 
 // ── DASHBOARD ──
