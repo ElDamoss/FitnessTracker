@@ -847,3 +847,10 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 .update-feat::before{background:var(--green);}
 .update-fix::before{background:#ef4444;}
 .update-ui::before{background:#2196f3;}
+
+/* ===== Fix modal last-session centré ===== */
+#modal-last-session{align-items:center;}
+#modal-last-session .modal{
+  border-radius:18px;max-width:500px;max-height:85vh;
+  animation:popIn .35s cubic-bezier(.17,.67,.28,1.2);
+}
