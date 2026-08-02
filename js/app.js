@@ -1,5 +1,5 @@
 ﻿/* ============================================================
-   MUSCUTRACK PRO — App : Auth flow, Nav, Theme, Dashboard
+   FITNESSTRACKER — App : Auth flow, Nav, Theme, Dashboard
    ============================================================ */
 
 // ── FORMATTERS ──
@@ -60,9 +60,9 @@ function initTheme() {
 }
 
 // ── NAVIGATION ──
-let currentPage = 'page-dashboard';
+let currentPage = 'page-home';
 const pageTitles = {
-  'page-dashboard':'Tableau de bord','page-programs':'Programmes',
+  'page-home':'Accueil','page-dashboard':'Tableau de bord','page-programs':'Programmes',
   'page-history':'Historique','page-stats':'Progrès',
   'page-mensuration':'Mensurations','page-exercises':'Exercices'
 };
@@ -108,7 +108,7 @@ function setupAuthUI() {
   switchBtn.addEventListener('click', () => {
     isSignUp = !isSignUp;
     title.textContent = isSignUp ? 'Créer un compte' : 'Connexion';
-    sub.textContent = isSignUp ? 'Rejoins MuscuTrack pour suivre ta progression' : 'Entre tes identifiants pour accéder à ton espace';
+    sub.textContent = isSignUp ? 'Rejoins FitnessTracker pour suivre ta progression' : 'Entre tes identifiants pour accéder à ton espace';
     submit.textContent = isSignUp ? 'Créer mon compte' : 'Se connecter';
     switchTxt.textContent = isSignUp ? 'Déjà un compte ?' : 'Pas encore de compte ?';
     switchBtn.textContent = isSignUp ? 'Se connecter' : 'Créer un compte';
@@ -165,8 +165,8 @@ async function initApp() {
   document.getElementById('topbar-date').textContent =
     new Date().toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-  // Navigate to dashboard
-  navigate('page-dashboard');
+  // Navigate to home
+  navigate('page-home');
 }
 
 // ── DASHBOARD ──
@@ -174,19 +174,13 @@ async function renderDashboard() {
   const sessions = await DB.getSessions();
   const now = new Date();
 
+  // Nombre total de séances
+  document.getElementById('dash-total-sessions').textContent = sessions.length;
+
   // Volume semaine
   const wStart = new Date(now); wStart.setDate(now.getDate()-now.getDay()+1); wStart.setHours(0,0,0,0);
   const wVol = sessions.filter(s=>new Date(s.date+'T00:00:00')>=wStart).reduce((a,s)=>a+sesVol(s),0);
-  document.getElementById('dash-vol').textContent = wVol>=1000?(wVol/1000).toFixed(1)+'k':wVol.toFixed(0);
   document.getElementById('stat-vol-week').textContent = fW(wVol);
-
-  // Séances mois
-  const m = now.toISOString().slice(0,7);
-  document.getElementById('dash-sessions').textContent = sessions.filter(s=>s.date.startsWith(m)).length;
-
-  // PRs
-  const prs = computePRs(sessions);
-  document.getElementById('dash-prs').textContent = Object.keys(prs).length;
 
   // Progression vs semaine précédente
   const pStart = new Date(wStart); pStart.setDate(pStart.getDate()-7);
@@ -206,19 +200,75 @@ async function renderDashboard() {
   document.getElementById('delta-streak').textContent=streak>0?'Actif':'—';
   document.getElementById('delta-streak').className='stat-delta'+(streak>0?'':' neutral');
 
-  // Avg duration
-  const wd=sessions.filter(s=>s.duration_sec>0).slice(0,10);
-  const avg=wd.length?Math.round(wd.reduce((a,s)=>a+s.duration_sec,0)/wd.length/60):0;
-  document.getElementById('stat-dur').textContent=avg?avg+'min':'—';
+  // Dernier entraînement
+  const el = document.getElementById('dash-last-training');
+  if (sessions.length > 0) {
+    const last = sessions[0];
+    const vol = sesVol(last);
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:12px">
+      <div class="ex-badge">${initials(last.name)}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px">${last.name}</div>
+        <div style="font-size:12px;color:var(--ink-faint)">${fDate(last.date)} · ${(last.exercises||[]).length} exercices · ${fW(vol)}</div>
+      </div>
+    </div>`;
+  } else {
+    el.innerHTML = '<p style="color:var(--ink-faint);font-size:13px">Aucune séance enregistrée</p>';
+  }
+
+  // Courbe du poids (depuis mensurations)
+  renderDashPoidsChart();
+
+  // Évolution mensurations
+  renderDashMensurationSummary();
 
   // Weekly chart
   renderDashWeekChart(sessions);
-  // Today program
-  await renderDashToday();
-  // Recent
-  renderDashRecent(sessions);
-  // PRs
-  renderDashPRs(prs);
+}
+
+async function renderDashPoidsChart() {
+  const data = await DB.getMensurations();
+  const pts = data.slice().reverse().filter(d=>d.poids).map(d=>({date:d.date, val:parseFloat(d.poids)}));
+  const ctx = document.getElementById('dash-chart-poids').getContext('2d');
+  if (window._dashPoidsChart) window._dashPoidsChart.destroy();
+  if (!pts.length) { return; }
+  window._dashPoidsChart = new Chart(ctx, {
+    type:'line',
+    data:{labels:pts.map(p=>fDateS(p.date)), datasets:[{
+      data:pts.map(p=>p.val),
+      borderColor:'#3fa66b',backgroundColor:'rgba(63,166,107,.1)',
+      tension:.35,fill:true,pointBackgroundColor:'#3fa66b',pointRadius:4
+    }]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{
+      x:{ticks:{color:'#52604f',maxRotation:40,font:{size:10}},grid:{display:false}},
+      y:{ticks:{color:'#52604f',font:{size:10},callback:function(v){return v+' kg';}},grid:{color:'#1a2219'},beginAtZero:false}
+    }}
+  });
+}
+
+async function renderDashMensurationSummary() {
+  const data = await DB.getMensurations();
+  const el = document.getElementById('dash-mensuration-summary');
+  if (!data.length) { el.innerHTML='<p style="color:var(--ink-faint);font-size:13px">Aucune donnée</p>'; return; }
+  const latest = data[0];
+  const prev = data.length>1 ? data[1] : null;
+  const keys = [
+    {key:'poids',label:'Poids',unit:'kg'},
+    {key:'tour_bras_d',label:'Bras D',unit:'cm'},
+    {key:'tour_pec',label:'Poitrine',unit:'cm'},
+    {key:'tour_taille',label:'Taille',unit:'cm'},
+  ];
+  el.innerHTML = keys.filter(k=>latest[k.key]).map(function(k) {
+    const v = parseFloat(latest[k.key])||0;
+    const pv = prev ? parseFloat(prev[k.key])||0 : 0;
+    const delta = prev ? (v-pv).toFixed(1) : null;
+    const cls = delta>0?'color:#22c55e':delta<0?'color:var(--danger)':'color:var(--ink-faint)';
+    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-soft)">' +
+      '<span style="font-size:13px">' + k.label + '</span>' +
+      '<span style="font-family:IBM Plex Mono,monospace;font-size:13px;font-weight:600">' + v + ' ' + k.unit +
+      (delta!=null ? ' <span style="font-size:11px;'+cls+'">' + (delta>0?'+'+delta:delta) + '</span>' : '') +
+      '</span></div>';
+  }).join('');
 }
 
 function computePRs(sessions) {
@@ -253,45 +303,9 @@ function renderDashWeekChart(sessions) {
     </div>`).join('');
 }
 
-async function renderDashToday() {
-  const el=document.getElementById('dash-today');
-  const progs=await DB.getPrograms();
-  if(!progs.length){el.innerHTML='<p class="empty-state">Crée un programme</p>';return;}
-  const p=progs[0];
-  const days=p.days||[];
-  if(!days.length){el.innerHTML='<p class="empty-state">Ajoute des jours</p>';return;}
-  const day=days[0];
-  el.innerHTML=(day.exercises||[]).slice(0,4).map(ex=>`
-    <div class="ex-row">
-      <div class="ex-badge">${initials(ex.name)}</div>
-      <div class="ex-info"><div class="ex-name">${ex.name}</div><div class="ex-meta">${ex.sets||4}s · ${ex.repsTarget||'8-12'}r · ${ex.restSec||120}s repos</div></div>
-    </div>`).join('')+
-  `<button class="btn-train" style="margin-top:12px;width:100%;padding:10px" onclick="startWorkout('${p.id}','${day.id}')">▶ ${day.name}</button>`;
-}
 
-function renderDashRecent(sessions) {
-  const el=document.getElementById('dash-recent');
-  const recent=sessions.slice(0,4);
-  if(!recent.length){el.innerHTML='<p class="empty-state">Aucune séance</p>';return;}
-  el.innerHTML=recent.map(s=>`
-    <div class="session-row" onclick="openSessionView('${s.id}')">
-      <div class="session-badge">${initials(s.name)}</div>
-      <div class="session-info"><div class="session-name">${s.name}</div><div class="session-meta">${fDate(s.date)}${s.duration_sec?' · '+fDur(s.duration_sec):''}</div></div>
-      <div class="session-vol"><div class="session-vol-val">${fW(sesVol(s))}</div><div class="session-vol-sub">${(s.exercises||[]).length} ex.</div></div>
-    </div>`).join('');
-}
+// (anciennes fonctions dash supprimées — remplacées par le nouveau dashboard)
 
-function renderDashPRs(prs) {
-  const el=document.getElementById('dash-prs-list');
-  const entries=Object.entries(prs).sort((a,b)=>b[1].weight-a[1].weight).slice(0,4);
-  if(!entries.length){el.innerHTML='<p class="empty-state">Aucun record</p>';return;}
-  el.innerHTML=entries.map(([name,pr])=>`
-    <div class="pr-row">
-      <div class="pr-icon"><svg width="16" height="16"><use href="#ic-spark"/></svg></div>
-      <div class="pr-info"><div class="pr-name">${name}</div><div class="pr-meta">${fDate(pr.date)} · ×${pr.reps||'?'}</div></div>
-      <div class="pr-val">${pr.weight} kg</div>
-    </div>`).join('');
-}
 
 // ── BOOT ──
 document.addEventListener('DOMContentLoaded', async () => {
@@ -301,6 +315,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Theme toggle
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
   document.getElementById('theme-fun').addEventListener('click', toggleGirly);
+
+  // Dashboard buttons
+  document.getElementById('btn-dash-last-recap').addEventListener('click', async function() {
+    var sessions = await DB.getSessions();
+    if (sessions.length > 0) openSessionView(sessions[0].id);
+    else toast('Aucune séance enregistrée', 'info');
+  });
+  document.getElementById('btn-dash-note').addEventListener('click', function() {
+    var note = prompt('Note rapide :');
+    if (note && note.trim()) toast('📝 Note : ' + note.trim(), 'info', 5000);
+  });
 
   // Logout
   document.getElementById('btn-logout').addEventListener('click', async () => {

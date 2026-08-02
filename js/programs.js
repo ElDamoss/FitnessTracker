@@ -1,5 +1,5 @@
 ﻿/* ============================================================
-   MUSCUTRACK PRO — Programs + Days + Workout Engine
+   FITNESSTRACKER — Programs + Days + Workout Engine
    ============================================================ */
 
 // ── PROGRAMS RENDER ──
@@ -540,11 +540,14 @@ function showRecap(elapsedSec) {
 
 async function saveRecap() {
   if (!pendingSession) return;
+  var comment = document.getElementById('recap-comment').value.trim();
+  if (comment) pendingSession.notes = comment;
   try {
     await DB.addSession(pendingSession);
     toast('Séance sauvegardée ! 💪', 'success');
   } catch(e) { toast('Erreur: '+e.message, 'error'); return; }
   pendingSession = null;
+  document.getElementById('recap-comment').value = '';
   closeModal('modal-recap');
   document.getElementById('wk-screen').classList.add('hidden');
   wkState = null;

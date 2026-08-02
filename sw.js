@@ -1,4 +1,4 @@
-const CACHE_NAME = 'muscutrack-v1';
+﻿const CACHE_NAME = 'fitnesstracker-v1';
 const ASSETS = [
   './',
   './index.html',

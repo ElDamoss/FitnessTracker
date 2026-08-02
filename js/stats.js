@@ -1,5 +1,5 @@
 ﻿/* ============================================================
-   MUSCUTRACK PRO — Stats & PRs
+   FITNESSTRACKER — Stats & PRs
    ============================================================ */
 
 let chartMW = null, chartV = null;

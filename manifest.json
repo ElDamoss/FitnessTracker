@@ -1,6 +1,6 @@
-{
-  "name": "MuscuTrack Pro",
-  "short_name": "MuscuTrack",
+﻿{
+  "name": "FitnessTracker",
+  "short_name": "FitnessTracker",
   "description": "Suivi musculation avancé — programmes, séances, mensurations",
   "start_url": "./index.html",
   "display": "standalone",

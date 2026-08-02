@@ -1,5 +1,5 @@
 ﻿/* ============================================================
-   MUSCUTRACK PRO — Mensurations
+   FITNESSTRACKER — Mensurations
    ============================================================ */
 
 const DEFAULT_METRICS = [
@@ -117,18 +117,31 @@ function openMensModal() {
   document.getElementById('mens-date').value = new Date().toISOString().split('T')[0];
   METRICS = getAllMetrics(); // refresh
   const grid = document.getElementById('mens-form-grid');
-  DB.getMensurations().then(data => {
-    const last = data[0] || {};
-    grid.innerHTML = METRICS.map(m => `
-      <div class="mens-field">
-        <label>${m.label}</label>
-        <input type="number" step="0.1" min="0" id="mens-input-${m.key}" value="${last[m.key]||''}" placeholder="${m.unit}"/>
-        <span class="mens-unit">${m.unit}</span>
-      </div>`).join('') + `
-      <div class="mens-field" style="display:flex;align-items:flex-end">
-        <button class="btn-ghost btn-sm" onclick="addCustomMetricPrompt()" style="width:100%;margin-top:auto">+ Ajouter une zone</button>
-      </div>`;
+
+  DB.getMensurations().then(function(data) {
+    var last = (data && data[0]) ? data[0] : {};
+    grid.innerHTML = METRICS.map(function(m) {
+      var val = last[m.key] != null ? last[m.key] : '';
+      return '<div class="mens-field">' +
+        '<label>' + m.label + '</label>' +
+        '<input type="number" step="0.1" min="0" id="mens-input-' + m.key + '" value="' + val + '" placeholder="' + m.unit + '"/>' +
+        '<span class="mens-unit">' + m.unit + '</span>' +
+        '</div>';
+    }).join('') +
+    '<div class="mens-field" style="display:flex;align-items:flex-end">' +
+      '<button class="btn-ghost btn-sm" onclick="addCustomMetricPrompt()" style="width:100%;margin-top:auto">+ Ajouter une zone</button>' +
+    '</div>';
+  }).catch(function(err) {
+    console.error('Erreur chargement mensurations:', err);
+    grid.innerHTML = METRICS.map(function(m) {
+      return '<div class="mens-field">' +
+        '<label>' + m.label + '</label>' +
+        '<input type="number" step="0.1" min="0" id="mens-input-' + m.key + '" value="" placeholder="' + m.unit + '"/>' +
+        '<span class="mens-unit">' + m.unit + '</span>' +
+        '</div>';
+    }).join('');
   });
+
   openModal('modal-mens');
 }
 
@@ -168,7 +181,13 @@ async function saveMens() {
   // TODO: ajouter une colonne JSONB "custom_data" si besoin plus tard
 
   if (!hasVal) { toast('Renseigne au moins une mesure','error'); return; }
-  try { await DB.addMensuration(entry); } catch(e) { toast('Erreur: ' + (e.message||e),'error'); return; }
+  try {
+    await DB.addMensuration(entry);
+  } catch(e) {
+    console.error('Erreur sauvegarde mensuration:', e);
+    toast('Erreur: ' + (e.message || JSON.stringify(e)),'error');
+    return;
+  }
   closeModal('modal-mens'); toast('Mensurations sauvegardées ✓','success');
   renderMensuration();
 }

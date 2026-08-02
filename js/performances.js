@@ -1,5 +1,5 @@
-/* ============================================================
-   MUSCUTRACK PRO — Performances : historique poids + export rapport
+﻿/* ============================================================
+   FITNESSTRACKER — Performances : historique poids + export rapport
    ============================================================ */
 
 var perfChartW = null, perfChartV = null;
@@ -149,7 +149,7 @@ async function exportReport() {
   var now = new Date().toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'});
 
   var html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/>';
-  html += '<title>Rapport MuscuTrack — ' + userName + '</title>';
+  html += '<title>Rapport FitnessTracker — ' + userName + '</title>';
   html += '<style>*{box-sizing:border-box;margin:0;padding:0;}';
   html += 'body{font-family:Inter,system-ui,sans-serif;padding:32px;max-width:900px;margin:0 auto;}';
   html += themeCSS;
@@ -174,7 +174,7 @@ async function exportReport() {
     html += '<tr><td>'+fDate(r.date)+'</td><td>'+r.name+'</td><td>'+r.sets+'</td><td>'+r.maxW+' kg</td><td>'+fW(r.vol)+'</td></tr>';
   });
   html += '</tbody></table>';
-  html += '<div class="footer">Généré par MuscuTrack Pro · ' + now + '</div>';
+  html += '<div class="footer">Généré par FITNESSTRACKER · ' + now + '</div>';
   html += '</body></html>';
 
   // Télécharger le fichier
@@ -182,7 +182,7 @@ async function exportReport() {
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = 'rapport-muscutrack-' + new Date().toISOString().split('T')[0] + '.html';
+  a.download = 'rapport-FitnessTracker-' + new Date().toISOString().split('T')[0] + '.html';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

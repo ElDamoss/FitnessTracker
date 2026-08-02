@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="theme-color" content="#07090a"/>
-<title>MuscuTrack Pro | LDX PUMP</title>
+<title>FitnessTracker</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -47,7 +47,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
     <div class="auth-brand">
       <div class="brand-mark"><svg><use href="#ic-barbell"/></svg></div>
       <div>
-        <div class="brand-word display">MUSCUTRACK</div>
+        <div class="brand-word display">FITNESSTRACKER</div>
         <div class="brand-badge">PRO</div>
       </div>
     </div>
@@ -86,7 +86,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
     <div class="brand">
       <div class="brand-mark"><svg><use href="#ic-barbell"/></svg></div>
       <div>
-        <div class="brand-word display">MUSCUTRACK</div>
+        <div class="brand-word display">FITNESSTRACKER</div>
         <div class="brand-badge">PRO</div>
       </div>
     </div>
@@ -131,32 +131,58 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
     <!-- CONTENT AREA (pages) -->
     <div class="content-area" id="content-area">
 
+      <!-- PAGE: ACCUEIL -->
+      <div class="page active" id="page-home">
+        <div class="home-container">
+          <div class="home-brand">
+            <svg width="48" height="48" style="color:var(--green-bright)"><use href="#ic-barbell"/></svg>
+            <h1 class="home-title display">FitnessTracker</h1>
+            <p class="home-sub">Ton suivi musculation personnel</p>
+          </div>
+          <div class="home-grid">
+            <button class="home-btn" data-page="page-dashboard"><span class="home-btn-icon">📊</span><span>Tableau de bord</span></button>
+            <button class="home-btn" data-page="page-programs"><span class="home-btn-icon">📅</span><span>Programmes</span></button>
+            <button class="home-btn" data-page="page-history"><span class="home-btn-icon">📋</span><span>Historique</span></button>
+            <button class="home-btn" data-page="page-stats"><span class="home-btn-icon">📈</span><span>Progrès</span></button>
+            <button class="home-btn" data-page="page-mensuration"><span class="home-btn-icon">📏</span><span>Mensurations</span></button>
+            <button class="home-btn" data-page="page-exercises"><span class="home-btn-icon">🏋️</span><span>Exercices</span></button>
+          </div>
+        </div>
+      </div>
+
       <!-- PAGE: DASHBOARD -->
-      <div class="page active" id="page-dashboard">
-        <div class="hero" id="hero-block">
-          <div class="hero-left">
-            <div class="hero-eyebrow"><span class="dot-live"></span><span id="hero-label">Prêt</span></div>
-            <div class="hero-title display" id="hero-title">Bonne séance 💪</div>
-            <div class="hero-sub" id="hero-sub">Sélectionne un programme pour commencer</div>
-          </div>
-          <div class="hero-figures">
-            <div class="hero-figure"><div class="hero-figure-value mono"><span id="dash-vol">0</span><span class="unit">kg</span></div><div class="hero-figure-label">Vol. semaine</div></div>
-            <div class="hero-figure"><div class="hero-figure-value mono"><span id="dash-sessions">0</span></div><div class="hero-figure-label">Séances mois</div></div>
-            <div class="hero-figure"><div class="hero-figure-value mono" style="color:var(--green-bright)"><span id="dash-prs">0</span></div><div class="hero-figure-label">Records</div></div>
-          </div>
-        </div>
+      <div class="page" id="page-dashboard">
+        <div class="page-header"><h2 class="page-h1 display">Tableau de bord</h2></div>
+
+        <!-- Stats rapides -->
         <div class="row-3">
-          <div class="stat-card"><div class="stat-top"><div class="stat-icon"><svg><use href="#ic-trend"/></svg></div><div class="stat-delta" id="delta-vol">—</div></div><div class="stat-value mono" id="stat-vol-week">0 kg</div><div class="stat-label">Volume — 7 jours</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon"><svg><use href="#ic-barbell"/></svg></div><div class="stat-delta" id="delta-vol">—</div></div><div class="stat-value mono" id="dash-total-sessions">0</div><div class="stat-label">Séances réalisées</div></div>
           <div class="stat-card"><div class="stat-top"><div class="stat-icon"><svg><use href="#ic-flame"/></svg></div><div class="stat-delta neutral" id="delta-streak">—</div></div><div class="stat-value mono" id="stat-streak">0j</div><div class="stat-label">Régularité</div></div>
-          <div class="stat-card"><div class="stat-top"><div class="stat-icon"><svg><use href="#ic-timer"/></svg></div><div class="stat-delta neutral">—</div></div><div class="stat-value mono" id="stat-dur">—</div><div class="stat-label">Durée moy.</div></div>
+          <div class="stat-card"><div class="stat-top"><div class="stat-icon"><svg><use href="#ic-trend"/></svg></div><div class="stat-delta neutral">—</div></div><div class="stat-value mono" id="stat-vol-week">0 kg</div><div class="stat-label">Volume — 7 jours</div></div>
         </div>
+
+        <!-- Dernier entraînement -->
+        <div class="panel" style="margin-bottom:14px">
+          <div class="panel-head"><div class="panel-title">Dernier entraînement</div><button class="btn-ghost btn-sm" id="btn-dash-last-recap">Voir récap</button></div>
+          <div id="dash-last-training"></div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn-primary" data-page="page-programs" style="flex:1">▶ Lancer une séance</button>
+          <button class="btn-ghost" id="btn-dash-note" style="flex:1">📝 Prise de note</button>
+        </div>
+
+        <!-- Courbe poids + mensurations -->
         <div class="row-split">
-          <div class="panel"><div class="panel-head"><div class="panel-title">Volume hebdomadaire</div></div><div class="chart-wrap" id="chart-week-wrap"></div></div>
-          <div class="panel"><div class="panel-head"><div class="panel-title">Programme du jour</div><div class="panel-link" data-page="page-programs">Voir <svg><use href="#ic-arrow"/></svg></div></div><div id="dash-today"></div></div>
+          <div class="panel"><div class="panel-head"><div class="panel-title">Courbe du poids</div></div><canvas id="dash-chart-poids" height="140"></canvas></div>
+          <div class="panel"><div class="panel-head"><div class="panel-title">Évolution mensurations</div></div><div id="dash-mensuration-summary"></div></div>
         </div>
-        <div class="row-split2">
-          <div class="panel"><div class="panel-head"><div class="panel-title">Dernières séances</div><div class="panel-link" data-page="page-history">Tout <svg><use href="#ic-arrow"/></svg></div></div><div id="dash-recent"></div></div>
-          <div class="panel"><div class="panel-head"><div class="panel-title">Records</div><div class="panel-link" data-page="page-stats">Tout <svg><use href="#ic-arrow"/></svg></div></div><div id="dash-prs-list"></div></div>
+
+        <!-- Graphique volume hebdo -->
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Volume hebdomadaire</div></div>
+          <div class="chart-wrap" id="chart-week-wrap"></div>
         </div>
       </div>
 
@@ -168,7 +194,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 
       <!-- PAGE: HISTORIQUE -->
       <div class="page" id="page-history">
-        <div class="page-header"><h2 class="page-h1 display">Historique</h2></div>
+        <div class="page-header"><h2 class="page-h1 display">Historique</h2><button class="btn-ghost btn-sm" id="btn-export-history" style="display:none">📄 Exporter sélection</button></div>
         <div class="search-bar"><input type="text" id="hist-search" placeholder="🔍 Rechercher…" class="search-input"/><select id="hist-month" class="select-sm"><option value="">Tous</option></select></div>
         <div id="history-list"></div>
       </div>
@@ -333,7 +359,13 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
   <div class="modal modal-tall">
     <div class="modal-head"><span>🏁 Récap</span><span id="recap-time" class="mono" style="font-size:14px;color:var(--green-bright)"></span></div>
     <div class="modal-body" id="recap-body"></div>
-    <div class="modal-footer"><button class="btn-ghost" id="btn-recap-discard">Abandonner</button><button class="btn-primary" id="btn-recap-save">💾 Sauvegarder</button></div>
+    <div class="modal-footer" style="flex-direction:column;gap:10px">
+      <input type="text" id="recap-comment" placeholder="Commentaire de séance (ex: j'aurais pu mettre 5kg de plus)" style="font-size:13px;padding:10px 12px"/>
+      <div style="display:flex;gap:10px;width:100%;justify-content:flex-end">
+        <button class="btn-ghost" id="btn-recap-discard">Abandonner</button>
+        <button class="btn-primary" id="btn-recap-save">💾 Sauvegarder</button>
+      </div>
+    </div>
   </div>
 </div>
 

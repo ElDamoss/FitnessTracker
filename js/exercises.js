@@ -1,5 +1,5 @@
 ﻿/* ============================================================
-   MUSCUTRACK PRO — Exercises Library
+   FITNESSTRACKER — Exercises Library
    ============================================================ */
 
 let muscleF = 'all';

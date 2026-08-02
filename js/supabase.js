@@ -1,5 +1,5 @@
 ﻿/* ============================================================
-   MUSCUTRACK PRO — Supabase : Auth + CRUD
+   FITNESSTRACKER — Supabase : Auth + CRUD
    ============================================================ */
 
 const SUPABASE_URL = 'https://hxlhdgfxusckralcjhbw.supabase.co';
