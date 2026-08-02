@@ -4,15 +4,15 @@
 
 const DEFAULT_METRICS = [
   {key:'poids',label:'Poids',unit:'kg'},
-  {key:'tour_bras_g',label:'Bras gauche',unit:'cm'},
-  {key:'tour_bras_d',label:'Bras droit',unit:'cm'},
-  {key:'tour_pec',label:'Poitrine',unit:'cm'},
-  {key:'tour_taille',label:'Taille',unit:'cm'},
-  {key:'tour_hanches',label:'Hanches',unit:'cm'},
-  {key:'tour_cuisse_g',label:'Cuisse G',unit:'cm'},
-  {key:'tour_cuisse_d',label:'Cuisse D',unit:'cm'},
-  {key:'tour_mollet',label:'Mollet',unit:'cm'},
-  {key:'tour_epaules',label:'Épaules',unit:'cm'},
+  {key:'tour_bras_g',label:'Tour biceps gauche',unit:'cm'},
+  {key:'tour_bras_d',label:'Tour biceps droit',unit:'cm'},
+  {key:'tour_pec',label:'Tour de poitrine',unit:'cm'},
+  {key:'tour_taille',label:'Tour de taille',unit:'cm'},
+  {key:'tour_hanches',label:'Tour de hanches',unit:'cm'},
+  {key:'tour_cuisse_g',label:'Tour cuisse gauche',unit:'cm'},
+  {key:'tour_cuisse_d',label:'Tour cuisse droite',unit:'cm'},
+  {key:'tour_mollet',label:'Tour de mollet',unit:'cm'},
+  {key:'tour_epaules',label:'Tour d\'épaules',unit:'cm'},
 ];
 
 // Custom metrics stored in localStorage per user
