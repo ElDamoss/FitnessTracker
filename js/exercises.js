@@ -15,13 +15,13 @@ async function renderExLibrary() {
   el.innerHTML = exs.map(e => `
     <div class="ex-lib-card">
       <div class="ex-lib-head">
-        <div><div class="ex-lib-name">${e.name}</div><div class="ex-lib-muscle">${e.muscle}</div></div>
+        <div><div class="ex-lib-name">${esc(e.name)}</div><div class="ex-lib-muscle">${esc(e.muscle)}</div></div>
         <div style="display:flex;gap:6px">
-          <button class="btn-icon ex-info-btn" onclick="showExInfo('${e.id}')" title="Info">ℹ️</button>
-          ${e.created_by===getUserId()?`<button class="btn-icon" onclick="openEditEx('${e.id}')">✏️</button><button class="btn-icon" onclick="deleteEx('${e.id}')">🗑</button>`:''}
+          <button class="btn-icon ex-info-btn" onclick="showExInfo('${e.id}')" title="Info">${ico('bulb')}</button>
+          ${e.created_by===getUserId()?`<button class="btn-icon" onclick="openEditEx('${e.id}')">${ico('edit')}</button><button class="btn-icon" onclick="deleteEx('${e.id}')">${ico('trash')}</button>`:''}
         </div>
       </div>
-      ${e.description?`<div class="ex-lib-desc">${e.description}</div>`:''}
+      ${e.description?`<div class="ex-lib-desc">${esc(e.description)}</div>`:''}
     </div>`).join('');
 }
 

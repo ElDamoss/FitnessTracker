@@ -48,7 +48,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="brand-mark"><svg><use href="#ic-barbell"/></svg></div>
       <div>
         <div class="brand-word display">FITNESSTRACKER</div>
-        <div class="brand-badge">PRO</div>
+        
       </div>
     </div>
     <h2 class="auth-title display" id="auth-title">Connexion</h2>
@@ -97,7 +97,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       </div>
       <div>
         <div class="brand-word display">FITNESSTRACKER</div>
-        <div class="brand-badge">PRO</div>
+        
       </div>
     </div>
     <nav id="sidebar-nav">
@@ -107,9 +107,11 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="nav-item" data-page="page-history"><svg><use href="#ic-list"/></svg>Historique</div>
       <div class="nav-item" data-page="page-stats"><svg><use href="#ic-trend"/></svg>Progrès</div>
       <div class="nav-item" data-page="page-mensuration"><svg><use href="#ic-caliper"/></svg>Mensurations</div>
+      <div class="nav-item" data-page="page-cardio"><svg><use href="#ic-flame"/></svg>Cardio</div>
       <div class="nav-item" data-page="page-exercises"><svg><use href="#ic-barbell"/></svg>Exercices</div>
       <div class="nav-eyebrow">Infos</div>
       <div class="nav-item" data-page="page-updates"><svg><use href="#ic-spark"/></svg>Mises à jour</div>
+      <div class="nav-item hidden" id="admin-nav-item" data-page="page-admin"><svg><use href="#ic-gear"/></svg>Admin</div>
     </nav>
     <div class="sidebar-spacer"></div>
     <div class="user-block" style="cursor:pointer" onclick="navigate('page-profile')">
@@ -136,8 +138,8 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
         </div>
       </div>
       <div class="topbar-actions">
-        <button class="theme-toggle" id="theme-toggle" title="Thème sombre/clair">🌙</button>
-        <button class="theme-toggle" id="theme-fun" title="Kitty / Stitch">🎀</button>
+        <button class="theme-toggle" id="theme-toggle" title="Thème sombre/clair"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg></button>
+        <button class="theme-toggle" id="theme-fun" title="Kitty / Stitch"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8 2 5 5 5 8c0 4 7 9 7 9s7-5 7-9c0-3-3-6-7-6z"/></svg></button>
       </div>
     </div>
 
@@ -159,6 +161,19 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
             <h1 class="home-title display">FitnessTracker</h1>
             <p class="home-sub">Ton suivi musculation personnel</p>
           </div>
+
+          <!-- Bulles jours de la semaine -->
+          <div class="home-weekdays" id="home-weekdays">
+            <button class="home-day-bubble" data-day="1">L</button>
+            <button class="home-day-bubble" data-day="2">M</button>
+            <button class="home-day-bubble" data-day="3">M</button>
+            <button class="home-day-bubble" data-day="4">J</button>
+            <button class="home-day-bubble" data-day="5">V</button>
+            <button class="home-day-bubble" data-day="6">S</button>
+            <button class="home-day-bubble" data-day="0">D</button>
+          </div>
+          <div id="home-day-sessions" style="margin-bottom:16px"></div>
+
           <div class="home-grid">
             <button class="home-card" data-page="page-dashboard">
               <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -216,6 +231,18 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
               </svg>
               <span class="home-card-label">Exercices</span>
             </button>
+            <button class="home-card" data-page="page-cardio">
+              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3.2c1 2.4-.6 3.6-1.7 4.9-1.3 1.6-2 3-2 4.7a3.7 3.7 0 0 0 7.4 0c0-1.1-.3-2-1-3 .2 1.6-.5 2.3-1.2 2.3-1 0-1.4-.9-1.1-1.9.6-2 1.6-3 1.6-5.1 0-.7-.1-1.3-.4-1.9-.5.7-1 1.3-1.6 0z"/></svg>
+              <span class="home-card-label">Cardio</span>
+            </button>
+            <button class="home-card" data-page="page-report">
+              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span class="home-card-label">Signaler</span>
+            </button>
+            <button class="home-card" data-page="page-default-programs">
+              <svg class="home-card-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><path d="M8 13h8 M8 16h5"/></svg>
+              <span class="home-card-label">Prog. défaut</span>
+            </button>
           </div>
         </div>
       </div>
@@ -239,8 +266,8 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 
         <!-- Actions rapides -->
         <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-          <button class="btn-primary" data-page="page-programs" style="flex:1">▶ Lancer une séance</button>
-          <button class="btn-ghost" id="btn-dash-note" style="flex:1">📝 Prise de note</button>
+          <button class="btn-primary" data-page="page-programs" style="flex:1"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline;vertical-align:middle"><path d="M6 4l14 8-14 8z"/></svg> Lancer une séance</button>
+          <button class="btn-ghost" id="btn-dash-note" style="flex:1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg> Prise de note</button>
         </div>
 
         <!-- Courbe poids + mensurations -->
@@ -256,6 +283,13 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
         </div>
       </div>
 
+      <!-- PAGE: PROGRAMMES PAR DÉFAUT -->
+      <div class="page" id="page-default-programs">
+        <div class="page-header"><h2 class="page-h1 display">Programmes par défaut</h2></div>
+        <p style="font-size:13px;color:var(--ink-faint);margin-bottom:16px">Choisis un programme et copie-le dans ton espace personnel.</p>
+        <div id="default-programs-list"></div>
+      </div>
+
       <!-- PAGE: PROGRAMMES -->
       <div class="page" id="page-programs">
         <div class="page-header"><h2 class="page-h1 display">Programmes</h2><button class="btn-primary" id="btn-new-prog">+ Nouveau</button></div>
@@ -264,20 +298,20 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 
       <!-- PAGE: HISTORIQUE -->
       <div class="page" id="page-history">
-        <div class="page-header"><h2 class="page-h1 display">Historique</h2><button class="btn-ghost btn-sm" id="btn-export-history" style="display:none">📄 Exporter sélection</button></div>
-        <div class="search-bar"><input type="text" id="hist-search" placeholder="🔍 Rechercher…" class="search-input"/><select id="hist-month" class="select-sm"><option value="">Tous</option></select></div>
+        <div class="page-header"><h2 class="page-h1 display">Historique</h2><button class="btn-ghost btn-sm" id="btn-export-history" style="display:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg> Exporter sélection</button></div>
+        <div class="search-bar"><input type="text" id="hist-search" placeholder="Rechercher…" class="search-input"/><select id="hist-month" class="select-sm"><option value="">Tous</option></select></div>
         <div id="history-list"></div>
       </div>
 
       <!-- PAGE: STATS -->
       <div class="page" id="page-stats">
-        <div class="page-header"><h2 class="page-h1 display">Progrès</h2><button class="btn-ghost btn-sm" id="btn-export-report">📄 Exporter rapport</button></div>
+        <div class="page-header"><h2 class="page-h1 display">Progrès</h2><button class="btn-ghost btn-sm" id="btn-export-report"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg> Exporter rapport</button></div>
         <div class="stats-filters"><select id="stats-ex" class="select-sm" style="flex:1"><option value="">Exercice…</option></select><select id="stats-period" class="select-sm"><option value="30">30j</option><option value="90">3m</option><option value="365">1an</option><option value="9999">Tout</option></select></div>
         <div class="row-split">
           <div class="panel"><div class="panel-head"><div class="panel-title">Charge max</div></div><canvas id="chart-maxw" height="160"></canvas></div>
           <div class="panel"><div class="panel-head"><div class="panel-title">Répétitions</div></div><canvas id="chart-vol" height="160"></canvas></div>
         </div>
-        <div class="section-label">🏆 Records personnels</div>
+        <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M6 9H3V5h3M18 9h3V5h-3"/><path d="M6 5h12v7a6 6 0 01-12 0V5z"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg> Records personnels</div>
         <div id="pr-grid" class="pr-grid"></div>
       </div>
 
@@ -327,7 +361,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
           <div class="panel" style="border-color:rgba(239,68,68,.3)">
             <div class="panel-head"><div class="panel-title" style="color:var(--danger)">Zone dangereuse</div></div>
             <p style="font-size:13px;color:var(--ink-faint);margin-bottom:12px">La suppression de ton compte est irréversible. Toutes tes données seront perdues.</p>
-            <button class="btn-danger" id="btn-delete-account">🗑 Supprimer mon compte</button>
+            <button class="btn-danger" id="btn-delete-account"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M3 6h18M8 6V4h8v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg> Supprimer mon compte</button>
           </div>
         </div>
 
@@ -336,14 +370,14 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
           <div class="panel" style="margin-bottom:14px">
             <div class="panel-head"><div class="panel-title">Changer le mot de passe</div></div>
             <p style="font-size:13px;color:var(--ink-faint);margin-bottom:12px">Un email de réinitialisation sera envoyé à ton adresse.</p>
-            <button class="btn-primary" id="btn-reset-password">📧 Envoyer le lien de réinitialisation</button>
+            <button class="btn-primary" id="btn-reset-password"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg> Envoyer le lien de réinitialisation</button>
           </div>
 
           <div class="panel">
             <div class="panel-head"><div class="panel-title">Authentification à deux facteurs (MFA)</div></div>
             <p style="font-size:13px;color:var(--ink-faint);margin-bottom:12px">Protège ton compte avec une app d'authentification (Google Authenticator, Authy...).</p>
             <div id="mfa-status"></div>
-            <button class="btn-primary" id="btn-enable-mfa" style="margin-top:10px">🔐 Activer la MFA</button>
+            <button class="btn-primary" id="btn-enable-mfa" style="margin-top:10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg> Activer la MFA</button>
             <div id="mfa-setup" class="hidden" style="margin-top:14px">
               <div id="mfa-qr" style="text-align:center;margin-bottom:12px"></div>
               <div class="field">
@@ -356,6 +390,45 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- PAGE: SIGNALER (Report) -->
+      <div class="page" id="page-report">
+        <div class="page-header"><h2 class="page-h1 display">Signaler</h2></div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Envoyer un retour</div></div>
+          <p style="font-size:13px;color:var(--ink-faint);margin-bottom:14px">Bug, suggestion, amélioration — dis-nous tout !</p>
+          <div class="field">
+            <label>Type</label>
+            <select id="report-type" style="width:100%">
+              <option value="bug">Bug</option>
+              <option value="suggestion">Suggestion</option>
+              <option value="amelioration">Amélioration</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Message *</label>
+            <textarea id="report-message" placeholder="Décris ton problème ou ta suggestion..." style="min-height:120px"></textarea>
+          </div>
+          <button class="btn-primary" id="btn-send-report" style="width:100%"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg> Envoyer</button>
+        </div>
+        <div style="margin-top:14px">
+          <div class="section-label">Mes signalements</div>
+          <div id="report-history"></div>
+        </div>
+      </div>
+
+      <!-- PAGE: CARDIO -->
+      <div class="page" id="page-cardio">
+        <div class="page-header"><h2 class="page-h1 display">Cardio & Calories</h2><button class="btn-primary" id="btn-add-cardio">+ Ajouter</button></div>
+
+        <div class="panel" style="margin-bottom:14px">
+          <div class="panel-head"><div class="panel-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M12 3c1 2.4-.6 3.6-1.7 4.9-1.3 1.6-2 3-2 4.7a3.7 3.7 0 007.4 0c0-1.1-.3-2-1-3"/></svg> Calories brûlées (14 derniers jours)</div></div>
+          <canvas id="cardio-chart" height="160"></canvas>
+        </div>
+
+        <div class="section-label">Historique cardio</div>
+        <div id="cardio-history"></div>
       </div>
 
       <!-- PAGE: MISES A JOUR -->
@@ -397,10 +470,10 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
             <ul class="update-list">
               <li class="update-feat">Modal récap dernière séance avant lancement</li>
               <li class="update-feat">Notes/commentaires par exercice dans les programmes</li>
-              <li class="update-feat">Bulle info ℹ️ sur chaque exercice (image API)</li>
-              <li class="update-feat">Thème Stitch 🧵 + Thème Kitty 🎀</li>
+              <li class="update-feat">Bulle info sur chaque exercice (image API)</li>
+              <li class="update-feat">Thème Stitch + Thème Kitty</li>
               <li class="update-feat">8 exercices Fessiers ajoutés</li>
-              <li class="update-feat">Timer repos : pause ⏸ + stop ✕</li>
+              <li class="update-feat">Timer repos : pause + stop</li>
               <li class="update-feat">Réorganisation exercices par glisser-déposer</li>
               <li class="update-fix">Seed exercices manquants ajoutés automatiquement</li>
             </ul>
@@ -431,10 +504,16 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
         </div>
       </div>
 
+      <!-- PAGE: ADMIN -->
+      <div class="page" id="page-admin">
+        <div class="page-header"><h2 class="page-h1 display"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg> Administration</h2></div>
+        <div id="admin-content"></div>
+      </div>
+
       <!-- PAGE: EXERCICES -->
       <div class="page" id="page-exercises">
         <div class="page-header"><h2 class="page-h1 display">Exercices</h2><button class="btn-primary" id="btn-new-ex">+ Nouveau</button></div>
-        <div class="search-bar"><input type="text" id="ex-search" placeholder="🔍 Rechercher…" class="search-input"/></div>
+        <div class="search-bar"><input type="text" id="ex-search" placeholder="Rechercher…" class="search-input"/></div>
         <div class="muscle-chips" id="muscle-chips">
           <button class="chip active" data-muscle="all">Tous</button>
           <button class="chip" data-muscle="Pectoraux">Pectoraux</button>
@@ -445,6 +524,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
           <button class="chip" data-muscle="Jambes">Jambes</button>
           <button class="chip" data-muscle="Abdominaux">Abdominaux</button>
           <button class="chip" data-muscle="Fessiers">Fessiers</button>
+          <button class="chip" data-muscle="Échauffement">Échauffement</button>
           <button class="chip" data-muscle="Autre">Autre</button>
         </div>
         <div id="ex-library" class="ex-library-list"></div>
@@ -474,7 +554,8 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <span class="wk-chrono-label">Durée</span>
       <span class="wk-chrono mono" id="wk-chrono">00:00</span>
     </div>
-    <button class="btn-end-workout" id="btn-end-workout">Fin 🏁</button>
+    <button class="btn-end-workout" id="btn-end-workout"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Fin</button>
+    <button class="btn-quit-workout" id="btn-quit-workout">✕</button>
   </div>
   <div class="wk-body" id="wk-body"></div>
 </div>
@@ -500,7 +581,28 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
     <div class="modal-head"><span id="modal-day-title">Nouveau jour</span><button class="modal-close" data-close="modal-day">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Nom *</label><input type="text" id="day-name" placeholder="Ex: Push, Lundi…"/></div>
+      <div class="field">
+        <label>Jours de la semaine</label>
+        <div class="weekday-bubbles" id="day-weekdays">
+          <button type="button" class="weekday-bubble" data-day="1">L</button>
+          <button type="button" class="weekday-bubble" data-day="2">M</button>
+          <button type="button" class="weekday-bubble" data-day="3">M</button>
+          <button type="button" class="weekday-bubble" data-day="4">J</button>
+          <button type="button" class="weekday-bubble" data-day="5">V</button>
+          <button type="button" class="weekday-bubble" data-day="6">S</button>
+          <button type="button" class="weekday-bubble" data-day="0">D</button>
+        </div>
+        <p style="font-size:11px;color:var(--ink-faint);margin-top:4px">Clique sur les jours où tu fais cette séance</p>
+      </div>
       <div class="field"><label>Exercices</label><div id="day-ex-list" class="day-ex-list"></div><button class="btn-ghost" id="btn-day-add-ex" style="margin-top:8px;width:100%">+ Ajouter exercice</button></div>
+      <div class="field">
+        <label>Échauffement (optionnel)</label>
+        <div id="day-warmup-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="day-warmup-input" placeholder="Ex: 5min cardio, rotations épaules..." style="flex:1;font-size:12px;padding:8px 10px"/>
+          <button class="btn-ghost btn-sm" type="button" onclick="addDayWarmup()">+</button>
+        </div>
+      </div>
       <input type="hidden" id="day-edit-id"/><input type="hidden" id="day-prog-id"/>
     </div>
     <div class="modal-footer"><button class="btn-ghost" data-close="modal-day">Annuler</button><button class="btn-primary" id="btn-save-day">Sauvegarder</button></div>
@@ -512,10 +614,10 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
   <div class="modal">
     <div class="modal-head"><span>Ajouter un exercice</span><button class="modal-close" data-close="modal-day-picker">✕</button></div>
     <div class="modal-body">
-      <input type="text" id="day-picker-search" placeholder="🔍 Rechercher…" class="search-input"/>
+      <input type="text" id="day-picker-search" placeholder="Rechercher…" class="search-input"/>
       <div id="day-picker-quick" class="picker-quick hidden">
         <div class="picker-quick-lbl">Créer et ajouter :</div>
-        <div class="picker-quick-row"><span id="day-picker-qname" class="picker-quick-nm"></span><select id="day-picker-muscle" style="flex:1;min-width:100px"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Fessiers</option><option>Autre</option></select><button class="btn-primary btn-sm" id="btn-day-picker-create">Créer</button></div>
+        <div class="picker-quick-row"><span id="day-picker-qname" class="picker-quick-nm"></span><select id="day-picker-muscle" style="flex:1;min-width:100px"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Fessiers</option><option>Échauffement</option><option>Autre</option></select><button class="btn-primary btn-sm" id="btn-day-picker-create">Créer</button></div>
       </div>
       <div id="day-picker-list" class="picker-list"></div>
     </div>
@@ -527,7 +629,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
   <div class="modal modal-tall">
     <div class="modal-head"><span id="sv-title">Séance</span><button class="modal-close" data-close="modal-sv">✕</button></div>
     <div class="modal-body" id="sv-body"></div>
-    <div class="modal-footer"><button class="btn-danger" id="sv-delete">🗑 Supprimer</button><button class="btn-ghost" data-close="modal-sv">Fermer</button></div>
+    <div class="modal-footer"><button class="btn-danger" id="sv-delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M3 6h18M8 6V4h8v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg> Supprimer</button><button class="btn-ghost" data-close="modal-sv">Fermer</button></div>
   </div>
 </div>
 
@@ -537,7 +639,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
     <div class="modal-head"><span id="modal-ex-title">Exercice</span><button class="modal-close" data-close="modal-ex">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Nom *</label><input type="text" id="ex-name" placeholder="Ex: Développé couché"/></div>
-      <div class="field"><label>Muscle</label><select id="ex-muscle" style="width:100%"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Fessiers</option><option>Autre</option></select></div>
+      <div class="field"><label>Muscle</label><select id="ex-muscle" style="width:100%"><option>Pectoraux</option><option>Dos</option><option>Épaules</option><option>Biceps</option><option>Triceps</option><option>Jambes</option><option>Abdominaux</option><option>Fessiers</option><option>Échauffement</option><option>Autre</option></select></div>
       <div class="field"><label>Description</label><textarea id="ex-desc" placeholder="Notes…"></textarea></div>
       <input type="hidden" id="ex-edit-id"/>
     </div>
@@ -568,13 +670,13 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 <!-- Modal: Récap -->
 <div class="modal-overlay hidden" id="modal-recap">
   <div class="modal modal-tall">
-    <div class="modal-head"><span>🏁 Récap</span><span id="recap-time" class="mono" style="font-size:14px;color:var(--green-bright)"></span></div>
+    <div class="modal-head"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Récap</span><span id="recap-time" class="mono" style="font-size:14px;color:var(--green-bright)"></span></div>
     <div class="modal-body" id="recap-body"></div>
     <div class="modal-footer" style="flex-direction:column;gap:10px">
       <input type="text" id="recap-comment" placeholder="Commentaire de séance (ex: j'aurais pu mettre 5kg de plus)" style="font-size:13px;padding:10px 12px"/>
       <div style="display:flex;gap:10px;width:100%;justify-content:flex-end">
         <button class="btn-ghost" id="btn-recap-discard">Abandonner</button>
-        <button class="btn-primary" id="btn-recap-save">💾 Sauvegarder</button>
+        <button class="btn-primary" id="btn-recap-save"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> Sauvegarder</button>
       </div>
     </div>
   </div>
@@ -587,6 +689,81 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
     <div class="modal-body" id="ex-info-body" style="text-align:center"></div>
   </div>
 </div>
+
+<!-- Modal: Cardio -->
+<div class="modal-overlay hidden" id="modal-cardio">
+  <div class="modal">
+    <div class="modal-head"><span>Ajouter une activité cardio</span><button class="modal-close" data-close="modal-cardio">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Date</label><input type="date" id="cardio-date"/></div>
+      <div class="field">
+        <label>Type d'activité</label>
+        <select id="cardio-type" style="width:100%">
+          <optgroup label="Marche">
+            <option value="marche_lente">Marche lente (3-4 km/h)</option>
+            <option value="marche_rapide">Marche rapide (5-6 km/h)</option>
+            <option value="marche_sportive">Marche sportive (7 km/h)</option>
+          </optgroup>
+          <optgroup label="Course">
+            <option value="course_lente">Course lente (7-8 km/h)</option>
+            <option value="course_moderee" selected>Course modérée (9-10 km/h)</option>
+            <option value="course_rapide">Course rapide (11-12 km/h)</option>
+            <option value="course_intense">Course intense (13-15 km/h)</option>
+          </optgroup>
+          <optgroup label="Fractionné">
+            <option value="fractionne">Fractionné / HIIT</option>
+          </optgroup>
+          <optgroup label="Tapis">
+            <option value="tapis_plat">Tapis plat (0%)</option>
+            <option value="tapis_incline">Tapis incliné (5-10%)</option>
+            <option value="tapis_forte_incl">Tapis forte inclinaison (>10%)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field"><label>Durée (minutes)</label><input type="number" id="cardio-duration" min="1" placeholder="30"/></div>
+      <div class="field"><label>Vitesse (km/h) — optionnel</label><input type="number" id="cardio-vitesse" min="0" step="0.5" placeholder="Ex: 9.5"/></div>
+      <div id="cardio-tapis-fields" class="hidden">
+        <div class="field"><label>Inclinaison (%) — tapis</label><input type="number" id="cardio-inclinaison" min="0" max="30" step="0.5" placeholder="Ex: 5"/></div>
+      </div>
+      <div class="panel" style="text-align:center;padding:14px;margin-top:8px">
+        <div style="font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Calories estimées</div>
+        <div id="cardio-calories-preview" style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;color:var(--green-bright)">—</div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" data-close="modal-cardio">Annuler</button><button class="btn-primary" id="btn-save-cardio"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M12 3c1 2.4-.6 3.6-1.7 4.9-1.3 1.6-2 3-2 4.7a3.7 3.7 0 007.4 0c0-1.1-.3-2-1-3"/></svg> Enregistrer</button></div>
+  </div>
+</div>
+
+<!-- Modal: Input générique (remplace les prompt natifs) -->
+<div class="modal-overlay hidden" id="modal-input">
+  <div class="modal">
+    <div class="modal-head"><span id="modal-input-title">Saisie</span><button class="modal-close" data-close="modal-input">✕</button></div>
+    <div class="modal-body">
+      <p id="modal-input-desc" style="font-size:13px;color:var(--ink-faint);margin-bottom:12px"></p>
+      <input type="text" id="modal-input-value" placeholder=""/>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" data-close="modal-input">Annuler</button><button class="btn-primary" id="modal-input-ok">OK</button></div>
+  </div>
+</div>
+
+<!-- Modal: Confirmation stylisée -->
+<div class="modal-overlay hidden" id="modal-confirm">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head"><span id="modal-confirm-title">Confirmer</span></div>
+    <div class="modal-body">
+      <p id="modal-confirm-msg" style="font-size:14px;text-align:center;padding:8px 0"></p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:12px">
+      <button class="btn-ghost" id="modal-confirm-cancel">Annuler</button>
+      <button class="btn-primary" id="modal-confirm-ok">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bouton retour accueil flottant -->
+<button class="home-fab" onclick="navigate('page-home')" title="Accueil" id="home-fab">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10"/></svg>
+</button>
 
 <!-- Toasts -->
 <div id="toast-area"></div>
@@ -603,6 +780,10 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 <script src="js/mensuration.js"></script>
 <script src="js/performances.js"></script>
 <script src="js/profile.js"></script>
+<script src="js/cardio.js"></script>
+<script src="js/report.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/default-programs.js"></script>
 
 <!-- Service Worker -->
 <script>

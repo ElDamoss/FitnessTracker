@@ -60,10 +60,37 @@ async function renderPRGrid() {
   if (!entries.length) { el.innerHTML='<p class="empty-state">Aucun record</p>'; return; }
   el.innerHTML = entries.map(([name,pr])=>`
     <div class="pr-card-stat">
-      <div class="pr-card-ex">🏆 ${name}</div>
+      <div class="pr-card-ex">${ico('trophy')} ${esc(name)}</div>
       <div class="pr-card-val">${pr.weight} kg</div>
       <div class="pr-card-meta">× ${pr.reps||'?'} reps · ${fDate(pr.date)}</div>
     </div>`).join('');
+
+  // Tableau détaillé par série
+  await renderSeriesDetail();
+}
+
+async function renderSeriesDetail() {
+  var exName = document.getElementById('stats-ex').value;
+  var el = document.getElementById('pr-grid');
+  if (!exName) return;
+  var sessions = await DB.getSessions();
+  var days = parseInt(document.getElementById('stats-period').value);
+  var cutoff = new Date(); cutoff.setDate(cutoff.getDate()-days);
+  sessions = sessions.filter(function(s){return new Date(s.date+'T00:00:00')>=cutoff;}).slice().reverse();
+  var rows = [];
+  sessions.forEach(function(s) {
+    var exd = (s.exercises||[]).find(function(e){return e.name===exName;});
+    if (!exd) return;
+    (exd.sets||[]).forEach(function(st, i) {
+      rows.push({date:s.date, serie:i+1, weight:st.weight||'—', reps:st.reps||'—'});
+    });
+  });
+  if (!rows.length) return;
+  el.innerHTML += '<div class="section-label" style="margin-top:16px;grid-column:1/-1">Détail par série — ' + esc(exName) + '</div>' +
+    '<div style="overflow-x:auto;grid-column:1/-1"><table class="perf-table"><thead><tr><th>Date</th><th>Série</th><th>Poids</th><th>Reps</th></tr></thead><tbody>' +
+    rows.map(function(r) {
+      return '<tr><td>' + fDate(r.date) + '</td><td>' + r.serie + '</td><td>' + r.weight + ' kg</td><td>' + r.reps + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
 }
 
 // Event listeners

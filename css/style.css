@@ -384,11 +384,11 @@ nav{display:flex;flex-direction:column;gap:2px;}
 
 /* ===== MODALS ===== */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;
-  display:flex;align-items:flex-end;justify-content:center;animation:fadeOverlay .2s;}
+  display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeOverlay .2s;}
 @keyframes fadeOverlay{from{opacity:0;}to{opacity:1;}}
 .modal{background:var(--bg-sidebar);border:1px solid var(--line);
-  border-radius:18px 18px 0 0;width:100%;max-width:560px;
-  max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+  border-radius:18px;width:100%;max-width:560px;
+  max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
   animation:slideUp .25s cubic-bezier(.32,.72,0,1);}
 @keyframes slideUp{from{transform:translateY(80px);opacity:0;}to{transform:none;opacity:1;}}
 .modal-tall{max-height:88vh;}
@@ -496,6 +496,10 @@ nav{display:flex;flex-direction:column;gap:2px;}
   border-radius:var(--r);margin-bottom:14px;overflow:hidden;}
 .wk-ex-head{padding:12px 14px;background:var(--bg-raised);
   display:flex;align-items:center;justify-content:space-between;}
+.wk-ex-name-input{font-weight:700;font-size:15px;background:transparent;border:none;
+  border-bottom:1px dashed var(--line);color:var(--ink);padding:2px 0;width:auto;flex:1;min-width:0;
+  transition:border-color .2s;}
+.wk-ex-name-input:focus{outline:none;border-bottom:1px solid var(--accent);}
 .wk-ex-nm{font-weight:700;font-size:15px;}
 .wk-sets{padding:4px 14px 12px;}
 .wk-set-row{display:flex;align-items:center;gap:8px;padding:9px 0;
@@ -810,6 +814,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 .home-title{font-size:26px;margin-bottom:6px;}
 .home-sub{font-size:14px;color:var(--ink-faint);}
 .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:400px;}
+.home-grid .home-card:last-child:nth-child(odd){grid-column:1/-1;}
 .home-card{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:12px;padding:28px 16px;
@@ -874,3 +879,69 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
   background:none;border:none;cursor:pointer;font-family:inherit;
   transition:color .2s;}
 .auth-forgot-btn:hover{color:var(--green);}
+
+/* ===== Bouton retour accueil flottant ===== */
+.home-fab{
+  position:fixed;bottom:calc(var(--nav-h, 60px) + 14px);right:16px;
+  width:44px;height:44px;border-radius:50%;
+  background:var(--green);color:#04150a;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(63,166,107,.3);
+  z-index:90;transition:transform .2s,opacity .2s;
+  cursor:pointer;
+}
+.home-fab:active{transform:scale(.9);}
+.home-fab svg{width:22px;height:22px;}
+
+/* ===== Bouton quitter séance ===== */
+.btn-quit-workout{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--bg-raised);border:1px solid var(--line);
+  color:var(--ink-faint);font-size:16px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .15s;}
+.btn-quit-workout:hover{color:var(--ink);background:var(--line);}
+
+/* ===== Fix mobile overflow workout ===== */
+@media(max-width:480px){
+  .wk-set-row{flex-wrap:wrap;gap:6px;}
+  .wk-input-grp{flex:1;min-width:0;justify-content:center;}
+  .wk-num{width:50px;font-size:13px;}
+  .adj{width:32px;height:32px;font-size:14px;}
+  .done-set-btn{width:100%;margin-left:0;margin-top:4px;}
+  .wk-ex-head{flex-wrap:wrap;gap:6px;}
+}
+
+/* ===== Weekday bubbles ===== */
+.weekday-bubbles{display:flex;gap:8px;flex-wrap:wrap;}
+.weekday-bubble{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg-raised);border:1px solid var(--line);
+  color:var(--ink-faint);font-size:13px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;}
+.weekday-bubble.selected{
+  background:var(--green);border-color:var(--green);color:#04150a;}
+.weekday-bubble:active{transform:scale(.9);}
+
+/* ===== Warmup checklist ===== */
+.warmup-checklist{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.warmup-item{display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;transition:opacity .2s;}
+
+/* ===== Home weekday bubbles ===== */
+.home-weekdays{display:flex;gap:10px;justify-content:center;margin-bottom:14px;}
+.home-day-bubble{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--bg-panel);border:2px solid var(--line);
+  color:var(--ink-faint);font-size:14px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;
+}
+.home-day-bubble.today{border-color:var(--green);color:var(--green-bright);background:var(--green-soft);}
+.home-day-bubble.has-session{border-color:var(--green);color:var(--green);}
+.home-day-bubble.active{background:var(--green);color:#04150a;border-color:var(--green);transform:scale(1.1);}
+.home-day-session-card{
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:12px;
+  padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s;
+}
+.home-day-session-card:active{border-color:var(--green);}

@@ -197,6 +197,18 @@ async function seedDefaults() {
     {name:'Hip Thrust',muscle:'Fessiers',description:'Référence pour muscler les fessiers'},
     {name:'Hip Thrust barre',muscle:'Fessiers',description:'Hip thrust lesté à la barre'},
     {name:'TRX Hip Thrust',muscle:'Fessiers',description:'Hip thrust pieds dans les sangles TRX'},
+    {name:'Marche',muscle:'Cardio',description:'Marche à pied — endurance'},
+    {name:'Course à pied',muscle:'Cardio',description:'Running outdoor ou tapis'},
+    {name:'Fractionné',muscle:'Cardio',description:'HIIT — alternance effort/repos'},
+    {name:'Tapis de course',muscle:'Cardio',description:'Course sur tapis — vitesse et inclinaison'},
+    {name:'5 min cardio léger',muscle:'Échauffement',description:'Vélo, rameur ou marche rapide'},
+    {name:'Rotations poignets',muscle:'Échauffement',description:'15 rotations dans chaque sens'},
+    {name:'Rotations coudes',muscle:'Échauffement',description:'15 rotations dans chaque sens'},
+    {name:'Rotations épaules',muscle:'Échauffement',description:'15 rotations avant et arrière'},
+    {name:'Rotations cervicales',muscle:'Échauffement',description:'10 rotations douces'},
+    {name:'Flexion-extension colonne',muscle:'Échauffement',description:'Cat-cow, 5 mouvements lents'},
+    {name:'Squats à vide',muscle:'Échauffement',description:'10 squats sans charge'},
+    {name:'Pompes légères',muscle:'Échauffement',description:'10 pompes au sol ou sur banc'},
   ];
 
   // Récupérer les exercices existants

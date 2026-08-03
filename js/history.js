@@ -24,16 +24,16 @@ async function renderHistory() {
 
   el.innerHTML = sessions.map(function(s) {
     var vol = sesVol(s);
-    var tags = (s.exercises||[]).map(function(e){return '<span class="tag">'+e.name+'</span>';}).join('');
+    var tags = (s.exercises||[]).map(function(e){return '<span class="tag">'+esc(e.name)+'</span>';}).join('');
     var checked = selectedSessionIds.indexOf(s.id) > -1 ? ' checked' : '';
     return '<div class="history-card" style="display:flex;align-items:flex-start;gap:10px">' +
       '<input type="checkbox" class="hist-check" data-id="'+s.id+'" style="margin-top:4px;accent-color:var(--green);width:18px;height:18px;flex-shrink:0"'+checked+'/>' +
       '<div style="flex:1;cursor:pointer" onclick="openSessionView(\''+s.id+'\')">' +
-        '<div class="history-head"><span class="history-name display">'+s.name+'</span><span class="history-date">'+fDate(s.date)+'</span></div>' +
+        '<div class="history-head"><span class="history-name display">'+esc(s.name)+'</span><span class="history-date">'+fDate(s.date)+'</span></div>' +
         '<div class="history-metas">' +
-          '<span class="history-meta">🏋️ '+(s.exercises||[]).length+' ex.</span>' +
-          '<span class="history-meta">⚖️ '+fW(vol)+'</span>' +
-          (s.duration_sec?'<span class="history-meta">⏱ '+fDur(s.duration_sec)+'</span>':'') +
+          '<span class="history-meta">'+ico('barbell')+' '+(s.exercises||[]).length+' ex.</span>' +
+          '<span class="history-meta">'+ico('fire')+' '+fW(vol)+'</span>' +
+          (s.duration_sec?'<span class="history-meta">'+ico('timer')+' '+fDur(s.duration_sec)+'</span>':'') +
         '</div>' +
         '<div class="tag-row">'+tags+'</div>' +
       '</div>' +
@@ -58,7 +58,7 @@ async function renderHistory() {
 function updateExportBtn() {
   var btn = document.getElementById('btn-export-history');
   btn.style.display = selectedSessionIds.length > 0 ? 'inline-flex' : 'none';
-  btn.textContent = '📄 Exporter ' + selectedSessionIds.length + ' séance(s)';
+  btn.innerHTML = ico('doc')+' Exporter ' + selectedSessionIds.length + ' séance(s)';
 }
 
 async function exportSelectedSessions() {
@@ -100,7 +100,7 @@ async function exportSelectedSessions() {
   html += '.footer{margin-top:32px;font-size:11px;opacity:.5;text-align:center;}';
   html += '.accent{font-weight:700;}';
   html += '</style></head><body>';
-  html += '<h1>📊 Rapport d\'entraînement</h1>';
+  html += '<h1>' + ico('chart',18) + ' Rapport d\'entraînement</h1>';
   html += '<div class="sub">'+userName+' · '+now+' · '+selected.length+' séance(s)</div>';
   html += '<div class="stats">';
   html += '<div class="stat"><div class="stat-val accent">'+selected.length+'</div><div class="stat-label">Séances</div></div>';
@@ -111,11 +111,11 @@ async function exportSelectedSessions() {
   selected.forEach(function(s, idx) {
     if (idx > 0) html += '<hr class="day-sep"/>';
     var vol = sesVol(s);
-    html += '<div class="day-title">'+s.name+'</div>';
+    html += '<div class="day-title">'+esc(s.name)+'</div>';
     html += '<div class="day-meta">'+fDate(s.date)+(s.duration_sec?' · '+fDur(s.duration_sec):'')+' · '+fW(vol)+'</div>';
     if (s.notes) html += '<div class="note">"'+s.notes+'"</div>';
     (s.exercises||[]).forEach(function(ex) {
-      html += '<div class="ex-title">'+ex.name+' <span style="font-size:11px;opacity:.6">('+ex.muscle+')</span></div>';
+      html += '<div class="ex-title">'+esc(ex.name)+' <span style="font-size:11px;opacity:.6">('+ex.muscle+')</span></div>';
       html += '<table><thead><tr><th>#</th><th>Poids</th><th>Reps</th><th>RPE</th><th>Volume</th></tr></thead><tbody>';
       (ex.sets||[]).forEach(function(st, i) {
         var v = (parseFloat(st.weight)||0)*(parseInt(st.reps)||0);
@@ -137,7 +137,7 @@ async function exportSelectedSessions() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  toast('Rapport exporté 📄','success');
+  toast(ico('doc')+' Rapport exporté','success');
   selectedSessionIds = [];
   updateExportBtn();
 }
@@ -149,15 +149,15 @@ async function openSessionView(id) {
   document.getElementById('sv-title').textContent = s.name;
   var vol = sesVol(s);
   var html = '<div class="sv-head-metas">' +
-    '<span class="sv-meta">📅 '+fDate(s.date)+'</span>' +
-    (s.duration_sec?'<span class="sv-meta">⏱ '+fDur(s.duration_sec)+'</span>':'') +
-    '<span class="sv-meta">⚖️ '+fW(vol)+'</span>' +
+    '<span class="sv-meta">'+ico('calendar')+' '+fDate(s.date)+'</span>' +
+    (s.duration_sec?'<span class="sv-meta">'+ico('timer')+' '+fDur(s.duration_sec)+'</span>':'') +
+    '<span class="sv-meta">'+ico('fire')+' '+fW(vol)+'</span>' +
   '</div>' +
   (s.notes?'<div class="sv-notes-box">"'+s.notes+'"</div>':'');
 
   (s.exercises||[]).forEach(function(ex) {
     html += '<div class="sv-ex">' +
-      '<div class="sv-ex-head">'+ex.name+' <span class="muscle-badge">'+(ex.muscle||'')+'</span></div>' +
+      '<div class="sv-ex-head">'+esc(ex.name)+' <span class="muscle-badge">'+(ex.muscle||'')+'</span></div>' +
       '<table class="sv-table"><thead><tr><th>#</th><th>Poids</th><th>Reps</th><th>RPE</th><th>Vol.</th></tr></thead><tbody>';
     (ex.sets||[]).forEach(function(st, i) {
       var v = (parseFloat(st.weight)||0)*(parseInt(st.reps)||0);
@@ -176,7 +176,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-export-history').addEventListener('click', exportSelectedSessions);
   document.getElementById('sv-delete').addEventListener('click', async function() {
     if (!viewingSessionId) return;
-    if (!confirm('Supprimer cette séance ?')) return;
+    var ok = await modalConfirm('Supprimer la séance', 'Supprimer définitivement cette séance de l\'historique ?');
+    if (!ok) return;
     try { await DB.deleteSession(viewingSessionId); } catch(e) { toast(e.message,'error'); return; }
     closeModal('modal-sv'); toast('Supprimée','info');
     if (currentPage==='page-history') renderHistory();

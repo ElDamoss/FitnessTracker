@@ -123,6 +123,7 @@ async function exportReport() {
   var themeCSS = '';
   if (theme === 'light') themeCSS = 'body{background:#f4f6f3;color:#141a12;} .accent{color:#2d8f56;} table{border-color:#dde3db;} th{background:#f0f3ef;color:#4a5e47;} td{border-color:#e8ede7;}';
   else if (theme === 'stitch') themeCSS = 'body{background:#e8f4fd;color:#1a3a5c;} .accent{color:#2196f3;} table{border-color:#a8d4f0;} th{background:#d0e8f8;color:#3d6a8f;} td{border-color:#bde0f5;}';
+  else if (theme === 'girly') themeCSS = 'body{background:#fff5f8;color:#4a1942;} .accent{color:#e84b8a;} table{border-color:#ffd1e0;} th{background:#ffe8f0;color:#8b3a7a;} td{border-color:#ffe4ee;}';
   else themeCSS = 'body{background:#07090a;color:#eef1ec;} .accent{color:#86f7b4;} table{border-color:#1f2921;} th{background:#151b14;color:#92a599;} td{border-color:#171f19;}';
 
   var rows = [];
@@ -162,7 +163,7 @@ async function exportReport() {
   html += '.footer{margin-top:32px;font-size:11px;opacity:.5;text-align:center;}';
   html += '.accent{font-weight:700;}';
   html += '</style></head><body>';
-  html += '<h1>📊 Rapport de performances</h1>';
+  html += '<h1>' + ico('chart',18) + ' Rapport de performances</h1>';
   html += '<div class="sub">' + userName + ' · ' + now + ' · ' + periodLabel + ' · ' + filterLabel + '</div>';
   html += '<div class="stats">';
   html += '<div class="stat"><div class="stat-val accent">' + rows.length + '</div><div class="stat-label">Entrées</div></div>';
@@ -187,7 +188,7 @@ async function exportReport() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  toast('Rapport exporté 📄', 'success');
+  toast(ico('doc')+' Rapport exporté', 'success');
 }
 
 // ── EVENT LISTENERS ──

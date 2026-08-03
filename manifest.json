@@ -1,7 +1,7 @@
 ﻿{
   "name": "FitnessTracker",
   "short_name": "FitnessTracker",
-  "description": "Suivi musculation avancé — programmes, séances, mensurations",
+  "description": "Suivi musculation avancé —grammes, séances, mensurations",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",

@@ -13,19 +13,19 @@ async function renderPrograms() {
   el.innerHTML = progs.map(p => `
     <div class="prog-card" id="pc-${p.id}">
       <div class="prog-card-head" onclick="toggleProg('${p.id}')">
-        <div><div class="prog-name display">${p.name}</div><div class="prog-goal">${p.goal||''}</div></div>
+        <div><div class="prog-name display">${esc(p.name)}</div><div class="prog-goal">${esc(p.goal)||''}</div></div>
         <div style="display:flex;gap:8px" onclick="event.stopPropagation()">
-          <button class="btn-icon" onclick="openEditProg('${p.id}')">✏️</button>
-          <button class="btn-icon" onclick="deleteProg('${p.id}')">🗑</button>
+          <button class="btn-icon" onclick="openEditProg('${p.id}')">${ico('edit')}</button>
+          <button class="btn-icon" onclick="deleteProg('${p.id}')">${ico('trash')}</button>
         </div>
       </div>
       <div class="prog-days-wrap" id="pd-${p.id}" style="display:none">
         ${(p.days||[]).map(day => `
           <div class="day-row">
-            <div><div class="day-name">${day.name}</div><div class="day-excount">${(day.exercises||[]).length} exercice(s)</div></div>
+            <div><div class="day-name">${esc(day.name)}</div><div class="day-excount">${(day.exercises||[]).length} exercice(s)</div></div>
             <div class="day-actions">
-              <button class="btn-icon" onclick="openEditDay('${p.id}','${day.id}')">✏️</button>
-              <button class="btn-train" onclick="startWorkout('${p.id}','${day.id}')">▶ Start</button>
+              <button class="btn-icon" onclick="openEditDay('${p.id}','${day.id}')">${ico('edit')}</button>
+              <button class="btn-train" onclick="startWorkout('${p.id}','${day.id}')">${ico('play')} Start</button>
             </div>
           </div>`).join('')}
         <div class="add-day-row" onclick="openNewDay('${p.id}')">+ Ajouter un jour</div>
@@ -67,7 +67,7 @@ async function saveProg() {
   if (!name) { toast('Nom obligatoire','error'); return; }
   try {
     if (id) { await DB.updateProgram(id, {name,goal}); toast('Modifié ✓','success'); }
-    else { await DB.addProgram({name,goal,day_type:'named',days:[]}); toast('Programme créé 💪','success'); }
+    else { await DB.addProgram({name,goal,day_type:'named',days:[]}); toast(ico('muscle')+' Programme créé','success'); }
   } catch(e) { toast(e.message,'error'); return; }
   closeModal('modal-prog'); renderPrograms();
   if (currentPage==='page-dashboard') renderDashboard();
@@ -81,6 +81,50 @@ async function deleteProg(id) {
 
 // ── DAY CRUD ──
 let editingDayExercises = [];
+let editingDayWeekdays = [];
+let editingDayWarmup = [];
+
+function addDayWarmup() {
+  var input = document.getElementById('day-warmup-input');
+  var val = input.value.trim();
+  if (!val) return;
+  editingDayWarmup.push(val);
+  input.value = '';
+  renderDayWarmupList();
+}
+
+function renderDayWarmupList() {
+  var el = document.getElementById('day-warmup-list');
+  if (!el) return;
+  el.innerHTML = editingDayWarmup.map(function(item, i) {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg-raised);border-radius:6px;border:1px solid var(--line-soft)">' +
+      '<span style="flex:1;font-size:12px">' + esc(item) + '</span>' +
+      '<button class="day-ex-remove" onclick="editingDayWarmup.splice('+i+',1);renderDayWarmupList()">✕</button>' +
+    '</div>';
+  }).join('');
+} // jours de la semaine sélectionnés [0-6]
+
+function initWeekdayBubbles() {
+  document.querySelectorAll('#day-weekdays .weekday-bubble').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var day = parseInt(btn.dataset.day);
+      btn.classList.toggle('selected');
+      if (btn.classList.contains('selected')) {
+        if (editingDayWeekdays.indexOf(day) === -1) editingDayWeekdays.push(day);
+      } else {
+        editingDayWeekdays = editingDayWeekdays.filter(function(d){return d!==day;});
+      }
+    });
+  });
+}
+
+function setWeekdayBubbles(days) {
+  editingDayWeekdays = days || [];
+  document.querySelectorAll('#day-weekdays .weekday-bubble').forEach(function(btn) {
+    var day = parseInt(btn.dataset.day);
+    btn.classList.toggle('selected', editingDayWeekdays.indexOf(day) > -1);
+  });
+}
 
 function openNewDay(progId) {
   document.getElementById('modal-day-title').textContent = 'Nouveau jour';
@@ -88,6 +132,9 @@ function openNewDay(progId) {
   document.getElementById('day-edit-id').value = '';
   document.getElementById('day-prog-id').value = progId;
   editingDayExercises = [];
+  setWeekdayBubbles([]);
+  editingDayWarmup = [];
+  renderDayWarmupList();
   renderDayExList();
   openModal('modal-day');
   setTimeout(()=>document.getElementById('day-name').focus(),150);
@@ -103,6 +150,9 @@ function openEditDay(progId, dayId) {
     document.getElementById('day-edit-id').value = dayId;
     document.getElementById('day-prog-id').value = progId;
     editingDayExercises = JSON.parse(JSON.stringify(day.exercises||[]));
+    setWeekdayBubbles(day.weekdays || []);
+    editingDayWarmup = day.warmup ? JSON.parse(JSON.stringify(day.warmup)) : [];
+    renderDayWarmupList();
     renderDayExList();
     openModal('modal-day');
   }; run();
@@ -114,23 +164,38 @@ function renderDayExList() {
     el.innerHTML = '<p style="font-size:12px;color:var(--ink-faint);padding:8px 0">Aucun exercice</p>';
     return;
   }
-  el.innerHTML = editingDayExercises.map((ex,i) => `
-    <div class="day-ex-item" data-idx="${i}">
-      <div class="day-ex-handle" title="Glisser pour réorganiser">⠿</div>
-      <div class="day-ex-infos">
-        <div class="day-ex-nm">${ex.name}</div>
-        <div class="day-ex-ms">${ex.muscle}</div>
+  el.innerHTML = editingDayExercises.map((ex,i) => {
+    var isCardio = (ex.muscle === 'Cardio');
+    var inputsHTML = '';
+    if (isCardio) {
+      inputsHTML = `
+        <div class="day-ex-inputs">
+          <div class="mini-field"><div class="mini-label">Durée (min)</div><input type="number" class="mini-input" value="${ex.duration||30}" min="1" onchange="editingDayExercises[${i}].duration=+this.value"/></div>
+          <div class="mini-field"><div class="mini-label">Vitesse km/h</div><input type="number" class="mini-input" value="${ex.vitesse||''}" min="0" step="0.5" onchange="editingDayExercises[${i}].vitesse=+this.value" placeholder="—"/></div>
+          <div class="mini-field"><div class="mini-label">Inclinaison %</div><input type="number" class="mini-input" value="${ex.inclinaison||''}" min="0" step="0.5" onchange="editingDayExercises[${i}].inclinaison=+this.value" placeholder="—"/></div>
+        </div>`;
+    } else {
+      inputsHTML = `
         <div class="day-ex-inputs">
           <div class="mini-field"><div class="mini-label">Séries</div><input type="number" class="mini-input" value="${ex.sets||4}" min="1" max="20" onchange="editingDayExercises[${i}].sets=+this.value"/></div>
           <div class="mini-field"><div class="mini-label">Reps</div><input type="text" class="mini-input" value="${ex.repsTarget||'8-12'}" style="width:70px" onchange="editingDayExercises[${i}].repsTarget=this.value"/></div>
           <div class="mini-field"><div class="mini-label">Repos(s)</div><input type="number" class="mini-input" value="${ex.restSec||120}" min="0" step="15" onchange="editingDayExercises[${i}].restSec=+this.value"/></div>
-        </div>
+        </div>`;
+    }
+    return `
+    <div class="day-ex-item" data-idx="${i}">
+      <div class="day-ex-handle" title="Glisser pour réorganiser">⠿</div>
+      <div class="day-ex-infos">
+        <div class="day-ex-nm">${esc(ex.name)}</div>
+        <div class="day-ex-ms">${esc(ex.muscle)}</div>
+        ${inputsHTML}
         <div class="day-ex-note-wrap">
           <input type="text" class="day-ex-note" placeholder="Note / commentaire…" value="${ex.note||''}" onchange="editingDayExercises[${i}].note=this.value"/>
         </div>
       </div>
       <button class="day-ex-remove" onclick="editingDayExercises.splice(${i},1);renderDayExList()">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   initDayExDragDrop();
 }
 
@@ -233,9 +298,9 @@ async function saveDay() {
   const days = JSON.parse(JSON.stringify(p.days||[]));
   if (dayId) {
     const idx = days.findIndex(d=>d.id===dayId);
-    if (idx>-1) days[idx] = {...days[idx], name, exercises:editingDayExercises};
+    if (idx>-1) days[idx] = {...days[idx], name, exercises:editingDayExercises, weekdays:editingDayWeekdays, warmup:editingDayWarmup};
   } else {
-    days.push({id:crypto.randomUUID(), name, exercises:editingDayExercises});
+    days.push({id:crypto.randomUUID(), name, exercises:editingDayExercises, weekdays:editingDayWeekdays, warmup:editingDayWarmup});
   }
   await DB.updateProgram(progId, {days});
   closeModal('modal-day'); renderPrograms();
@@ -293,10 +358,13 @@ async function startWorkout(progId, dayId) {
   const p = progs.find(x=>x.id===progId); if(!p) return;
   const day = (p.days||[]).find(d=>d.id===dayId); if(!day) return;
 
-  // Chercher la dernière séance avec le même nom de jour
+  // Chercher la dernière séance avec le même nom de jour (match strict au début)
   const sessions = await DB.getSessions();
+  const dayNameLower = day.name.toLowerCase();
   const lastSame = sessions.find(function(s) {
-    return s.name && s.name.toLowerCase().includes(day.name.toLowerCase());
+    if (!s.name) return false;
+    var sNameLower = s.name.toLowerCase();
+    return sNameLower.startsWith(dayNameLower) || sNameLower === dayNameLower;
   });
 
   if (lastSame) {
@@ -313,10 +381,11 @@ async function startWorkout(progId, dayId) {
     });
     html += '<div style="display:flex;gap:10px;margin-top:16px">';
     html += '<button class="btn-ghost" style="flex:1" onclick="closeModal(\'modal-last-session\')">Annuler</button>';
-    html += '<button class="btn-primary" style="flex:1" onclick="closeModal(\'modal-last-session\');launchWorkout(\'' + progId + '\',\'' + dayId + '\')">▶ Lancer la séance</button>';
+    html += '<button class="btn-primary" style="flex:1" onclick="closeModal(\'modal-last-session\');launchWorkout(\'' + progId + '\',\'' + dayId + '\')">' + ico('play') + ' Lancer la séance</button>';
     html += '</div>';
     document.getElementById('last-session-body').innerHTML = html;
-    document.getElementById('last-session-title').textContent = '📋 Dernière séance : ' + day.name;
+    document.getElementById('last-session-title').textContent = '';
+    document.getElementById('last-session-title').innerHTML = ico('clipboard') + ' Dernière séance : ' + esc(day.name);
     openModal('modal-last-session');
   } else {
     // Pas de séance précédente, lancer directement
@@ -329,14 +398,31 @@ async function launchWorkout(progId, dayId) {
   const p = progs.find(x=>x.id===progId); if(!p) return;
   const day = (p.days||[]).find(d=>d.id===dayId); if(!day) return;
 
-  wkState = {
-    progId, dayId, dayName: day.name, progName: p.name,
-    startTs: Date.now(), timer: null,
-    exercises: (day.exercises||[]).map(ex => ({
-      id:ex.id, name:ex.name, muscle:ex.muscle, restSec:ex.restSec||120, note:ex.note||'',
-      sets: Array.from({length:ex.sets||4}, ()=>({weight:'',reps:'',rpe:'',done:false,restTimer:null,restLeft:0,doneTs:0}))
-    }))
-  };
+  // Vérifier s'il y a une séance en cours sauvegardée
+  var savedKey = 'wk_session_' + getUserId();
+  var saved = localStorage.getItem(savedKey);
+  if (saved) {
+    try {
+      var parsed = JSON.parse(saved);
+      if (parsed.dayId === dayId && parsed.exercises) {
+        wkState = parsed;
+        wkState.startTs = Date.now() - (parsed.elapsedSec||0)*1000;
+        wkState.timer = null;
+      }
+    } catch(e) {}
+  }
+
+  if (!wkState || wkState.dayId !== dayId) {
+    wkState = {
+      progId, dayId, dayName: day.name, progName: p.name,
+      startTs: Date.now(), timer: null,
+      _dayWarmup: day.warmup || [],
+      exercises: (day.exercises||[]).map(ex => ({
+        id:ex.id, name:ex.name, muscle:ex.muscle, restSec:ex.restSec||120, note:ex.note||'',
+        sets: Array.from({length:ex.sets||4}, ()=>({weight:'',reps:'',rpe:'',done:false,restTimer:null,restLeft:0,doneTs:0}))
+      }))
+    };
+  }
 
   document.getElementById('wk-day-name').textContent = day.name;
   document.getElementById('wk-prog-name').textContent = p.name;
@@ -347,27 +433,239 @@ async function launchWorkout(progId, dayId) {
   wkState.timer = setInterval(() => {
     const e = Math.floor((Date.now()-wkState.startTs)/1000);
     document.getElementById('wk-chrono').textContent = fDur(e);
+    // Auto-save toutes les 5 secondes
+    if (e % 5 === 0) saveWorkoutToLocal();
   }, 1000);
+}
+
+function saveWorkoutToLocal() {
+  if (!wkState) return;
+  var key = 'wk_session_' + getUserId();
+  var toSave = JSON.parse(JSON.stringify(wkState));
+  toSave.elapsedSec = Math.floor((Date.now()-wkState.startTs)/1000);
+  // Supprimer les timers (non sérialisables)
+  toSave.timer = null;
+  toSave.exercises.forEach(function(ex) {
+    ex.sets.forEach(function(s) { s.restTimer = null; });
+  });
+  localStorage.setItem(key, JSON.stringify(toSave));
+}
+
+function clearWorkoutLocal() {
+  var key = 'wk_session_' + getUserId();
+  localStorage.removeItem(key);
+}
+
+function restoreWorkoutIfExists() {
+  var uid = getUserId();
+  if (!uid) return;
+  var key = 'wk_session_' + uid;
+  var saved = localStorage.getItem(key);
+  if (!saved) return;
+
+  try {
+    var parsed = JSON.parse(saved);
+    if (!parsed || !parsed.exercises || !parsed.dayName) return;
+
+    // Restaurer le wkState
+    wkState = parsed;
+    wkState.startTs = Date.now() - (parsed.elapsedSec || 0) * 1000;
+    wkState.timer = null;
+
+    // Nettoyer les restTimers (non sérialisables)
+    wkState.exercises.forEach(function(ex) {
+      ex.sets.forEach(function(s) { s.restTimer = null; });
+    });
+
+    // Afficher le workout screen
+    document.getElementById('wk-day-name').textContent = wkState.dayName;
+    document.getElementById('wk-prog-name').textContent = wkState.progName;
+    renderWorkoutBody();
+    document.getElementById('wk-screen').classList.remove('hidden');
+
+    // Relancer le chrono
+    wkState.timer = setInterval(function() {
+      var e = Math.floor((Date.now() - wkState.startTs) / 1000);
+      document.getElementById('wk-chrono').textContent = fDur(e);
+      if (e % 5 === 0) saveWorkoutToLocal();
+    }, 1000);
+
+    toast(ico('muscle')+' Séance en cours restaurée', 'info', 2000);
+  } catch(e) {
+    // Données corrompues, on supprime
+    localStorage.removeItem(key);
+  }
 }
 
 function renderWorkoutBody() {
   if (!wkState) return;
   document.getElementById('wk-body').innerHTML =
-    '<div class="warmup-box"><div class="warmup-title">⚡ Échauffement</div><div class="warmup-text">5 min cardio léger · 15× rotations articulaires · 3× flexion-extension colonne</div></div>' +
-    wkState.exercises.map((ex,ei) => `
+    renderWarmupSection() +
+    wkState.exercises.map((ex,ei) => {
+      if (ex.muscle === 'Cardio') return renderCardioExBlock(ex, ei);
+      return `
       <div class="wk-ex-block">
-        <div class="wk-ex-head"><span class="wk-ex-nm">${ex.name}</span><span class="muscle-badge">${ex.muscle}</span></div>
-        ${ex.note?'<div style="padding:6px 14px;font-size:12px;color:var(--ink-faint);font-style:italic;border-bottom:1px solid var(--line-soft)">💬 '+ex.note+'</div>':''}
+        <div class="wk-ex-head">
+          <input type="text" class="wk-ex-name-input" value="${esc(ex.name)}" onchange="wkState.exercises[${ei}].name=this.value;saveWorkoutToLocal()" title="Clic pour renommer (cette séance uniquement)"/>
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            <span class="muscle-badge">${esc(ex.muscle)}</span>
+            <button class="btn-ghost btn-sm" onclick="showExComment(${ei})" style="font-size:11px;padding:4px 8px">${ico('comment')}</button>
+            <button class="btn-ghost btn-sm" onclick="markExDone(${ei})" style="font-size:11px;padding:4px 8px;color:var(--green)">${ico('check')}</button>
+          </div>
+        </div>
+        ${ex.note?'<div style="padding:6px 14px;font-size:12px;color:var(--ink-faint);font-style:italic;border-bottom:1px solid var(--line-soft)">'+ico('note')+' '+esc(ex.note)+'</div>':''}
+        <div id="wk-ex-comment-${ei}" class="hidden" style="padding:8px 14px;border-bottom:1px solid var(--line-soft)">
+          <input type="text" id="wk-comment-input-${ei}" placeholder="Commentaire (ex: mettre 5kg de plus...)" style="font-size:12px;padding:8px 10px" onchange="wkState.exercises[${ei}].endComment=this.value"/>
+        </div>
+        <div style="padding:6px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line-soft)">
+          <label style="font-size:11px;color:var(--ink-faint);display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" style="accent-color:var(--green);width:16px;height:16px" onchange="wkState.exercises[${ei}].unilateral=this.checked"/> Unilatéral
+          </label>
+        </div>
         <div class="wk-sets" id="wk-sets-${ei}">
           ${ex.sets.map((s,si) => renderSetHTML(ei,si,s,ex.restSec)).join('')}
           <div class="add-set-row" onclick="wkAddSet(${ei})">+ Ajouter une série</div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
+}
+
+// ── CARDIO EXERCISE BLOCK (timer only) ──
+function renderCardioExBlock(ex, ei) {
+  var elapsed = ex.cardioElapsed || 0;
+  var running = !!ex.cardioRunning;
+  var btnLabel = running ? ico('pause')+' Pause' : ico('play')+' Go';
+  var btnAction = running ? 'pauseCardioTimer('+ei+')' : 'startCardioTimer('+ei+')';
+  return `
+    <div class="wk-ex-block" id="cardio-block-${ei}">
+      <div class="wk-ex-head">
+        <input type="text" class="wk-ex-name-input" value="${esc(ex.name)}" onchange="wkState.exercises[${ei}].name=this.value;saveWorkoutToLocal()" title="Clic pour renommer (cette séance uniquement)"/>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <span class="muscle-badge">Cardio</span>
+          <button class="btn-ghost btn-sm" onclick="markExDone(${ei})" style="font-size:11px;padding:4px 8px;color:var(--green)">${ico('check')}</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:24px 14px;gap:16px">
+        <div id="cardio-timer-${ei}" class="mono" style="font-size:48px;font-weight:700;color:var(--green-bright);letter-spacing:2px">${fDur(elapsed)}</div>
+        <div style="display:flex;gap:12px">
+          <button class="btn-primary" onclick="${btnAction}" style="min-width:100px">${btnLabel}</button>
+          <button class="btn-ghost" onclick="stopCardioTimer(${ei})" style="min-width:80px">${ico('flag')} Stop</button>
+        </div>
+        ${ex.vitesse || ex.inclinaison ? '<div style="display:flex;gap:16px;font-size:12px;color:var(--ink-faint);margin-top:8px">'+(ex.vitesse?'<span>Vitesse: '+ex.vitesse+' km/h</span>':'')+(ex.inclinaison?'<span>Inclinaison: '+ex.inclinaison+'%</span>':'')+'</div>' : ''}
+      </div>
+    </div>`;
+}
+
+function startCardioTimer(ei) {
+  var ex = wkState.exercises[ei];
+  if (!ex.cardioElapsed) ex.cardioElapsed = 0;
+  ex.cardioRunning = true;
+  ex.cardioStartTs = Date.now() - (ex.cardioElapsed * 1000);
+  if (ex._cardioInterval) clearInterval(ex._cardioInterval);
+  // Re-render buttons first
+  var block = document.getElementById('cardio-block-'+ei);
+  if (block) block.outerHTML = renderCardioExBlock(ex, ei);
+  // Then start the interval
+  ex._cardioInterval = setInterval(function() {
+    ex.cardioElapsed = Math.floor((Date.now() - ex.cardioStartTs) / 1000);
+    var display = document.getElementById('cardio-timer-'+ei);
+    if (display) display.textContent = fDur(ex.cardioElapsed);
+  }, 1000);
+  saveWorkoutToLocal();
+}
+
+function pauseCardioTimer(ei) {
+  var ex = wkState.exercises[ei];
+  ex.cardioElapsed = Math.floor((Date.now() - ex.cardioStartTs) / 1000);
+  ex.cardioRunning = false;
+  if (ex._cardioInterval) { clearInterval(ex._cardioInterval); ex._cardioInterval = null; }
+  var block = document.getElementById('cardio-block-'+ei);
+  if (block) block.outerHTML = renderCardioExBlock(ex, ei);
+  saveWorkoutToLocal();
+}
+
+function stopCardioTimer(ei) {
+  var ex = wkState.exercises[ei];
+  if (ex.cardioRunning) {
+    ex.cardioElapsed = Math.floor((Date.now() - ex.cardioStartTs) / 1000);
+  }
+  ex.cardioRunning = false;
+  if (ex._cardioInterval) { clearInterval(ex._cardioInterval); ex._cardioInterval = null; }
+
+  // Calcul calories
+  var durationMin = Math.round(ex.cardioElapsed / 60 * 10) / 10;
+  var poids = parseFloat(localStorage.getItem('mt_user_poids')) || 70;
+  var vitesse = ex.vitesse || 0;
+  var inclinaison = ex.inclinaison || 0;
+  var cardioType = 'course_moderee';
+  if (vitesse <= 4) cardioType = 'marche_lente';
+  else if (vitesse <= 6) cardioType = 'marche_rapide';
+  else if (vitesse <= 8) cardioType = 'course_lente';
+  else if (vitesse <= 10) cardioType = 'course_moderee';
+  else if (vitesse <= 12) cardioType = 'course_rapide';
+  else cardioType = 'course_intense';
+  if (inclinaison > 0 && ex.name.toLowerCase().indexOf('tapis') >= 0) {
+    cardioType = inclinaison > 8 ? 'tapis_forte_incl' : 'tapis_incline';
+  }
+  var calories = calcCalories(cardioType, poids, durationMin, vitesse, inclinaison);
+
+  ex.completed = true;
+  ex.duration_sec = ex.cardioElapsed || 0;
+  ex.calories = calories;
+  ex.cardioSaved = true;
+
+  // Sauvegarder en tant que séance cardio dans la DB (pour le graphique)
+  var session = {
+    name: ex.name,
+    date: new Date().toISOString().split('T')[0],
+    duration_sec: ex.duration_sec,
+    duration_min: durationMin,
+    notes: '',
+    exercises: [],
+    cardio: true,
+    cardio_type: cardioType,
+    vitesse: vitesse || null,
+    inclinaison: inclinaison || null,
+    calories: calories
+  };
+  DB.addSession(session).then(function() {
+    toast(ico('fire')+' ' + calories + ' kcal enregistrées !', 'success', 3000);
+  }).catch(function(e) {
+    toast('Erreur sauvegarde cardio: '+(e.message||e), 'error');
+  });
+
+  // Afficher le récap
+  var block = document.getElementById('cardio-block-'+ei);
+  if (block) {
+    block.innerHTML = `
+      <div class="wk-ex-head">
+        <span style="font-weight:700;font-size:15px">${esc(ex.name)}</span>
+        <span class="muscle-badge">Cardio</span>
+      </div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap">
+          <div style="text-align:center">
+            <div class="mono" style="font-size:28px;font-weight:700;color:var(--green-bright)">${fDur(ex.duration_sec)}</div>
+            <div style="font-size:11px;color:var(--ink-faint);margin-top:4px">DURÉE</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:28px;font-weight:700;color:var(--accent)">${calories}</div>
+            <div style="font-size:11px;color:var(--ink-faint);margin-top:4px">KCAL</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:20px;font-size:13px;color:var(--ink-dim)">
+          ${vitesse ? '<span>'+ico('play')+' '+vitesse+' km/h</span>' : ''}
+          ${inclinaison ? '<span>'+ico('trend')+' '+inclinaison+'%</span>' : ''}
+        </div>
+        <div style="text-align:center;font-size:12px;color:var(--green);font-weight:600">${ico('check')} Terminé et enregistré</div>
+      </div>`;
+  }
+  saveWorkoutToLocal();
 }
 
 function renderSetHTML(ei, si, set, restSec) {
   if (set.done && set.restLeft > 0) {
-    var pauseIcon = set.restPaused ? '▶' : '⏸';
+    var pauseIcon = set.restPaused ? ico('play') : ico('pause');
     var pauseTitle = set.restPaused ? 'Reprendre' : 'Pause';
     return `<div class="wk-set-row" id="sr-${ei}-${si}">
       <div class="set-num done">${si+1}</div>
@@ -381,7 +679,8 @@ function renderSetHTML(ei, si, set, restSec) {
     return `<div class="wk-set-row" id="sr-${ei}-${si}">
       <div class="set-num done">${si+1}</div>
       <div class="set-done-info">${set.weight||'—'} kg × ${set.reps||'—'}${set.rpe?' · RPE '+set.rpe:''}</div>
-      <span style="color:var(--green-bright);font-size:16px">✓</span>
+      <button class="btn-ghost btn-sm" onclick="undoSet(${ei},${si},${restSec})" style="font-size:11px;padding:4px 8px" title="Modifier">${ico('undo')}</button>
+      <span style="color:var(--green-bright);font-size:16px">${ico('check')}</span>
     </div>`;
   }
   const lastDone = wkState.exercises[ei].sets.reduce((a,s,i)=>s.done?i:a,-1);
@@ -390,16 +689,100 @@ function renderSetHTML(ei, si, set, restSec) {
     <div class="set-num">${si+1}</div>
     <div class="wk-input-grp">
       <button class="adj" onclick="wkAdj(${ei},${si},'weight',-2.5)">−</button>
-      <div><input class="wk-num" id="wi-${ei}-${si}" type="number" min="0" step="0.5" value="${set.weight||''}" placeholder="kg" oninput="wkState.exercises[${ei}].sets[${si}].weight=this.value"/><div class="wk-num-lbl">kg</div></div>
+      <div><input class="wk-num" id="wi-${ei}-${si}" type="number" min="0" step="0.5" value="${set.weight||''}" placeholder="kg" oninput="wkState.exercises[${ei}].sets[${si}].weight=this.value;saveWorkoutToLocal()"/><div class="wk-num-lbl">kg</div></div>
       <button class="adj" onclick="wkAdj(${ei},${si},'weight',2.5)">+</button>
     </div>
     <div class="wk-input-grp">
       <button class="adj" onclick="wkAdj(${ei},${si},'reps',-1)">−</button>
-      <div><input class="wk-num" id="ri-${ei}-${si}" type="number" min="0" step="1" value="${set.reps||''}" placeholder="reps" oninput="wkState.exercises[${ei}].sets[${si}].reps=this.value"/><div class="wk-num-lbl">reps</div></div>
+      <div><input class="wk-num" id="ri-${ei}-${si}" type="number" min="0" step="1" value="${set.reps||''}" placeholder="reps" oninput="wkState.exercises[${ei}].sets[${si}].reps=this.value;saveWorkoutToLocal()"/><div class="wk-num-lbl">reps</div></div>
       <button class="adj" onclick="wkAdj(${ei},${si},'reps',1)">+</button>
     </div>
     <button class="done-set-btn" onclick="wkDoneSet(${ei},${si},${restSec})">✓</button>
   </div>`;
+}
+
+var DEFAULT_WARMUP = [];
+
+function renderWarmupSection() {
+  if (!wkState) return '';
+  // Utiliser l'échauffement personnalisé du jour si disponible
+  if (!wkState.warmup) {
+    if (wkState._dayWarmup && wkState._dayWarmup.length > 0) {
+      wkState.warmup = wkState._dayWarmup.map(function(label) { return {label:label, done:false}; });
+    } else {
+      // Pas d'échauffement par défaut — l'user doit les configurer dans son programme
+      return '';
+    }
+  }
+  if (wkState.warmup.length === 0) return '';
+  return '<div class="warmup-box">' +
+    '<div class="warmup-title">' + ico('bolt') + ' Échauffement</div>' +
+    '<div class="warmup-checklist">' +
+    wkState.warmup.map(function(item, i) {
+      var checked = item.done ? ' checked' : '';
+      var doneClass = item.done ? ' style="text-decoration:line-through;opacity:.5"' : '';
+      return '<label class="warmup-item"' + doneClass + '>' +
+        '<input type="checkbox"' + checked + ' onchange="toggleWarmup(' + i + ',this.checked)" style="accent-color:var(--green);width:18px;height:18px;flex-shrink:0"/>' +
+        '<span>' + esc(item.label) + '</span>' +
+      '</label>';
+    }).join('') +
+    '</div></div>';
+}
+
+function toggleWarmup(idx, checked) {
+  if (wkState && wkState.warmup && wkState.warmup[idx]) {
+    wkState.warmup[idx].done = checked;
+    // Re-render juste le style
+    var labels = document.querySelectorAll('.warmup-item');
+    if (labels[idx]) {
+      labels[idx].style.textDecoration = checked ? 'line-through' : 'none';
+      labels[idx].style.opacity = checked ? '.5' : '1';
+    }
+  }
+}
+
+function markExDone(ei) {
+  if (!wkState || !wkState.exercises[ei]) return;
+  // Toggle : si déjà completed, on dévalide
+  var isCompleted = wkState.exercises[ei].completed;
+  wkState.exercises[ei].completed = !isCompleted;
+  saveWorkoutToLocal();
+
+  var block = document.querySelectorAll('.wk-ex-block')[ei];
+  if (!isCompleted) {
+    toast(ico('check')+' ' + esc(wkState.exercises[ei].name) + ' terminé', 'success', 1500);
+    if (block) { block.style.opacity = '0.5'; block.style.borderColor = 'var(--green)'; }
+  } else {
+    toast(ico('undo')+' ' + esc(wkState.exercises[ei].name) + ' réouvert', 'info', 1500);
+    if (block) { block.style.opacity = '1'; block.style.borderColor = ''; }
+  }
+}
+
+function showExComment(ei) {
+  var el = document.getElementById('wk-ex-comment-' + ei);
+  if (el) {
+    el.classList.toggle('hidden');
+    if (!el.classList.contains('hidden')) {
+      var input = document.getElementById('wk-comment-input-' + ei);
+      if (input) input.focus();
+    }
+  }
+}
+
+function undoSet(ei, si, restSec) {
+  var set = wkState.exercises[ei].sets[si];
+  // Arrêter le timer repos si actif
+  if (set.restTimer) { clearInterval(set.restTimer); set.restTimer = null; }
+  // Remettre en mode non-validé
+  set.done = false;
+  set.restLeft = 0;
+  set.doneTs = 0;
+  set.restPaused = false;
+  saveWorkoutToLocal();
+  // Re-render la ligne
+  var row = document.getElementById('sr-'+ei+'-'+si);
+  if (row) row.outerHTML = renderSetHTML(ei, si, set, restSec);
+  toast(ico('undo')+' Série réouverte — corrige tes valeurs', 'info', 1500);
 }
 
 function wkAdj(ei, si, field, delta) {
@@ -409,6 +792,7 @@ function wkAdj(ei, si, field, delta) {
   set[field] = field==='weight' ? (val%1===0?val.toFixed(0):val.toFixed(1)) : String(Math.round(val));
   const inp = document.getElementById((field==='weight'?'wi':'ri')+'-'+ei+'-'+si);
   if (inp) inp.value = set[field];
+  saveWorkoutToLocal();
 }
 
 function wkDoneSet(ei, si, restSec) {
@@ -419,6 +803,7 @@ function wkDoneSet(ei, si, restSec) {
   if (ri) set.reps = ri.value;
   set.done = true; set.doneTs = Date.now(); set.restLeft = restSec;
   set.restPaused = false;
+  saveWorkoutToLocal();
 
   // Stop any other running timer first
   wkState.exercises.forEach(function(ex, exi) {
@@ -442,7 +827,7 @@ function wkDoneSet(ei, si, restSec) {
     if (set.restLeft <= 0) {
       clearInterval(set.restTimer); set.restTimer = null;
       if (navigator.vibrate) navigator.vibrate([150,80,150]);
-      toast('⏱ Repos terminé !', 'success', 2500);
+      toast(ico('timer')+' Repos terminé !', 'success', 2500);
     }
   }, 1000);
 
@@ -457,10 +842,10 @@ function wkPauseTimer(ei, si) {
     // Resume: adjust doneTs to account for paused time
     set.doneTs = Date.now() - ((wkState.exercises[ei].restSec - set.restLeft) * 1000);
     set.restPaused = false;
-    toast('▶ Repos repris', 'info', 1200);
+    toast(ico('play')+' Repos repris', 'info', 1200);
   } else {
     set.restPaused = true;
-    toast('⏸ Repos en pause', 'info', 1200);
+    toast(ico('pause')+' Repos en pause', 'info', 1200);
   }
   var row = document.getElementById('sr-'+ei+'-'+si);
   if (row) row.outerHTML = renderSetHTML(ei, si, set, wkState.exercises[ei].restSec);
@@ -519,7 +904,7 @@ function showRecap(elapsedSec) {
   html += '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);margin-bottom:10px">Détail</div>';
   exs.forEach(ex => {
     html += `<div class="sv-ex">
-      <div class="sv-ex-head">${ex.name} <span class="muscle-badge">${ex.muscle}</span></div>
+      <div class="sv-ex-head">${esc(ex.name)} <span class="muscle-badge">${ex.muscle}</span></div>
       <table class="sv-table"><thead><tr><th>#</th><th>Poids</th><th>Reps</th><th>RPE</th><th>Vol.</th></tr></thead>
       <tbody>${ex.sets.map((s,i)=>{
         const v=(parseFloat(s.weight)||0)*(parseInt(s.reps)||0);
@@ -544,21 +929,24 @@ async function saveRecap() {
   if (comment) pendingSession.notes = comment;
   try {
     await DB.addSession(pendingSession);
-    toast('Séance sauvegardée ! 💪', 'success');
+    toast(ico('muscle')+' Séance sauvegardée !', 'success');
   } catch(e) { toast('Erreur: '+e.message, 'error'); return; }
   pendingSession = null;
   document.getElementById('recap-comment').value = '';
   closeModal('modal-recap');
   document.getElementById('wk-screen').classList.add('hidden');
+  clearWorkoutLocal();
   wkState = null;
   navigate('page-history');
 }
 
-function discardRecap() {
-  if (!confirm('Abandonner sans sauvegarder ?')) return;
+async function discardRecap() {
+  var ok = await modalConfirm('Abandonner ?', 'La séance ne sera pas sauvegardée.');
+  if (!ok) return;
   pendingSession = null;
   closeModal('modal-recap');
   document.getElementById('wk-screen').classList.add('hidden');
+  clearWorkoutLocal();
   wkState = null;
 }
 
@@ -568,10 +956,23 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-save-prog').addEventListener('click', saveProg);
   document.getElementById('btn-day-add-ex').addEventListener('click', openDayPicker);
   document.getElementById('btn-save-day').addEventListener('click', saveDay);
+  initWeekdayBubbles();
   document.getElementById('day-picker-search').addEventListener('input', e => renderDayPickerList(e.target.value));
   document.getElementById('day-picker-search').addEventListener('keydown', e => { if(e.key==='Enter') dayPickerCreateAdd(); });
   document.getElementById('btn-day-picker-create').addEventListener('click', dayPickerCreateAdd);
-  document.getElementById('btn-end-workout').addEventListener('click', () => { if(confirm('Terminer la séance ?')) endWorkout(); });
+  document.getElementById('btn-end-workout').addEventListener('click', async () => {
+    var ok = await modalConfirm('Terminer la séance ?', 'Ton récap sera affiché et tu pourras sauvegarder.');
+    if (ok) endWorkout();
+  });
+  document.getElementById('btn-quit-workout').addEventListener('click', async () => {
+    var ok = await modalConfirm('Quitter la séance ?', 'Ta progression est sauvegardée, tu pourras reprendre plus tard.');
+    if (ok) {
+      clearInterval(wkState.timer);
+      wkState.exercises.forEach(ex => ex.sets.forEach(s => { if(s.restTimer) clearInterval(s.restTimer); }));
+      saveWorkoutToLocal();
+      document.getElementById('wk-screen').classList.add('hidden');
+    }
+  });
   document.getElementById('btn-recap-save').addEventListener('click', saveRecap);
   document.getElementById('btn-recap-discard').addEventListener('click', discardRecap);
 });

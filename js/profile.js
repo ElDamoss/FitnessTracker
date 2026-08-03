@@ -50,7 +50,7 @@ async function resetPassword() {
       redirectTo: 'https://fitnesstracker.bzh/index.html'
     });
     if (r.error) throw r.error;
-    toast('📧 Email de réinitialisation envoyé à ' + currentUser.email, 'success', 5000);
+    toast(ico('mail')+' Email de réinitialisation envoyé à ' + currentUser.email, 'success', 5000);
   } catch(e) { toast('Erreur: ' + (e.message||e), 'error'); }
 }
 
@@ -85,14 +85,14 @@ async function checkMfaStatus() {
     if (r.data && r.data.totp && r.data.totp.length > 0) {
       var factor = r.data.totp[0];
       if (factor.status === 'verified') {
-        el.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span style="color:var(--green-bright);font-weight:600">✅ MFA activée</span></div>';
-        document.getElementById('btn-enable-mfa').textContent = '🔓 Désactiver la MFA';
+        el.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><span style="color:var(--green-bright);font-weight:600">'+ico('check')+' MFA activée</span></div>';
+        document.getElementById('btn-enable-mfa').innerHTML = ico('unlock')+' Désactiver la MFA';
         document.getElementById('btn-enable-mfa').onclick = disableMfa;
         return;
       }
     }
     el.innerHTML = '<span style="color:var(--ink-faint);font-size:13px">MFA non activée</span>';
-    document.getElementById('btn-enable-mfa').textContent = '🔐 Activer la MFA';
+    document.getElementById('btn-enable-mfa').innerHTML = ico('lock')+' Activer la MFA';
     document.getElementById('btn-enable-mfa').onclick = enableMfa;
   } catch(e) {
     el.innerHTML = '<span style="color:var(--ink-faint);font-size:13px">MFA non disponible</span>';
@@ -126,7 +126,7 @@ async function verifyMfa() {
       code: code
     });
     if (verifyR.error) throw verifyR.error;
-    toast('✅ MFA activée avec succès !', 'success');
+    toast(ico('check')+' MFA activée avec succès !', 'success');
     document.getElementById('mfa-setup').classList.add('hidden');
     checkMfaStatus();
   } catch(e) { toast('Code invalide: ' + (e.message||e), 'error'); }

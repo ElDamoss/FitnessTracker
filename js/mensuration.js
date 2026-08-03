@@ -107,12 +107,13 @@ function renderMensTable(data) {
         if (pv!=null) { const d=(v-pv).toFixed(1); const cls=d>0?'up':d<0?'down':''; dHtml=` <span class="td-delta ${cls}">${d>0?'+'+d:d}</span>`; }
         return `<td>${v}${dHtml}</td>`;
       }).join('')}
-      <td><button class="mens-del-btn" onclick="deleteMensEntry('${entry.id}')">🗑</button></td>
+      <td><button class="mens-del-btn" onclick="editMensEntry('${entry.id}')" title="Modifier">${ico('edit')}</button><button class="mens-del-btn" onclick="deleteMensEntry('${entry.id}')" title="Supprimer">${ico('trash')}</button></td>
     </tr>`;
   }).join('');
 }
 
 function openMensModal() {
+  window._editingMensId = null; // reset edit mode
   document.getElementById('mens-date').value = new Date().toISOString().split('T')[0];
   METRICS = getAllMetrics(); // refresh
   const grid = document.getElementById('mens-form-grid');
@@ -144,10 +145,11 @@ function openMensModal() {
   openModal('modal-mens');
 }
 
-function addCustomMetricPrompt() {
-  var name = prompt('Nom de la zone (ex: Tour de cou, Avant-bras G)');
-  if (!name || !name.trim()) return;
-  var unit = prompt('Unité (cm ou kg)', 'cm') || 'cm';
+async function addCustomMetricPrompt() {
+  var name = await modalPrompt('Ajouter une zone', 'Nom de la mesure (ex: Tour de cou, Avant-bras G)', 'Nom de la zone');
+  if (!name) return;
+  var unit = await modalPrompt('Unité', 'Unité de mesure', 'cm ou kg', 'cm');
+  if (!unit) unit = 'cm';
   var key = 'custom_' + name.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
   var customs = getCustomMetrics();
   if (customs.some(function(c){ return c.key === key; })) { toast('Cette zone existe déjà','info'); return; }
@@ -155,7 +157,15 @@ function addCustomMetricPrompt() {
   saveCustomMetrics(customs);
   METRICS = getAllMetrics();
   toast(name.trim() + ' ajouté ✓', 'success');
-  openMensModal(); // re-render
+  // Ajouter le champ au formulaire sans réouvrir (ne pas perdre les valeurs)
+  var grid = document.getElementById('mens-form-grid');
+  var addBtn = grid.querySelector('.btn-ghost');
+  var newField = document.createElement('div');
+  newField.className = 'mens-field';
+  newField.innerHTML = '<label>' + esc(name.trim()) + '</label>' +
+    '<input type="number" step="0.1" min="0" id="mens-input-' + key + '" value="" placeholder="' + esc(unit.trim()) + '"/>' +
+    '<span class="mens-unit">' + esc(unit.trim()) + '</span>';
+  grid.insertBefore(newField, addBtn.parentElement);
 }
 
 async function saveMens() {
@@ -181,6 +191,11 @@ async function saveMens() {
 
   if (!hasVal) { toast('Renseigne au moins une mesure','error'); return; }
   try {
+    // Si c'est une modification, supprimer l'ancienne entrée d'abord
+    if (window._editingMensId) {
+      await DB.deleteMensuration(window._editingMensId);
+      window._editingMensId = null;
+    }
     await DB.addMensuration(entry);
   } catch(e) {
     console.error('Erreur sauvegarde mensuration:', e);
@@ -195,6 +210,33 @@ async function deleteMensEntry(id) {
   if (!confirm('Supprimer cette entrée ?')) return;
   try { await DB.deleteMensuration(id); } catch(e) { toast(e.message,'error'); return; }
   toast('Supprimé','info'); renderMensuration();
+}
+
+async function editMensEntry(id) {
+  var data = await DB.getMensurations();
+  var entry = data.find(function(e){return e.id===id;});
+  if (!entry) return;
+
+  // Ouvrir le modal pré-rempli avec les valeurs de cette entrée
+  document.getElementById('mens-date').value = entry.date;
+  METRICS = getAllMetrics();
+  var grid = document.getElementById('mens-form-grid');
+  grid.innerHTML = METRICS.map(function(m) {
+    var val = entry[m.key] != null ? entry[m.key] : '';
+    return '<div class="mens-field">' +
+      '<label>' + esc(m.label) + '</label>' +
+      '<input type="number" step="0.1" min="0" id="mens-input-' + m.key + '" value="' + val + '" placeholder="' + esc(m.unit) + '"/>' +
+      '<span class="mens-unit">' + esc(m.unit) + '</span>' +
+    '</div>';
+  }).join('') +
+  '<div class="mens-field" style="display:flex;align-items:flex-end">' +
+    '<button class="btn-ghost btn-sm" onclick="addCustomMetricPrompt()" style="width:100%;margin-top:auto">+ Ajouter une zone</button>' +
+  '</div>';
+  openModal('modal-mens');
+
+  // Supprimer l'ancienne entrée quand on sauvegarde (= modifier)
+  // On stocke l'ID pour le supprimer après sauvegarde
+  window._editingMensId = id;
 }
 
 // Event listeners
