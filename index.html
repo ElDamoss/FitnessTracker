@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -111,7 +111,6 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="nav-item" data-page="page-exercises"><svg><use href="#ic-barbell"/></svg>Exercices</div>
       <div class="nav-eyebrow">Infos</div>
       <div class="nav-item" data-page="page-updates"><svg><use href="#ic-spark"/></svg>Mises à jour</div>
-      <div class="nav-item hidden" id="admin-nav-item" data-page="page-admin"><svg><use href="#ic-gear"/></svg>Admin</div>
     </nav>
     <div class="sidebar-spacer"></div>
     <div class="user-block" style="cursor:pointer" onclick="navigate('page-profile')">
@@ -422,12 +421,6 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="page" id="page-cardio">
         <div class="page-header"><h2 class="page-h1 display">Cardio & Calories</h2><button class="btn-primary" id="btn-add-cardio">+ Ajouter</button></div>
 
-        <div class="panel" style="margin-bottom:14px">
-          <div class="panel-head"><div class="panel-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M12 3c1 2.4-.6 3.6-1.7 4.9-1.3 1.6-2 3-2 4.7a3.7 3.7 0 007.4 0c0-1.1-.3-2-1-3"/></svg> Calories brûlées (14 derniers jours)</div></div>
-          <canvas id="cardio-chart" height="160"></canvas>
-        </div>
-
-        <div class="section-label">Historique cardio</div>
         <div id="cardio-history"></div>
       </div>
 
@@ -437,77 +430,35 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
         <div id="updates-content">
 
           <div class="update-block">
-            <div class="update-version"><span class="version-badge">v1.4.0</span> <span class="update-date">1 août 2026</span></div>
-            <div class="update-title">V3 — Refonte interface + export</div>
+            <div class="update-version"><span class="version-badge">v7.3</span> <span class="update-date">4 août 2026</span></div>
+            <div class="update-title">V7.3 — Fixes & améliorations</div>
             <ul class="update-list">
-              <li class="update-feat">Page d'accueil avec boutons de navigation</li>
-              <li class="update-feat">Tableau de bord revu (séances, courbe poids, mensurations)</li>
-              <li class="update-feat">Récap fin de séance centré avec animation pop</li>
-              <li class="update-feat">Commentaire de fin de séance</li>
-              <li class="update-feat">Historique : sélection multiple + export rapport HTML</li>
-              <li class="update-fix">Fix alignement inputs kg/reps</li>
-              <li class="update-fix">Fix mensuration (insert Supabase robuste)</li>
-              <li class="update-fix">Fix sidebar qui ne se fermait pas</li>
-              <li class="update-ui">Animation drag & drop renforcée</li>
-              <li class="update-ui">Renommage MuscuTrack → FitnessTracker</li>
+              <li class="update-feat">Page Cardio : affichage en cartes (durée, vitesse, pente, calories)</li>
+              <li class="update-feat">Rapport export : mannequin musculaire SVG (zones colorées)</li>
+              <li class="update-feat">Signalements par email (envoi + réponse visible)</li>
+              <li class="update-fix">Fix toast : icônes SVG s'affichent correctement</li>
+              <li class="update-fix">Fix alignement kg/reps dans les séries</li>
+              <li class="update-fix">Fix iOS : viewport, modals, bulles semaine</li>
+              <li class="update-fix">Fix lien mot de passe oublié</li>
+              <li class="update-ui">Console admin retirée</li>
             </ul>
           </div>
 
           <div class="update-block">
-            <div class="update-version"><span class="version-badge">v1.5.0</span> <span class="update-date">2 août 2026</span></div>
-            <div class="update-title">V4 — Accueil redesigné + changelog</div>
+            <div class="update-version"><span class="version-badge">v7.2</span> <span class="update-date">3 août 2026</span></div>
+            <div class="update-title">V7.2 — Cardio programme, SVG, export thémé</div>
             <ul class="update-list">
-              <li class="update-feat">Bouton Accueil dans la sidebar</li>
-              <li class="update-feat">Redesign page d'accueil (dark cards + icônes SVG)</li>
-              <li class="update-feat">Onglet "Mises à jour" dans l'app</li>
-              <li class="update-fix">Fix mensuration (nettoyage payload, vérif connexion)</li>
-            </ul>
-          </div>
-
-          <div class="update-block">
-            <div class="update-version"><span class="version-badge">v1.3.0</span> <span class="update-date">31 juillet 2026</span></div>
-            <div class="update-title">TacheV2 — Retours utilisateurs</div>
-            <ul class="update-list">
-              <li class="update-feat">Modal récap dernière séance avant lancement</li>
-              <li class="update-feat">Notes/commentaires par exercice dans les programmes</li>
-              <li class="update-feat">Bulle info sur chaque exercice (image API)</li>
-              <li class="update-feat">Thème Stitch + Thème Kitty</li>
-              <li class="update-feat">8 exercices Fessiers ajoutés</li>
-              <li class="update-feat">Timer repos : pause + stop</li>
-              <li class="update-feat">Réorganisation exercices par glisser-déposer</li>
-              <li class="update-fix">Seed exercices manquants ajoutés automatiquement</li>
-            </ul>
-          </div>
-
-          <div class="update-block">
-            <div class="update-version"><span class="version-badge">v1.1.0</span> <span class="update-date">23 juillet 2026</span></div>
-            <div class="update-title">PWA + Supabase</div>
-            <ul class="update-list">
-              <li class="update-feat">Conversion en PWA installable</li>
-              <li class="update-feat">Connexion Supabase (auth + données cloud)</li>
-              <li class="update-feat">Chaque utilisateur voit uniquement ses données</li>
-              <li class="update-feat">Déploiement auto GitHub → Netlify</li>
-            </ul>
-          </div>
-
-          <div class="update-block">
-            <div class="update-version"><span class="version-badge">v1.0.0</span> <span class="update-date">22 juillet 2026</span></div>
-            <div class="update-title">Version initiale</div>
-            <ul class="update-list">
-              <li class="update-feat">Dashboard, Programmes, Workout, Historique, Stats, Mensurations</li>
-              <li class="update-feat">Mode entraînement (chrono, timer repos, saisie poids/reps)</li>
-              <li class="update-feat">34 exercices pré-chargés (7 catégories)</li>
-              <li class="update-ui">Design dark mode + mode clair</li>
+              <li class="update-feat">Bulles L M M J V S D sur page d'accueil</li>
+              <li class="update-feat">Cardio dans programme (timer au lieu de séries)</li>
+              <li class="update-feat">Tous les emojis remplacés par SVG inline</li>
+              <li class="update-feat">Export rapport : thème actif conservé</li>
+              <li class="update-feat">Renommage exercice en live pendant la séance</li>
+              <li class="update-fix">Fix suppression données admin</li>
+              <li class="update-fix">Fix confirm() natif → modal stylisé</li>
             </ul>
           </div>
 
         </div>
-      </div>
-
-      <!-- PAGE: ADMIN -->
-      <div class="page" id="page-admin">
-        <div class="page-header"><h2 class="page-h1 display"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg> Administration</h2></div>
-        <div id="admin-content"></div>
       </div>
 
       <!-- PAGE: EXERCICES -->
@@ -782,7 +733,6 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 <script src="js/profile.js"></script>
 <script src="js/cardio.js"></script>
 <script src="js/report.js"></script>
-<script src="js/admin.js"></script>
 <script src="js/default-programs.js"></script>
 
 <!-- Service Worker -->

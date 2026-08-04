@@ -689,12 +689,12 @@ function renderSetHTML(ei, si, set, restSec) {
     <div class="set-num">${si+1}</div>
     <div class="wk-input-grp">
       <button class="adj" onclick="wkAdj(${ei},${si},'weight',-2.5)">−</button>
-      <div><input class="wk-num" id="wi-${ei}-${si}" type="number" min="0" step="0.5" value="${set.weight||''}" placeholder="kg" oninput="wkState.exercises[${ei}].sets[${si}].weight=this.value;saveWorkoutToLocal()"/><div class="wk-num-lbl">kg</div></div>
+      <input class="wk-num" id="wi-${ei}-${si}" type="number" min="0" step="0.5" value="${set.weight||''}" placeholder="kg" oninput="wkState.exercises[${ei}].sets[${si}].weight=this.value;saveWorkoutToLocal()"/>
       <button class="adj" onclick="wkAdj(${ei},${si},'weight',2.5)">+</button>
     </div>
     <div class="wk-input-grp">
       <button class="adj" onclick="wkAdj(${ei},${si},'reps',-1)">−</button>
-      <div><input class="wk-num" id="ri-${ei}-${si}" type="number" min="0" step="1" value="${set.reps||''}" placeholder="reps" oninput="wkState.exercises[${ei}].sets[${si}].reps=this.value;saveWorkoutToLocal()"/><div class="wk-num-lbl">reps</div></div>
+      <input class="wk-num" id="ri-${ei}-${si}" type="number" min="0" step="1" value="${set.reps||''}" placeholder="reps" oninput="wkState.exercises[${ei}].sets[${si}].reps=this.value;saveWorkoutToLocal()"/>
       <button class="adj" onclick="wkAdj(${ei},${si},'reps',1)">+</button>
     </div>
     <button class="done-set-btn" onclick="wkDoneSet(${ei},${si},${restSec})">✓</button>

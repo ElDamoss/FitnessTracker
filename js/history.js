@@ -99,14 +99,26 @@ async function exportSelectedSessions() {
   html += '.note{font-style:italic;opacity:.7;margin-bottom:12px;font-size:13px;}';
   html += '.footer{margin-top:32px;font-size:11px;opacity:.5;text-align:center;}';
   html += '.accent{font-weight:700;}';
+  html += '.mannequin-wrap{display:flex;justify-content:center;gap:32px;margin:24px 0 28px;}';
+  html += '.mannequin-label{text-align:center;font-size:11px;opacity:.6;text-transform:uppercase;letter-spacing:.08em;margin-top:8px;}';
   html += '</style></head><body>';
   html += '<h1>' + ico('chart',18) + ' Rapport d\'entraînement</h1>';
   html += '<div class="sub">'+userName+' · '+now+' · '+selected.length+' séance(s)</div>';
   html += '<div class="stats">';
   html += '<div class="stat"><div class="stat-val accent">'+selected.length+'</div><div class="stat-label">Séances</div></div>';
-  html += '<div class="stat"><div class="stat-val accent">'+totalSets+'</div><div class="stat-label">Séries</div></div>';
   html += '<div class="stat"><div class="stat-val accent">'+fW(totalVol)+'</div><div class="stat-label">Volume total</div></div>';
   html += '</div>';
+
+  // Collecter les muscles travaillés
+  var workedMuscles = {};
+  selected.forEach(function(s) {
+    (s.exercises||[]).forEach(function(ex) {
+      if (ex.muscle) workedMuscles[ex.muscle] = true;
+    });
+  });
+
+  // Mannequin SVG (face + dos)
+  html += buildMannequinHTML(workedMuscles, themeCSS.indexOf('background:#07090a')>-1 || themeCSS.indexOf('background:#e8f4fd')>-1);
 
   selected.forEach(function(s, idx) {
     if (idx > 0) html += '<hr class="day-sep"/>';
@@ -116,10 +128,10 @@ async function exportSelectedSessions() {
     if (s.notes) html += '<div class="note">"'+s.notes+'"</div>';
     (s.exercises||[]).forEach(function(ex) {
       html += '<div class="ex-title">'+esc(ex.name)+' <span style="font-size:11px;opacity:.6">('+ex.muscle+')</span></div>';
-      html += '<table><thead><tr><th>#</th><th>Poids</th><th>Reps</th><th>RPE</th><th>Volume</th></tr></thead><tbody>';
-      (ex.sets||[]).forEach(function(st, i) {
+      html += '<table><thead><tr><th>Poids</th><th>Reps</th><th>RPE</th><th>Volume</th></tr></thead><tbody>';
+      (ex.sets||[]).forEach(function(st) {
         var v = (parseFloat(st.weight)||0)*(parseInt(st.reps)||0);
-        html += '<tr><td>'+(i+1)+'</td><td>'+(st.weight?st.weight+' kg':'—')+'</td><td>'+(st.reps||'—')+'</td><td>'+(st.rpe||'—')+'</td><td>'+(v>0?fW(v):'—')+'</td></tr>';
+        html += '<tr><td>'+(st.weight?st.weight+' kg':'—')+'</td><td>'+(st.reps||'—')+'</td><td>'+(st.rpe||'—')+'</td><td>'+(v>0?fW(v):'—')+'</td></tr>';
       });
       html += '</tbody></table>';
     });
@@ -184,3 +196,93 @@ document.addEventListener('DOMContentLoaded', function() {
     if (currentPage==='page-dashboard') renderDashboard();
   });
 });
+
+
+// ── MANNEQUIN SVG (face + dos) ──
+// Mapping muscles → zones du corps
+function buildMannequinHTML(workedMuscles) {
+  var accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#86f7b4';
+  var baseColor = 'rgba(128,128,128,.15)';
+
+  function mc(muscles) {
+    for (var i = 0; i < muscles.length; i++) {
+      if (workedMuscles[muscles[i]]) return accentColor;
+    }
+    return baseColor;
+  }
+
+  // Couleurs par zone
+  var chest = mc(['Pectoraux']);
+  var shoulders = mc(['Épaules']);
+  var biceps = mc(['Biceps']);
+  var triceps = mc(['Triceps']);
+  var abs = mc(['Abdos']);
+  var legs = mc(['Jambes']);
+  var glutes = mc(['Fessiers']);
+  var back = mc(['Dos']);
+  var forearms = mc(['Biceps','Triceps']);
+
+  // SVG Face (vue de devant)
+  var front = '<svg width="120" height="260" viewBox="0 0 120 260" xmlns="http://www.w3.org/2000/svg">';
+  // Tête
+  front += '<ellipse cx="60" cy="24" rx="14" ry="16" fill="'+baseColor+'" stroke="currentColor" stroke-width="1"/>';
+  // Cou
+  front += '<rect x="54" y="38" width="12" height="10" fill="'+baseColor+'"/>';
+  // Épaules
+  front += '<ellipse cx="34" cy="56" rx="12" ry="8" fill="'+shoulders+'"/>';
+  front += '<ellipse cx="86" cy="56" rx="12" ry="8" fill="'+shoulders+'"/>';
+  // Pectoraux
+  front += '<ellipse cx="47" cy="72" rx="14" ry="12" fill="'+chest+'"/>';
+  front += '<ellipse cx="73" cy="72" rx="14" ry="12" fill="'+chest+'"/>';
+  // Abdos
+  front += '<rect x="46" y="86" width="28" height="36" rx="4" fill="'+abs+'"/>';
+  // Biceps
+  front += '<ellipse cx="28" cy="85" rx="7" ry="18" fill="'+biceps+'"/>';
+  front += '<ellipse cx="92" cy="85" rx="7" ry="18" fill="'+biceps+'"/>';
+  // Avant-bras
+  front += '<ellipse cx="24" cy="115" rx="5" ry="16" fill="'+forearms+'"/>';
+  front += '<ellipse cx="96" cy="115" rx="5" ry="16" fill="'+forearms+'"/>';
+  // Quadriceps (jambes)
+  front += '<ellipse cx="47" cy="150" rx="10" ry="28" fill="'+legs+'"/>';
+  front += '<ellipse cx="73" cy="150" rx="10" ry="28" fill="'+legs+'"/>';
+  // Tibias
+  front += '<ellipse cx="47" cy="205" rx="7" ry="26" fill="'+legs+'"/>';
+  front += '<ellipse cx="73" cy="205" rx="7" ry="26" fill="'+legs+'"/>';
+  front += '</svg>';
+
+  // SVG Dos (vue arrière)
+  var back_svg = '<svg width="120" height="260" viewBox="0 0 120 260" xmlns="http://www.w3.org/2000/svg">';
+  // Tête
+  back_svg += '<ellipse cx="60" cy="24" rx="14" ry="16" fill="'+baseColor+'" stroke="currentColor" stroke-width="1"/>';
+  // Cou
+  back_svg += '<rect x="54" y="38" width="12" height="10" fill="'+baseColor+'"/>';
+  // Trapèzes / épaules
+  back_svg += '<ellipse cx="34" cy="56" rx="12" ry="8" fill="'+shoulders+'"/>';
+  back_svg += '<ellipse cx="86" cy="56" rx="12" ry="8" fill="'+shoulders+'"/>';
+  // Dos (grand dorsal)
+  back_svg += '<path d="M38 60 L60 60 L60 120 L42 115 Z" fill="'+back+'"/>';
+  back_svg += '<path d="M82 60 L60 60 L60 120 L78 115 Z" fill="'+back+'"/>';
+  // Triceps
+  back_svg += '<ellipse cx="28" cy="85" rx="7" ry="18" fill="'+triceps+'"/>';
+  back_svg += '<ellipse cx="92" cy="85" rx="7" ry="18" fill="'+triceps+'"/>';
+  // Avant-bras
+  back_svg += '<ellipse cx="24" cy="115" rx="5" ry="16" fill="'+forearms+'"/>';
+  back_svg += '<ellipse cx="96" cy="115" rx="5" ry="16" fill="'+forearms+'"/>';
+  // Lombaires
+  back_svg += '<rect x="46" y="100" width="28" height="22" rx="4" fill="'+back+'"/>';
+  // Fessiers
+  back_svg += '<ellipse cx="47" cy="132" rx="12" ry="10" fill="'+glutes+'"/>';
+  back_svg += '<ellipse cx="73" cy="132" rx="12" ry="10" fill="'+glutes+'"/>';
+  // Ischio-jambiers (jambes arrière)
+  back_svg += '<ellipse cx="47" cy="160" rx="10" ry="24" fill="'+legs+'"/>';
+  back_svg += '<ellipse cx="73" cy="160" rx="10" ry="24" fill="'+legs+'"/>';
+  // Mollets
+  back_svg += '<ellipse cx="47" cy="208" rx="7" ry="22" fill="'+legs+'"/>';
+  back_svg += '<ellipse cx="73" cy="208" rx="7" ry="22" fill="'+legs+'"/>';
+  back_svg += '</svg>';
+
+  return '<div class="mannequin-wrap">' +
+    '<div><div style="text-align:center">' + front + '</div><div class="mannequin-label">Face</div></div>' +
+    '<div><div style="text-align:center">' + back_svg + '</div><div class="mannequin-label">Dos</div></div>' +
+  '</div>';
+}

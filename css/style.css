@@ -63,7 +63,7 @@ textarea{resize:vertical;min-height:70px;}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
 
 /* ===== LAYOUT ===== */
-.app-shell{display:flex;height:100vh;overflow:hidden;}
+.app-shell{display:flex;height:100vh;height:100dvh;overflow:hidden;}
 
 /* ===== SIDEBAR ===== */
 .sidebar{
@@ -129,7 +129,7 @@ nav{display:flex;flex-direction:column;gap:2px;}
 /* ===== PAGES ===== */
 .content-area{flex:1;overflow:hidden;position:relative;}
 .page{position:absolute;inset:0;overflow-y:auto;padding:24px 26px 36px;
-  display:none;flex-direction:column;}
+  display:none;flex-direction:column;-webkit-overflow-scrolling:touch;}
 .page.active{display:flex;}
 .page::-webkit-scrollbar{width:6px;}
 .page::-webkit-scrollbar-thumb{background:#182018;border-radius:6px;}
@@ -388,17 +388,17 @@ nav{display:flex;flex-direction:column;gap:2px;}
 @keyframes fadeOverlay{from{opacity:0;}to{opacity:1;}}
 .modal{background:var(--bg-sidebar);border:1px solid var(--line);
   border-radius:18px;width:100%;max-width:560px;
-  max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+  max-height:85vh;max-height:85dvh;display:flex;flex-direction:column;overflow:hidden;
   animation:slideUp .25s cubic-bezier(.32,.72,0,1);}
 @keyframes slideUp{from{transform:translateY(80px);opacity:0;}to{transform:none;opacity:1;}}
-.modal-tall{max-height:88vh;}
+.modal-tall{max-height:90vh;max-height:90dvh;}
 .modal-head{display:flex;align-items:center;justify-content:space-between;
   padding:16px 20px;border-bottom:1px solid var(--line-soft);
   font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;}
 .modal-close{width:28px;height:28px;border-radius:7px;background:var(--bg-raised);
   color:var(--ink-faint);font-size:15px;display:flex;align-items:center;justify-content:center;}
 .modal-close:hover{background:var(--line);color:var(--ink);}
-.modal-body{padding:20px;overflow-y:auto;flex:1;}
+.modal-body{padding:20px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;}
 .modal-footer{padding:14px 20px;border-top:1px solid var(--line-soft);
   display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;}
 .field{margin-bottom:14px;}
@@ -515,7 +515,6 @@ nav{display:flex;flex-direction:column;gap:2px;}
   color:var(--ink-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .adj:active{background:var(--green-soft);border-color:var(--green);}
 .wk-num{width:52px;text-align:center;padding:5px 2px;font-size:15px;font-weight:600;}
-.wk-num-lbl{font-size:9px;color:var(--ink-faint);text-align:center;margin-top:1px;}
 .done-set-btn{padding:6px 12px;border-radius:var(--r-sm);background:var(--green-soft);
   border:1px solid var(--green);color:var(--green-bright);font-weight:700;
   font-size:12px;white-space:nowrap;margin-left:auto;flex-shrink:0;}
@@ -945,3 +944,42 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
   padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s;
 }
 .home-day-session-card:active{border-color:var(--green);}
+
+
+/* ===== CARDIO CARDS ===== */
+.cardio-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
+.cardio-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.cardio-card-name{font-weight:700;font-size:14px;color:var(--ink);}
+.cardio-card-date{font-size:12px;color:var(--ink-faint);}
+.cardio-card-stats{display:flex;gap:16px;flex-wrap:wrap;}
+.cardio-stat{text-align:center;min-width:50px;}
+.cardio-stat-val{font-size:22px;font-weight:700;color:var(--accent);}
+.cardio-stat-lbl{font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+
+
+/* ===== iOS FIXES ===== */
+@supports(padding: env(safe-area-inset-bottom)) {
+  .app-shell{padding-bottom:env(safe-area-inset-bottom);}
+  .page{padding-bottom:calc(36px + env(safe-area-inset-bottom));}
+  .modal-overlay{padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);}
+}
+/* Fix iOS: modal body scrollable when keyboard open */
+.modal-body{max-height:60vh;max-height:60dvh;}
+/* Fix iOS: buttons and inputs tap area */
+button,input,select,textarea{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+/* Fix iOS: prevent zoom on input focus */
+input[type="text"],input[type="number"],input[type="email"],input[type="password"],select,textarea{font-size:16px;}
+/* Fix iOS: weekday bubbles visibility */
+.home-weekdays{overflow:visible;-webkit-overflow-scrolling:touch;}
+
+
+/* ===== REPORT CARDS ===== */
+.report-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
+.report-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.report-card-type{font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;}
+.report-card-date{font-size:11px;color:var(--ink-faint);}
+.report-card-msg{font-size:13px;color:var(--ink-dim);margin-bottom:8px;line-height:1.4;}
+.report-card-footer{display:flex;align-items:center;gap:8px;}
+.report-response{margin-top:10px;padding:10px 12px;background:var(--green-soft);border-radius:10px;border:1px solid var(--green);}
+.report-response-label{font-size:11px;font-weight:600;color:var(--green-bright);margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+.report-response-text{font-size:13px;color:var(--ink);line-height:1.4;}

@@ -62,9 +62,42 @@ async function authGetSession() {
 }
 
 if (sb) {
-  sb.auth.onAuthStateChange(function(_e, session) {
+  sb.auth.onAuthStateChange(function(event, session) {
     currentUser = session ? session.user : null;
+    // Détecte le retour du lien de réinitialisation
+    if (event === 'PASSWORD_RECOVERY') {
+      setTimeout(function() { showPasswordResetModal(); }, 500);
+    }
   });
+}
+
+function showPasswordResetModal() {
+  var html = '<div class="modal-overlay" id="modal-pw-reset" style="z-index:9999">' +
+    '<div class="modal"><div class="modal-head"><span>Nouveau mot de passe</span><button class="modal-close" data-close="modal-pw-reset">&times;</button></div>' +
+    '<div class="modal-body">' +
+      '<p style="font-size:13px;color:var(--ink-dim);margin-bottom:14px">Choisis ton nouveau mot de passe (6 caractères minimum).</p>' +
+      '<input type="password" id="pw-reset-new" placeholder="Nouveau mot de passe" style="width:100%;margin-bottom:10px;padding:12px;font-size:16px;border-radius:8px;border:1px solid var(--line);background:var(--bg-panel);color:var(--ink)"/>' +
+      '<input type="password" id="pw-reset-confirm" placeholder="Confirmer le mot de passe" style="width:100%;margin-bottom:14px;padding:12px;font-size:16px;border-radius:8px;border:1px solid var(--line);background:var(--bg-panel);color:var(--ink)"/>' +
+    '</div>' +
+    '<div class="modal-footer"><button class="btn-primary" onclick="submitNewPassword()">Enregistrer</button></div>' +
+    '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function submitNewPassword() {
+  var pw = document.getElementById('pw-reset-new').value;
+  var pw2 = document.getElementById('pw-reset-confirm').value;
+  if (!pw || pw.length < 6) { toast('6 caractères minimum', 'error'); return; }
+  if (pw !== pw2) { toast('Les mots de passe ne correspondent pas', 'error'); return; }
+  try {
+    var r = await sb.auth.updateUser({ password: pw });
+    if (r.error) throw r.error;
+    toast(ico('check')+' Mot de passe mis à jour !', 'success');
+    var modal = document.getElementById('modal-pw-reset');
+    if (modal) modal.remove();
+  } catch(e) {
+    toast('Erreur: ' + (e.message||e), 'error');
+  }
 }
 
 // ── DB CRUD ──

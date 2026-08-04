@@ -66,7 +66,7 @@ const sesVol = s => { let v=0; (s.exercises||[]).forEach(e=>(e.sets||[]).forEach
 // ── TOAST ──
 function toast(msg, type='info', dur=3200) {
   const el = document.createElement('div');
-  el.className = 'toast ' + type; el.textContent = msg;
+  el.className = 'toast ' + type; el.innerHTML = msg;
   document.getElementById('toast-area').appendChild(el);
   setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, dur);
 }
@@ -169,7 +169,7 @@ const pageTitles = {
   'page-history':'Historique','page-stats':'Progrès',
   'page-mensuration':'Mensurations','page-cardio':'Cardio & Calories',
   'page-report':'Signaler','page-default-programs':'Programmes par défaut','page-exercises':'Exercices',
-  'page-updates':'Mises à jour','page-profile':'Mon profil','page-admin':'Administration'
+  'page-updates':'Mises à jour','page-profile':'Mon profil'
 };
 
 const pageRoutes = {
@@ -185,7 +185,6 @@ const pageRoutes = {
   '/programmes-defaut':'page-default-programs',
   '/exercices':'page-exercises',
   '/mises-a-jour':'page-updates',
-  '/admin':'page-admin',
   '/profil':'page-profile'
 };
 
@@ -201,7 +200,6 @@ const routeFromPage = {
   'page-default-programs':'/programmes-defaut',
   'page-exercises':'/exercices',
   'page-updates':'/mises-a-jour',
-  'page-admin':'/admin',
   'page-profile':'/profil'
 };
 
@@ -233,7 +231,6 @@ function navigate(pageId) {
   if (pageId === 'page-default-programs') renderDefaultPrograms();
   if (pageId === 'page-exercises') renderExLibrary();
   if (pageId === 'page-profile') renderProfile();
-  if (pageId === 'page-admin') renderAdmin();
   // Close mobile sidebar
   document.getElementById('sidebar').classList.remove('open');
 }
@@ -338,9 +335,6 @@ async function initApp() {
   // User info
   document.getElementById('user-display-name').textContent = getUserName();
   document.getElementById('user-avatar').textContent = initials(getUserName());
-
-  // Show admin nav if admin
-  showAdminNav();
 
   // Seed defaults
   await seedDefaults();

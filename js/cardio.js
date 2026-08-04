@@ -44,12 +44,10 @@ function calcCalories(type, poidsKg, durationMin, vitesse, inclinaison) {
 async function renderCardio() {
   var entries = await getCardioEntries();
   renderCardioHistory(entries);
-  renderCardioChart(entries);
 }
 
 async function getCardioEntries() {
   var sessions = await DB.getSessions();
-  // Filtrer les sessions de type cardio (stockées avec un flag)
   return sessions.filter(function(s) { return s.cardio === true; });
 }
 
@@ -60,43 +58,20 @@ function renderCardioHistory(entries) {
     el.innerHTML = '<p class="empty-state">Aucune activité cardio enregistrée</p>';
     return;
   }
-  el.innerHTML = entries.slice(0, 10).map(function(e) {
-    return '<div class="history-card" style="cursor:default">' +
-      '<div class="history-head"><span class="history-name display">' + esc(e.name) + '</span><span class="history-date">' + fDate(e.date) + '</span></div>' +
-      '<div class="history-metas">' +
-        '<span class="history-meta">'+ico('fire')+' ' + (e.calories||0) + ' kcal</span>' +
-        '<span class="history-meta">'+ico('timer')+' ' + (e.duration_min||0) + ' min</span>' +
-        (e.vitesse ? '<span class="history-meta">'+ico('play')+' ' + e.vitesse + ' km/h</span>' : '') +
-        (e.inclinaison ? '<span class="history-meta">'+ico('trend')+' ' + e.inclinaison + '%</span>' : '') +
+  el.innerHTML = entries.map(function(e) {
+    return '<div class="cardio-card">' +
+      '<div class="cardio-card-head">' +
+        '<span class="cardio-card-name">' + esc(e.name) + '</span>' +
+        '<span class="cardio-card-date">' + fDate(e.date) + '</span>' +
+      '</div>' +
+      '<div class="cardio-card-stats">' +
+        '<div class="cardio-stat"><div class="cardio-stat-val">' + (e.calories||0) + '</div><div class="cardio-stat-lbl">kcal</div></div>' +
+        '<div class="cardio-stat"><div class="cardio-stat-val">' + (e.duration_min||0) + '</div><div class="cardio-stat-lbl">min</div></div>' +
+        (e.vitesse ? '<div class="cardio-stat"><div class="cardio-stat-val">' + e.vitesse + '</div><div class="cardio-stat-lbl">km/h</div></div>' : '') +
+        (e.inclinaison ? '<div class="cardio-stat"><div class="cardio-stat-val">' + e.inclinaison + '%</div><div class="cardio-stat-lbl">pente</div></div>' : '') +
       '</div>' +
     '</div>';
   }).join('');
-}
-
-function renderCardioChart(entries) {
-  var ctx = document.getElementById('cardio-chart');
-  if (!ctx) return;
-  ctx = ctx.getContext('2d');
-  if (window._cardioChart) window._cardioChart.destroy();
-  if (!entries.length) return;
-
-  var last14 = entries.slice(0, 14).reverse();
-  var labels = last14.map(function(e) { return fDateS(e.date); });
-  var data = last14.map(function(e) { return e.calories || 0; });
-
-  window._cardioChart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: labels, datasets: [{
-      data: data,
-      backgroundColor: 'rgba(255,107,53,.3)',
-      borderColor: '#ff6b35',
-      borderWidth: 2, borderRadius: 5
-    }]},
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: {
-      x: { ticks: { color: '#52604f', font: { size: 10 } }, grid: { display: false } },
-      y: { ticks: { color: '#52604f', font: { size: 10 }, callback: function(v){return v+' kcal';} }, grid: { color: '#1a2219' }, beginAtZero: true }
-    }}
-  });
 }
 
 // ── MODAL AJOUT CARDIO ──
