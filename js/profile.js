@@ -16,6 +16,9 @@ function renderProfile() {
   document.getElementById('profile-email').textContent = currentUser.email || '—';
   document.getElementById('profile-name-input').value = getUserName() || '';
   document.getElementById('profile-phone-input').value = currentUser.user_metadata?.phone || '';
+  // Genre
+  var genderSelect = document.getElementById('profile-gender');
+  if (genderSelect) genderSelect.value = localStorage.getItem('mt_user_gender') || 'male';
   checkMfaStatus();
 }
 
@@ -38,8 +41,15 @@ async function saveProfilePhone() {
   try {
     var r = await sb.auth.updateUser({ data: { phone: phone } });
     if (r.error) throw r.error;
-    toast('Téléphone enregistré ✓', 'success');
+    toast('Téléphone enregistré', 'success');
   } catch(e) { toast('Erreur: ' + (e.message||e), 'error'); }
+}
+
+// ── SAVE GENDER ──
+function saveProfileGender() {
+  var gender = document.getElementById('profile-gender').value;
+  localStorage.setItem('mt_user_gender', gender);
+  toast('Genre enregistré', 'success');
 }
 
 // ── RESET PASSWORD ──
@@ -148,6 +158,8 @@ async function disableMfa() {
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-save-profile-name').addEventListener('click', saveProfileName);
   document.getElementById('btn-save-profile-phone').addEventListener('click', saveProfilePhone);
+  var genderEl = document.getElementById('profile-gender');
+  if (genderEl) genderEl.addEventListener('change', saveProfileGender);
   document.getElementById('btn-reset-password').addEventListener('click', resetPassword);
   document.getElementById('btn-delete-account').addEventListener('click', deleteAccount);
   document.getElementById('btn-enable-mfa').addEventListener('click', enableMfa);

@@ -356,6 +356,13 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
               </div>
             </div>
           </div>
+            <div class="form-group" style="margin-top:12px">
+              <label>Genre (silhouette rapport)</label>
+              <select id="profile-gender" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg-panel);color:var(--ink);font-size:16px">
+                <option value="male">Homme</option>
+                <option value="female">Femme</option>
+              </select>
+            </div>
 
           <div class="panel" style="border-color:rgba(239,68,68,.3)">
             <div class="panel-head"><div class="panel-title" style="color:var(--danger)">Zone dangereuse</div></div>
@@ -428,6 +435,22 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="page" id="page-updates">
         <div class="page-header"><h2 class="page-h1 display">Mises à jour</h2></div>
         <div id="updates-content">
+
+          <div class="update-block">
+            <div class="update-version"><span class="version-badge">v7.4</span> <span class="update-date">4 août 2026</span></div>
+            <div class="update-title">V7.4 — Story Instagram, mannequin amélioré, cardio séparé</div>
+            <ul class="update-list">
+              <li class="update-feat">Story Instagram : image 1080x1920 téléchargeable avec récap séance + mannequin</li>
+              <li class="update-feat">Mannequin SVG amélioré : anatomique, adapté au thème, version homme/femme</li>
+              <li class="update-feat">Mannequin visible dans le détail de chaque séance</li>
+              <li class="update-feat">Cardio séparé du workout : saisie manuelle uniquement, notification rappel</li>
+              <li class="update-feat">Genre (Homme/Femme) dans Mon Profil</li>
+              <li class="update-fix">Fix signalements : erreur corrigée + bouton supprimer</li>
+              <li class="update-fix">Fix historique cardio : affiche durée/calories/vitesse au lieu de kg/reps</li>
+              <li class="update-ui">Vue détail séance : tableau sans colonne # + mannequin en bas</li>
+              <li class="update-feat">Story Instagram néon : chaînes, haltères, glow, annotations muscles</li>
+            </ul>
+          </div>
 
           <div class="update-block">
             <div class="update-version"><span class="version-badge">v7.3</span> <span class="update-date">4 août 2026</span></div>
@@ -580,7 +603,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
   <div class="modal modal-tall">
     <div class="modal-head"><span id="sv-title">Séance</span><button class="modal-close" data-close="modal-sv">✕</button></div>
     <div class="modal-body" id="sv-body"></div>
-    <div class="modal-footer"><button class="btn-danger" id="sv-delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M3 6h18M8 6V4h8v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg> Supprimer</button><button class="btn-ghost" data-close="modal-sv">Fermer</button></div>
+    <div class="modal-footer"><button class="btn-primary btn-sm" id="sv-story" onclick="generateStory()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg> Story</button><button class="btn-danger" id="sv-delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle"><path d="M3 6h18M8 6V4h8v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg> Supprimer</button><button class="btn-ghost" data-close="modal-sv">Fermer</button></div>
   </div>
 </div>
 
@@ -726,6 +749,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 <script src="js/app.js"></script>
 <script src="js/programs.js"></script>
 <script src="js/exercises.js"></script>
+<script src="js/mannequin.js"></script>
 <script src="js/history.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/mensuration.js"></script>

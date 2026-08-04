@@ -413,11 +413,23 @@ async function launchWorkout(progId, dayId) {
   }
 
   if (!wkState || wkState.dayId !== dayId) {
+    // Séparer les exercices muscu des exercices cardio
+    var muscuExercises = (day.exercises||[]).filter(function(ex) { return ex.muscle !== 'Cardio'; });
+    var cardioExercises = (day.exercises||[]).filter(function(ex) { return ex.muscle === 'Cardio'; });
+
+    // Notifier les exercices cardio prévus
+    if (cardioExercises.length > 0) {
+      var cardioNames = cardioExercises.map(function(ex) { return ex.name; }).join(', ');
+      setTimeout(function() {
+        toast(ico('fire')+' Cardio prévu aujourd\'hui : ' + cardioNames, 'info', 5000);
+      }, 1500);
+    }
+
     wkState = {
       progId, dayId, dayName: day.name, progName: p.name,
       startTs: Date.now(), timer: null,
       _dayWarmup: day.warmup || [],
-      exercises: (day.exercises||[]).map(ex => ({
+      exercises: muscuExercises.map(ex => ({
         id:ex.id, name:ex.name, muscle:ex.muscle, restSec:ex.restSec||120, note:ex.note||'',
         sets: Array.from({length:ex.sets||4}, ()=>({weight:'',reps:'',rpe:'',done:false,restTimer:null,restLeft:0,doneTs:0}))
       }))
@@ -502,7 +514,6 @@ function renderWorkoutBody() {
   document.getElementById('wk-body').innerHTML =
     renderWarmupSection() +
     wkState.exercises.map((ex,ei) => {
-      if (ex.muscle === 'Cardio') return renderCardioExBlock(ex, ei);
       return `
       <div class="wk-ex-block">
         <div class="wk-ex-head">
@@ -528,139 +539,6 @@ function renderWorkoutBody() {
         </div>
       </div>`;
     }).join('');
-}
-
-// ── CARDIO EXERCISE BLOCK (timer only) ──
-function renderCardioExBlock(ex, ei) {
-  var elapsed = ex.cardioElapsed || 0;
-  var running = !!ex.cardioRunning;
-  var btnLabel = running ? ico('pause')+' Pause' : ico('play')+' Go';
-  var btnAction = running ? 'pauseCardioTimer('+ei+')' : 'startCardioTimer('+ei+')';
-  return `
-    <div class="wk-ex-block" id="cardio-block-${ei}">
-      <div class="wk-ex-head">
-        <input type="text" class="wk-ex-name-input" value="${esc(ex.name)}" onchange="wkState.exercises[${ei}].name=this.value;saveWorkoutToLocal()" title="Clic pour renommer (cette séance uniquement)"/>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-          <span class="muscle-badge">Cardio</span>
-          <button class="btn-ghost btn-sm" onclick="markExDone(${ei})" style="font-size:11px;padding:4px 8px;color:var(--green)">${ico('check')}</button>
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;padding:24px 14px;gap:16px">
-        <div id="cardio-timer-${ei}" class="mono" style="font-size:48px;font-weight:700;color:var(--green-bright);letter-spacing:2px">${fDur(elapsed)}</div>
-        <div style="display:flex;gap:12px">
-          <button class="btn-primary" onclick="${btnAction}" style="min-width:100px">${btnLabel}</button>
-          <button class="btn-ghost" onclick="stopCardioTimer(${ei})" style="min-width:80px">${ico('flag')} Stop</button>
-        </div>
-        ${ex.vitesse || ex.inclinaison ? '<div style="display:flex;gap:16px;font-size:12px;color:var(--ink-faint);margin-top:8px">'+(ex.vitesse?'<span>Vitesse: '+ex.vitesse+' km/h</span>':'')+(ex.inclinaison?'<span>Inclinaison: '+ex.inclinaison+'%</span>':'')+'</div>' : ''}
-      </div>
-    </div>`;
-}
-
-function startCardioTimer(ei) {
-  var ex = wkState.exercises[ei];
-  if (!ex.cardioElapsed) ex.cardioElapsed = 0;
-  ex.cardioRunning = true;
-  ex.cardioStartTs = Date.now() - (ex.cardioElapsed * 1000);
-  if (ex._cardioInterval) clearInterval(ex._cardioInterval);
-  // Re-render buttons first
-  var block = document.getElementById('cardio-block-'+ei);
-  if (block) block.outerHTML = renderCardioExBlock(ex, ei);
-  // Then start the interval
-  ex._cardioInterval = setInterval(function() {
-    ex.cardioElapsed = Math.floor((Date.now() - ex.cardioStartTs) / 1000);
-    var display = document.getElementById('cardio-timer-'+ei);
-    if (display) display.textContent = fDur(ex.cardioElapsed);
-  }, 1000);
-  saveWorkoutToLocal();
-}
-
-function pauseCardioTimer(ei) {
-  var ex = wkState.exercises[ei];
-  ex.cardioElapsed = Math.floor((Date.now() - ex.cardioStartTs) / 1000);
-  ex.cardioRunning = false;
-  if (ex._cardioInterval) { clearInterval(ex._cardioInterval); ex._cardioInterval = null; }
-  var block = document.getElementById('cardio-block-'+ei);
-  if (block) block.outerHTML = renderCardioExBlock(ex, ei);
-  saveWorkoutToLocal();
-}
-
-function stopCardioTimer(ei) {
-  var ex = wkState.exercises[ei];
-  if (ex.cardioRunning) {
-    ex.cardioElapsed = Math.floor((Date.now() - ex.cardioStartTs) / 1000);
-  }
-  ex.cardioRunning = false;
-  if (ex._cardioInterval) { clearInterval(ex._cardioInterval); ex._cardioInterval = null; }
-
-  // Calcul calories
-  var durationMin = Math.round(ex.cardioElapsed / 60 * 10) / 10;
-  var poids = parseFloat(localStorage.getItem('mt_user_poids')) || 70;
-  var vitesse = ex.vitesse || 0;
-  var inclinaison = ex.inclinaison || 0;
-  var cardioType = 'course_moderee';
-  if (vitesse <= 4) cardioType = 'marche_lente';
-  else if (vitesse <= 6) cardioType = 'marche_rapide';
-  else if (vitesse <= 8) cardioType = 'course_lente';
-  else if (vitesse <= 10) cardioType = 'course_moderee';
-  else if (vitesse <= 12) cardioType = 'course_rapide';
-  else cardioType = 'course_intense';
-  if (inclinaison > 0 && ex.name.toLowerCase().indexOf('tapis') >= 0) {
-    cardioType = inclinaison > 8 ? 'tapis_forte_incl' : 'tapis_incline';
-  }
-  var calories = calcCalories(cardioType, poids, durationMin, vitesse, inclinaison);
-
-  ex.completed = true;
-  ex.duration_sec = ex.cardioElapsed || 0;
-  ex.calories = calories;
-  ex.cardioSaved = true;
-
-  // Sauvegarder en tant que séance cardio dans la DB (pour le graphique)
-  var session = {
-    name: ex.name,
-    date: new Date().toISOString().split('T')[0],
-    duration_sec: ex.duration_sec,
-    duration_min: durationMin,
-    notes: '',
-    exercises: [],
-    cardio: true,
-    cardio_type: cardioType,
-    vitesse: vitesse || null,
-    inclinaison: inclinaison || null,
-    calories: calories
-  };
-  DB.addSession(session).then(function() {
-    toast(ico('fire')+' ' + calories + ' kcal enregistrées !', 'success', 3000);
-  }).catch(function(e) {
-    toast('Erreur sauvegarde cardio: '+(e.message||e), 'error');
-  });
-
-  // Afficher le récap
-  var block = document.getElementById('cardio-block-'+ei);
-  if (block) {
-    block.innerHTML = `
-      <div class="wk-ex-head">
-        <span style="font-weight:700;font-size:15px">${esc(ex.name)}</span>
-        <span class="muscle-badge">Cardio</span>
-      </div>
-      <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
-        <div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap">
-          <div style="text-align:center">
-            <div class="mono" style="font-size:28px;font-weight:700;color:var(--green-bright)">${fDur(ex.duration_sec)}</div>
-            <div style="font-size:11px;color:var(--ink-faint);margin-top:4px">DURÉE</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:28px;font-weight:700;color:var(--accent)">${calories}</div>
-            <div style="font-size:11px;color:var(--ink-faint);margin-top:4px">KCAL</div>
-          </div>
-        </div>
-        <div style="display:flex;justify-content:center;gap:20px;font-size:13px;color:var(--ink-dim)">
-          ${vitesse ? '<span>'+ico('play')+' '+vitesse+' km/h</span>' : ''}
-          ${inclinaison ? '<span>'+ico('trend')+' '+inclinaison+'%</span>' : ''}
-        </div>
-        <div style="text-align:center;font-size:12px;color:var(--green);font-weight:600">${ico('check')} Terminé et enregistré</div>
-      </div>`;
-  }
-  saveWorkoutToLocal();
 }
 
 function renderSetHTML(ei, si, set, restSec) {

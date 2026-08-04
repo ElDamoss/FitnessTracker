@@ -28,7 +28,10 @@ async function renderReports() {
       var html = '<div class="report-card">' +
         '<div class="report-card-head">' +
           '<span class="report-card-type">' + typeIcon + ' ' + esc(typeLabel) + '</span>' +
-          '<span class="report-card-date">' + fDate(rep.created_at.split('T')[0]) + '</span>' +
+          '<div style="display:flex;align-items:center;gap:8px">' +
+            '<span class="report-card-date">' + fDate(rep.created_at.split('T')[0]) + '</span>' +
+            '<button class="btn-icon" onclick="deleteReport(\'' + rep.id + '\')" title="Supprimer">' + ico('trash') + '</button>' +
+          '</div>' +
         '</div>' +
         '<p class="report-card-msg">' + esc(rep.message) + '</p>' +
         '<div class="report-card-footer">' + statusBadge + '</div>';
@@ -53,29 +56,28 @@ async function sendReport() {
   var message = document.getElementById('report-message').value.trim();
   if (!message) { toast('Écris un message', 'error'); return; }
   try {
-    var r = await sb.from('reports').insert({ user_id: getUserId(), type: type, message: message });
+    var payload = { user_id: getUserId(), type: type, message: message };
+    var r = await sb.from('reports').insert(payload);
     if (r.error) throw r.error;
-    toast(ico('check')+' Signalement envoyé !', 'success');
+    toast(ico('check') + ' Signalement envoyé !', 'success');
     document.getElementById('report-message').value = '';
     renderReports();
-
-    // Envoyer notification par email via Supabase Edge Function (ou webhook)
-    sendReportEmail(type, message);
   } catch(e) {
-    toast('Erreur: ' + (e.message||e), 'error');
+    toast('Erreur: ' + (e.message || e), 'error');
   }
 }
 
-// Envoi email notification — utilise une edge function Supabase
-// Pour le moment, on prépare l'appel. L'edge function sera créée séparément.
-function sendReportEmail(type, message) {
-  var userName = getUserName();
-  // Appel à une edge function (à déployer plus tard)
-  fetch('https://hxlhdgfxusckralcjhbw.supabase.co/functions/v1/send-report-email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sb.auth.session()?.access_token },
-    body: JSON.stringify({ to: REPORT_ADMIN_EMAIL, type: type, message: message, userName: userName })
-  }).catch(function() { /* silencieux si l'edge function n'existe pas encore */ });
+async function deleteReport(id) {
+  var ok = await modalConfirm('Supprimer', 'Supprimer ce signalement ?');
+  if (!ok) return;
+  try {
+    var r = await sb.from('reports').delete().eq('id', id).eq('user_id', getUserId());
+    if (r.error) throw r.error;
+    toast(ico('check') + ' Supprimé', 'info');
+    renderReports();
+  } catch(e) {
+    toast('Erreur: ' + (e.message || e), 'error');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -983,3 +983,24 @@ input[type="text"],input[type="number"],input[type="email"],input[type="password
 .report-response{margin-top:10px;padding:10px 12px;background:var(--green-soft);border-radius:10px;border:1px solid var(--green);}
 .report-response-label{font-size:11px;font-weight:600;color:var(--green-bright);margin-bottom:4px;display:flex;align-items:center;gap:4px;}
 .report-response-text{font-size:13px;color:var(--ink);line-height:1.4;}
+
+/* ===== SESSION RECAP (vue détail) ===== */
+.sv-recap-header{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line-soft);}
+.sv-recap-mann{flex-shrink:0;}
+.sv-recap-mann .mannequin-wrap{gap:8px;margin:0;}
+.sv-recap-mann .mannequin-label{display:none;}
+.sv-recap-info{display:flex;flex-direction:column;justify-content:center;gap:8px;flex:1;}
+.sv-recap-name{font-size:20px;font-weight:700;font-family:'Space Grotesk',sans-serif;}
+.sv-recap-row{display:flex;align-items:baseline;gap:8px;}
+.sv-recap-label{font-size:12px;color:var(--ink-faint);text-transform:lowercase;}
+.sv-recap-val{font-size:22px;font-weight:700;color:var(--accent);font-family:'Space Grotesk',monospace;}
+.sv-recap-date{font-size:12px;color:var(--ink-faint);margin-top:4px;}
+.sv-recap-stats{display:flex;justify-content:space-around;align-items:center;padding:16px 0;border-bottom:1px solid var(--line-soft);}
+.sv-recap-stat{text-align:center;flex:1;}
+.sv-recap-stat-val{font-size:28px;font-weight:700;color:var(--accent);font-family:'Space Grotesk',monospace;}
+.sv-recap-stat-lbl{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+.sv-recap-stat-sep{width:1px;height:40px;background:var(--line-soft);}
+
+/* ===== MANNEQUIN DISPLAY ===== */
+.mannequin-wrap{display:flex;justify-content:center;gap:16px;margin:16px 0;}
+.mannequin-label{text-align:center;font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;}

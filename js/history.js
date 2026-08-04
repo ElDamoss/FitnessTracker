@@ -26,16 +26,26 @@ async function renderHistory() {
     var vol = sesVol(s);
     var tags = (s.exercises||[]).map(function(e){return '<span class="tag">'+esc(e.name)+'</span>';}).join('');
     var checked = selectedSessionIds.indexOf(s.id) > -1 ? ' checked' : '';
+
+    // Affichage différent pour les séances cardio
+    var metas = '';
+    if (s.cardio) {
+      metas = '<span class="history-meta">'+ico('fire')+' '+(s.calories||0)+' kcal</span>' +
+        '<span class="history-meta">'+ico('timer')+' '+(s.duration_min||0)+' min</span>' +
+        (s.vitesse ? '<span class="history-meta">'+ico('play')+' '+s.vitesse+' km/h</span>' : '') +
+        (s.inclinaison ? '<span class="history-meta">'+ico('trend')+' '+s.inclinaison+'%</span>' : '');
+    } else {
+      metas = '<span class="history-meta">'+ico('barbell')+' '+(s.exercises||[]).length+' ex.</span>' +
+        '<span class="history-meta">'+ico('fire')+' '+fW(vol)+'</span>' +
+        (s.duration_sec?'<span class="history-meta">'+ico('timer')+' '+fDur(s.duration_sec)+'</span>':'');
+    }
+
     return '<div class="history-card" style="display:flex;align-items:flex-start;gap:10px">' +
       '<input type="checkbox" class="hist-check" data-id="'+s.id+'" style="margin-top:4px;accent-color:var(--green);width:18px;height:18px;flex-shrink:0"'+checked+'/>' +
       '<div style="flex:1;cursor:pointer" onclick="openSessionView(\''+s.id+'\')">' +
         '<div class="history-head"><span class="history-name display">'+esc(s.name)+'</span><span class="history-date">'+fDate(s.date)+'</span></div>' +
-        '<div class="history-metas">' +
-          '<span class="history-meta">'+ico('barbell')+' '+(s.exercises||[]).length+' ex.</span>' +
-          '<span class="history-meta">'+ico('fire')+' '+fW(vol)+'</span>' +
-          (s.duration_sec?'<span class="history-meta">'+ico('timer')+' '+fDur(s.duration_sec)+'</span>':'') +
-        '</div>' +
-        '<div class="tag-row">'+tags+'</div>' +
+        '<div class="history-metas">' + metas + '</div>' +
+        (s.cardio ? '' : '<div class="tag-row">'+tags+'</div>') +
       '</div>' +
     '</div>';
   }).join('');
@@ -159,24 +169,48 @@ async function openSessionView(id) {
   var s = sessions.find(function(x){return x.id===id;}); if(!s) return;
   viewingSessionId = id;
   document.getElementById('sv-title').textContent = s.name;
-  var vol = sesVol(s);
-  var html = '<div class="sv-head-metas">' +
-    '<span class="sv-meta">'+ico('calendar')+' '+fDate(s.date)+'</span>' +
-    (s.duration_sec?'<span class="sv-meta">'+ico('timer')+' '+fDur(s.duration_sec)+'</span>':'') +
-    '<span class="sv-meta">'+ico('fire')+' '+fW(vol)+'</span>' +
-  '</div>' +
-  (s.notes?'<div class="sv-notes-box">"'+s.notes+'"</div>':'');
 
-  (s.exercises||[]).forEach(function(ex) {
-    html += '<div class="sv-ex">' +
-      '<div class="sv-ex-head">'+esc(ex.name)+' <span class="muscle-badge">'+(ex.muscle||'')+'</span></div>' +
-      '<table class="sv-table"><thead><tr><th>#</th><th>Poids</th><th>Reps</th><th>RPE</th><th>Vol.</th></tr></thead><tbody>';
-    (ex.sets||[]).forEach(function(st, i) {
-      var v = (parseFloat(st.weight)||0)*(parseInt(st.reps)||0);
-      html += '<tr><td>'+(i+1)+'</td><td>'+(st.weight?st.weight+' kg':'—')+'</td><td>'+(st.reps||'—')+'</td><td>'+(st.rpe||'—')+'</td><td>'+(v>0?fW(v):'—')+'</td></tr>';
+  var html = '';
+
+  if (s.cardio) {
+    // Vue détail cardio
+    html = '<div class="sv-head-metas">' +
+      '<span class="sv-meta">'+ico('calendar')+' '+fDate(s.date)+'</span>' +
+      '<span class="sv-meta">'+ico('timer')+' '+(s.duration_min||0)+' min</span>' +
+    '</div>' +
+    '<div class="cardio-card-stats" style="justify-content:center;padding:20px 0">' +
+      '<div class="cardio-stat"><div class="cardio-stat-val">'+(s.calories||0)+'</div><div class="cardio-stat-lbl">kcal</div></div>' +
+      '<div class="cardio-stat"><div class="cardio-stat-val">'+(s.duration_min||0)+'</div><div class="cardio-stat-lbl">min</div></div>' +
+      (s.vitesse ? '<div class="cardio-stat"><div class="cardio-stat-val">'+s.vitesse+'</div><div class="cardio-stat-lbl">km/h</div></div>' : '') +
+      (s.inclinaison ? '<div class="cardio-stat"><div class="cardio-stat-val">'+s.inclinaison+'%</div><div class="cardio-stat-lbl">pente</div></div>' : '') +
+    '</div>';
+  } else {
+    // Vue détail muscu
+    var vol = sesVol(s);
+    html = '<div class="sv-head-metas">' +
+      '<span class="sv-meta">'+ico('calendar')+' '+fDate(s.date)+'</span>' +
+      (s.duration_sec?'<span class="sv-meta">'+ico('timer')+' '+fDur(s.duration_sec)+'</span>':'') +
+      '<span class="sv-meta">'+ico('fire')+' '+fW(vol)+'</span>' +
+    '</div>' +
+    (s.notes?'<div class="sv-notes-box">"'+esc(s.notes)+'"</div>':'');
+
+    (s.exercises||[]).forEach(function(ex) {
+      html += '<div class="sv-ex">' +
+        '<div class="sv-ex-head">'+esc(ex.name)+' <span class="muscle-badge">'+(ex.muscle||'')+'</span></div>' +
+        '<table class="sv-table"><thead><tr><th>Poids</th><th>Reps</th><th>RPE</th><th>Vol.</th></tr></thead><tbody>';
+      (ex.sets||[]).forEach(function(st) {
+        var v = (parseFloat(st.weight)||0)*(parseInt(st.reps)||0);
+        html += '<tr><td>'+(st.weight?st.weight+' kg':'—')+'</td><td>'+(st.reps||'—')+'</td><td>'+(st.rpe||'—')+'</td><td>'+(v>0?fW(v):'—')+'</td></tr>';
+      });
+      html += '</tbody></table></div>';
     });
-    html += '</tbody></table></div>';
-  });
+
+    // Mannequin face + dos côte à côte en bas
+    var workedMuscles = {};
+    (s.exercises||[]).forEach(function(ex) { if (ex.muscle) workedMuscles[ex.muscle] = true; });
+    html += buildMannequinHTML(workedMuscles);
+  }
+
   document.getElementById('sv-body').innerHTML = html;
   openModal('modal-sv');
 }
@@ -198,91 +232,310 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-// ── MANNEQUIN SVG (face + dos) ──
-// Mapping muscles → zones du corps
-function buildMannequinHTML(workedMuscles) {
-  var accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#86f7b4';
-  var baseColor = 'rgba(128,128,128,.15)';
 
-  function mc(muscles) {
-    for (var i = 0; i < muscles.length; i++) {
-      if (workedMuscles[muscles[i]]) return accentColor;
+// ── STORY INSTAGRAM (1080x1920) — Design impactant ──
+async function generateStory() {
+  if (!viewingSessionId) return;
+  var sessions = await DB.getSessions();
+  var s = sessions.find(function(x){return x.id===viewingSessionId;});
+  if (!s || s.cardio) { toast('Story disponible pour les séances muscu', 'info'); return; }
+
+  var theme = document.documentElement.getAttribute('data-theme') || 'dark';
+  var themes = {
+    dark: { accent:'#5dff9f', bg:'#080808', text:'#ffffff', dim:'#999', isLight:false },
+    light: { accent:'#00c853', bg:'#ffffff', text:'#111111', dim:'#555', isLight:true },
+    stitch: { accent:'#00bfff', bg:'#f5f9ff', text:'#0a1929', dim:'#4a7a9a', isLight:true },
+    girly: { accent:'#ff4081', bg:'#fff5f8', text:'#1a0010', dim:'#a04060', isLight:true }
+  };
+  var c = themes[theme] || themes.dark;
+
+  var W = 1080, H = 1920;
+  var canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  // ─── 1. Background: very dark + diagonal scratches + vignette ───
+  ctx.fillStyle = c.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Dark diagonal streaks/scratches
+  ctx.strokeStyle = c.isLight ? '#cccccc' : '#333333';
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.08;
+  var scratches = [
+    [50,0,300,H],[200,0,500,H],[400,0,650,H],[600,0,900,H],[800,0,1050,H],
+    [0,100,W,300],[0,500,W,700],[0,900,W,1100],[0,1300,W,1500],[0,1600,W,1800],
+    [100,0,400,H],[700,0,950,H],[0,200,W,450],[0,800,W,1050],[0,1400,W,1650]
+  ];
+  scratches.forEach(function(sc) {
+    ctx.beginPath();
+    ctx.moveTo(sc[0], sc[1]);
+    ctx.lineTo(sc[2], sc[3]);
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+
+  // Subtle vignette (darker corners)
+  var vigGrad = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.8);
+  vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  vigGrad.addColorStop(1, c.isLight ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.5)');
+  ctx.fillStyle = vigGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // ─── Geometric pattern lines (behind everything) ───
+  ctx.strokeStyle = c.accent;
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = c.isLight ? 0.12 : 0.06;
+  
+  // Large geometric triangles
+  ctx.beginPath();
+  ctx.moveTo(80, 300); ctx.lineTo(300, 150); ctx.lineTo(200, 500); ctx.closePath();
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.moveTo(W-100, 400); ctx.lineTo(W-250, 200); ctx.lineTo(W-50, 250); ctx.closePath();
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.moveTo(150, 1000); ctx.lineTo(50, 800); ctx.lineTo(300, 850); ctx.closePath();
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.moveTo(W-80, 1200); ctx.lineTo(W-300, 1100); ctx.lineTo(W-150, 1350); ctx.closePath();
+  ctx.stroke();
+  
+  // Hexagon shapes
+  function drawHexagon(cx, cy, r) {
+    ctx.beginPath();
+    for (var hi = 0; hi < 6; hi++) {
+      var angle = Math.PI / 3 * hi - Math.PI / 6;
+      var hx = cx + r * Math.cos(angle);
+      var hy = cy + r * Math.sin(angle);
+      if (hi === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
     }
-    return baseColor;
+    ctx.closePath();
+    ctx.stroke();
+  }
+  drawHexagon(120, 600, 60);
+  drawHexagon(W-100, 700, 45);
+  drawHexagon(200, 1400, 70);
+  drawHexagon(W-150, 1500, 55);
+  drawHexagon(W/2, 1700, 40);
+  
+  // Connecting lines between geometric shapes
+  ctx.beginPath(); ctx.moveTo(120, 600); ctx.lineTo(300, 500); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W-100, 700); ctx.lineTo(W-200, 850); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(200, 1400); ctx.lineTo(350, 1300); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W-150, 1500); ctx.lineTo(W-80, 1350); ctx.stroke();
+  
+  // Small circles at intersection points
+  var geoCircles = [
+    {x:300,y:500,r:5},{x:W-200,y:850,r:4},{x:350,y:1300,r:5},
+    {x:W-80,y:1350,r:4},{x:80,y:300,r:3},{x:W-50,y:250,r:3},
+    {x:50,y:800,r:4},{x:W-300,y:1100,r:3}
+  ];
+  geoCircles.forEach(function(gc) {
+    ctx.beginPath();
+    ctx.arc(gc.x, gc.y, gc.r, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+  
+  // Thin straight lines crossing the image
+  ctx.beginPath(); ctx.moveTo(0, 500); ctx.lineTo(W, 450); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, 1100); ctx.lineTo(W, 1050); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, 1600); ctx.lineTo(W, 1650); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2-200, 0); ctx.lineTo(W/2-100, H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2+200, 0); ctx.lineTo(W/2+100, H); ctx.stroke();
+  
+  ctx.globalAlpha = 1;
+
+  // ─── 2. TOP SECTION: Session name banner (y: 40-180) ───
+  var sessionName = s.name;
+  if (sessionName.indexOf(' \u2014 ') > -1) {
+    sessionName = sessionName.split(' \u2014 ')[0];
   }
 
-  // Couleurs par zone
-  var chest = mc(['Pectoraux']);
-  var shoulders = mc(['Épaules']);
-  var biceps = mc(['Biceps']);
-  var triceps = mc(['Triceps']);
-  var abs = mc(['Abdos']);
-  var legs = mc(['Jambes']);
-  var glutes = mc(['Fessiers']);
-  var back = mc(['Dos']);
-  var forearms = mc(['Biceps','Triceps']);
+  // Black banner with neon green left border
+  ctx.fillStyle = c.isLight ? '#f0f0f0' : '#000000';
+  ctx.fillRect(40, 45, W - 80, 85);
+  ctx.fillStyle = c.accent;
+  ctx.fillRect(40, 45, 4, 85);
 
-  // SVG Face (vue de devant)
-  var front = '<svg width="120" height="260" viewBox="0 0 120 260" xmlns="http://www.w3.org/2000/svg">';
-  // Tête
-  front += '<ellipse cx="60" cy="24" rx="14" ry="16" fill="'+baseColor+'" stroke="currentColor" stroke-width="1"/>';
-  // Cou
-  front += '<rect x="54" y="38" width="12" height="10" fill="'+baseColor+'"/>';
-  // Épaules
-  front += '<ellipse cx="34" cy="56" rx="12" ry="8" fill="'+shoulders+'"/>';
-  front += '<ellipse cx="86" cy="56" rx="12" ry="8" fill="'+shoulders+'"/>';
-  // Pectoraux
-  front += '<ellipse cx="47" cy="72" rx="14" ry="12" fill="'+chest+'"/>';
-  front += '<ellipse cx="73" cy="72" rx="14" ry="12" fill="'+chest+'"/>';
-  // Abdos
-  front += '<rect x="46" y="86" width="28" height="36" rx="4" fill="'+abs+'"/>';
-  // Biceps
-  front += '<ellipse cx="28" cy="85" rx="7" ry="18" fill="'+biceps+'"/>';
-  front += '<ellipse cx="92" cy="85" rx="7" ry="18" fill="'+biceps+'"/>';
-  // Avant-bras
-  front += '<ellipse cx="24" cy="115" rx="5" ry="16" fill="'+forearms+'"/>';
-  front += '<ellipse cx="96" cy="115" rx="5" ry="16" fill="'+forearms+'"/>';
-  // Quadriceps (jambes)
-  front += '<ellipse cx="47" cy="150" rx="10" ry="28" fill="'+legs+'"/>';
-  front += '<ellipse cx="73" cy="150" rx="10" ry="28" fill="'+legs+'"/>';
-  // Tibias
-  front += '<ellipse cx="47" cy="205" rx="7" ry="26" fill="'+legs+'"/>';
-  front += '<ellipse cx="73" cy="205" rx="7" ry="26" fill="'+legs+'"/>';
-  front += '</svg>';
+  // Red glowing circle (REC dot)
+  ctx.save();
+  ctx.shadowColor = '#ff0000';
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = '#ff0000';
+  ctx.beginPath();
+  ctx.arc(90, 88, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
-  // SVG Dos (vue arrière)
-  var back_svg = '<svg width="120" height="260" viewBox="0 0 120 260" xmlns="http://www.w3.org/2000/svg">';
-  // Tête
-  back_svg += '<ellipse cx="60" cy="24" rx="14" ry="16" fill="'+baseColor+'" stroke="currentColor" stroke-width="1"/>';
-  // Cou
-  back_svg += '<rect x="54" y="38" width="12" height="10" fill="'+baseColor+'"/>';
-  // Trapèzes / épaules
-  back_svg += '<ellipse cx="34" cy="56" rx="12" ry="8" fill="'+shoulders+'"/>';
-  back_svg += '<ellipse cx="86" cy="56" rx="12" ry="8" fill="'+shoulders+'"/>';
-  // Dos (grand dorsal)
-  back_svg += '<path d="M38 60 L60 60 L60 120 L42 115 Z" fill="'+back+'"/>';
-  back_svg += '<path d="M82 60 L60 60 L60 120 L78 115 Z" fill="'+back+'"/>';
-  // Triceps
-  back_svg += '<ellipse cx="28" cy="85" rx="7" ry="18" fill="'+triceps+'"/>';
-  back_svg += '<ellipse cx="92" cy="85" rx="7" ry="18" fill="'+triceps+'"/>';
-  // Avant-bras
-  back_svg += '<ellipse cx="24" cy="115" rx="5" ry="16" fill="'+forearms+'"/>';
-  back_svg += '<ellipse cx="96" cy="115" rx="5" ry="16" fill="'+forearms+'"/>';
-  // Lombaires
-  back_svg += '<rect x="46" y="100" width="28" height="22" rx="4" fill="'+back+'"/>';
-  // Fessiers
-  back_svg += '<ellipse cx="47" cy="132" rx="12" ry="10" fill="'+glutes+'"/>';
-  back_svg += '<ellipse cx="73" cy="132" rx="12" ry="10" fill="'+glutes+'"/>';
-  // Ischio-jambiers (jambes arrière)
-  back_svg += '<ellipse cx="47" cy="160" rx="10" ry="24" fill="'+legs+'"/>';
-  back_svg += '<ellipse cx="73" cy="160" rx="10" ry="24" fill="'+legs+'"/>';
-  // Mollets
-  back_svg += '<ellipse cx="47" cy="208" rx="7" ry="22" fill="'+legs+'"/>';
-  back_svg += '<ellipse cx="73" cy="208" rx="7" ry="22" fill="'+legs+'"/>';
-  back_svg += '</svg>';
+  // Session name MASSIVE bold
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 62px Impact, Arial Black, sans-serif';
+  ctx.fillStyle = c.text;
+  ctx.shadowColor = c.accent;
+  ctx.shadowBlur = 8;
+  ctx.fillText(sessionName.toUpperCase(), 120, 110);
+  ctx.restore();
 
-  return '<div class="mannequin-wrap">' +
-    '<div><div style="text-align:center">' + front + '</div><div class="mannequin-label">Face</div></div>' +
-    '<div><div style="text-align:center">' + back_svg + '</div><div class="mannequin-label">Dos</div></div>' +
-  '</div>';
+  // Subtitle banner below
+  var workedMuscles = {};
+  var muscles = [];
+  (s.exercises || []).forEach(function(ex) {
+    if (ex.muscle) {
+      workedMuscles[ex.muscle] = true;
+      if (muscles.indexOf(ex.muscle) === -1) muscles.push(ex.muscle);
+    }
+  });
+  var subtitleText = muscles.map(function(m){return m.toUpperCase();}).join(' \u2022 ') + ' \u2022 ' + fDate(s.date).toUpperCase();
+
+  ctx.fillStyle = c.isLight ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.8)';
+  ctx.fillRect(40, 140, W - 80, 45);
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 28px Impact, Arial Black, sans-serif';
+  ctx.fillStyle = c.text;
+  ctx.fillText(subtitleText, W / 2, 170);
+
+  // ─── 3. MANNEQUIN SECTION (y: 200-850) ───
+  var mannH = 550;
+  var mannW = Math.round(mannH * 0.6);
+  var mannY = 220;
+  var mannGap = 80;
+  var mannLeftX = W / 2 - mannW - mannGap / 2;
+  var mannRightX = W / 2 + mannGap / 2;
+
+  // Neon glow behind worked muscles
+  ctx.save();
+  ctx.globalAlpha = 0.15;
+  ctx.shadowColor = c.accent;
+  ctx.shadowBlur = 40;
+  ctx.fillStyle = c.accent;
+  muscles.forEach(function(m, i) {
+    var glowX = (i % 2 === 0) ? mannLeftX + mannW / 2 : mannRightX + mannW / 2;
+    var glowY = mannY + 100 + (i * 80);
+    ctx.beginPath();
+    ctx.arc(glowX, Math.min(glowY, mannY + mannH - 50), 40, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+
+  var mannColors = getMannequinColors();
+  mannColors.accent = c.accent;
+  drawAnatomicalOnCanvas(ctx, workedMuscles, mannLeftX, mannY, mannW, mannH, true, mannColors);
+  drawAnatomicalOnCanvas(ctx, workedMuscles, mannRightX, mannY, mannW, mannH, false, mannColors);
+
+
+
+  // ─── 4. STATS SECTION (y: 870-1250) ───
+  var vol = sesVol(s);
+  var volText = fW(vol);
+  var dur = s.duration_sec ? fDur(s.duration_sec) : '\u2014';
+
+  // Volume - MASSIVE neon green left
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 120px Impact, Arial Black, sans-serif';
+  ctx.shadowColor = c.accent;
+  ctx.shadowBlur = 25;
+  ctx.fillStyle = c.accent;
+  ctx.fillText(volText, W / 2 - 200, 980);
+  ctx.restore();
+
+  // Duration - MASSIVE neon green right
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 120px Impact, Arial Black, sans-serif';
+  ctx.shadowColor = c.accent;
+  ctx.shadowBlur = 25;
+  ctx.fillStyle = c.accent;
+  ctx.fillText(dur, W / 2 + 200, 980);
+  ctx.restore();
+
+  // Sub-labels below numbers
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 28px Impact, Arial Black, sans-serif';
+  ctx.fillStyle = c.text;
+  ctx.fillText('VOLUME TOTAL', W / 2 - 200, 1030);
+  ctx.fillText('DUR\u00c9E EXPLOSÉE', W / 2 + 200, 1030);
+
+  // Neon green underline bars
+  ctx.fillStyle = c.accent;
+  ctx.fillRect(W / 2 - 200 - 40, 1045, 80, 4);
+  ctx.fillRect(W / 2 + 200 - 40, 1045, 80, 4);
+
+  // ─── 5. BRANDING (y: 1300-1450) ───
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 64px Impact, Arial Black, sans-serif';
+  ctx.fillStyle = c.text;
+  ctx.shadowColor = c.accent;
+  ctx.shadowBlur = 10;
+  ctx.fillText('FITNESSTRACKER.BZH', W / 2, 1380);
+  ctx.restore();
+
+  // ─── 6. BOTTOM BUTTON (y: 1500-1650) ───
+  var btnW = 700, btnH = 100, btnX = (W - btnW) / 2, btnY = 1520;
+  ctx.save();
+  ctx.fillStyle = c.accent;
+  roundRect(ctx, btnX, btnY, btnW, btnH, 30);
+  ctx.fill();
+  ctx.restore();
+
+  // Instagram camera icon (rounded square + circle + dot)
+  var iconX = btnX + 70, iconY = btnY + btnH / 2;
+  ctx.save();
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3;
+  roundRect(ctx, iconX - 18, iconY - 18, 36, 36, 10);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(iconX, iconY, 10, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(iconX + 11, iconY - 11, 3, 0, Math.PI * 2);
+  ctx.fillStyle = '#000000';
+  ctx.fill();
+  ctx.restore();
+
+  // Button text line 1
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 30px Impact, Arial Black, sans-serif';
+  ctx.fillStyle = '#000000';
+  ctx.fillText('\ud83d\udc49 PARTAGER SUR INSTA', W / 2 + 20, btnY + 45);
+
+  // Button text line 2
+  ctx.font = 'bold 26px Impact, Arial Black, sans-serif';
+  ctx.fillStyle = '#000000';
+  ctx.fillText('& D\u00c9FIER TES POTES !', W / 2 + 20, btnY + 80);
+
+  // ─── Download as PNG ───
+  canvas.toBlob(function(blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'story-fitnesstracker-' + s.date + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(ico('check') + ' Story t\u00e9l\u00e9charg\u00e9e !', 'success');
+  }, 'image/png');
+}
+
+// Helper: rectangle arrondi (pour la story)
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
 }
