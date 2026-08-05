@@ -397,20 +397,6 @@ async function generateStory() {
   var mannLeftX = W / 2 - mannW - mannGap / 2;
   var mannRightX = W / 2 + mannGap / 2;
 
-  // Neon glow behind worked muscles
-  ctx.save();
-  ctx.globalAlpha = 0.15;
-  ctx.shadowColor = c.accent;
-  ctx.shadowBlur = 40;
-  ctx.fillStyle = c.accent;
-  muscles.forEach(function(m, i) {
-    var glowX = (i % 2 === 0) ? mannLeftX + mannW / 2 : mannRightX + mannW / 2;
-    var glowY = mannY + 100 + (i * 80);
-    ctx.beginPath();
-    ctx.arc(glowX, Math.min(glowY, mannY + mannH - 50), 40, 0, Math.PI * 2);
-    ctx.fill();
-  });
-  ctx.restore();
 
   var mannColors = getMannequinColors();
   mannColors.accent = c.accent;
