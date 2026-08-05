@@ -204,6 +204,7 @@ const routeFromPage = {
 };
 
 function navigate(pageId) {
+  if (!currentUser) return;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item,.mobile-nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.page === pageId);
@@ -246,6 +247,7 @@ window.addEventListener('popstate', function(e) {
 
 // Navigate based on current URL
 function navigateFromURL() {
+  if (!currentUser) return;
   var path = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
   var pageId = pageRoutes[path] || 'page-home';
   navigate(pageId);
