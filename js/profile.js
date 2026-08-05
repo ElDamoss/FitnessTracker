@@ -18,7 +18,7 @@ function renderProfile() {
   document.getElementById('profile-phone-input').value = currentUser.user_metadata?.phone || '';
   // Genre
   var genderSelect = document.getElementById('profile-gender');
-  if (genderSelect) genderSelect.value = localStorage.getItem('mt_user_gender') || 'male';
+  if (genderSelect) genderSelect.value = (currentUser.user_metadata && currentUser.user_metadata.gender) || 'male';
   checkMfaStatus();
 }
 
@@ -46,10 +46,13 @@ async function saveProfilePhone() {
 }
 
 // ── SAVE GENDER ──
-function saveProfileGender() {
+async function saveProfileGender() {
   var gender = document.getElementById('profile-gender').value;
-  localStorage.setItem('mt_user_gender', gender);
-  toast('Genre enregistré', 'success');
+  try {
+    var r = await sb.auth.updateUser({ data: { gender: gender } });
+    if (r.error) throw r.error;
+    toast('Genre enregistré', 'success');
+  } catch(e) { toast('Erreur: ' + (e.message||e), 'error'); }
 }
 
 // ── RESET PASSWORD ──

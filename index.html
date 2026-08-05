@@ -38,6 +38,8 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
 <symbol id="ic-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
 <symbol id="ic-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4.5"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/></symbol>
 <symbol id="ic-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+<symbol id="ic-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 5.8 6.4.9-4.6 4.5 1.1 6.4L12 17.3l-5.8 2.8 1.1-6.4-4.6-4.5 6.4-.9Z"/></symbol>
+<symbol id="ic-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></symbol>
 </defs>
 </svg>
 
@@ -109,7 +111,9 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
       <div class="nav-item" data-page="page-mensuration"><svg><use href="#ic-caliper"/></svg>Mensurations</div>
       <div class="nav-item" data-page="page-cardio"><svg><use href="#ic-flame"/></svg>Cardio</div>
       <div class="nav-item" data-page="page-exercises"><svg><use href="#ic-barbell"/></svg>Exercices</div>
+      <div class="nav-item" data-page="page-default-programs"><svg><use href="#ic-star"/></svg>Prog. par défaut</div>
       <div class="nav-eyebrow">Infos</div>
+      <div class="nav-item" data-page="page-report"><svg><use href="#ic-flag"/></svg>Signaler</div>
       <div class="nav-item" data-page="page-updates"><svg><use href="#ic-spark"/></svg>Mises à jour</div>
     </nav>
     <div class="sidebar-spacer"></div>
@@ -356,7 +360,7 @@ document.documentElement.setAttribute('data-theme',t||(d?'dark':'light'));})();
               </div>
             </div>
           </div>
-            <div class="form-group" style="margin-top:12px">
+            <div class="form-group" style="margin-top:12px;margin-bottom:24px">
               <label>Genre (silhouette rapport)</label>
               <select id="profile-gender" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg-panel);color:var(--ink);font-size:16px">
                 <option value="male">Homme</option>

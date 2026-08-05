@@ -71,12 +71,12 @@ async function deleteReport(id) {
   var ok = await modalConfirm('Supprimer', 'Supprimer ce signalement ?');
   if (!ok) return;
   try {
-    var r = await sb.from('reports').delete().eq('id', id).eq('user_id', getUserId());
+    var r = await sb.from('reports').delete().match({ id: id, user_id: getUserId() });
     if (r.error) throw r.error;
     toast(ico('check') + ' Supprimé', 'info');
     renderReports();
   } catch(e) {
-    toast('Erreur: ' + (e.message || e), 'error');
+    toast('Erreur: ' + (e.message||e), 'error');
   }
 }
 

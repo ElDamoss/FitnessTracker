@@ -70,6 +70,7 @@ function renderCardioHistory(entries) {
         (e.vitesse ? '<div class="cardio-stat"><div class="cardio-stat-val">' + e.vitesse + '</div><div class="cardio-stat-lbl">km/h</div></div>' : '') +
         (e.inclinaison ? '<div class="cardio-stat"><div class="cardio-stat-val">' + e.inclinaison + '%</div><div class="cardio-stat-lbl">pente</div></div>' : '') +
       '</div>' +
+      '<div style="text-align:right;margin-top:8px"><button class="btn-icon" onclick="deleteCardioSession(\'' + e.id + '\')" title="Supprimer">' + ico('trash') + '</button></div>' +
     '</div>';
   }).join('');
 }
@@ -166,6 +167,18 @@ async function updateUserPoids() {
       localStorage.setItem('mt_user_poids', data[0].poids);
     }
   } catch(e) {}
+}
+
+async function deleteCardioSession(id) {
+  var ok = await modalConfirm('Supprimer', 'Supprimer cette séance cardio ?');
+  if (!ok) return;
+  try {
+    await DB.deleteSession(id);
+    toast(ico('check') + ' Supprimée', 'info');
+    renderCardio();
+  } catch(e) {
+    toast('Erreur: ' + (e.message||e), 'error');
+  }
 }
 
 // Event listeners

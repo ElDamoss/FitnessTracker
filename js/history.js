@@ -249,7 +249,7 @@ async function generateStory() {
   };
   var c = themes[theme] || themes.dark;
 
-  var W = 1080, H = 1920;
+  var W = 1080, H = 1080;
   var canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   var ctx = canvas.getContext('2d');
@@ -264,8 +264,8 @@ async function generateStory() {
   ctx.globalAlpha = 0.08;
   var scratches = [
     [50,0,300,H],[200,0,500,H],[400,0,650,H],[600,0,900,H],[800,0,1050,H],
-    [0,100,W,300],[0,500,W,700],[0,900,W,1100],[0,1300,W,1500],[0,1600,W,1800],
-    [100,0,400,H],[700,0,950,H],[0,200,W,450],[0,800,W,1050],[0,1400,W,1650]
+    [0,100,W,300],[0,500,W,700],[0,900,W,1050],
+    [100,0,400,H],[700,0,950,H],[0,200,W,450],[0,800,W,1050]
   ];
   scratches.forEach(function(sc) {
     ctx.beginPath();
@@ -300,10 +300,6 @@ async function generateStory() {
   ctx.moveTo(150, 1000); ctx.lineTo(50, 800); ctx.lineTo(300, 850); ctx.closePath();
   ctx.stroke();
   
-  ctx.beginPath();
-  ctx.moveTo(W-80, 1200); ctx.lineTo(W-300, 1100); ctx.lineTo(W-150, 1350); ctx.closePath();
-  ctx.stroke();
-  
   // Hexagon shapes
   function drawHexagon(cx, cy, r) {
     ctx.beginPath();
@@ -318,21 +314,17 @@ async function generateStory() {
   }
   drawHexagon(120, 600, 60);
   drawHexagon(W-100, 700, 45);
-  drawHexagon(200, 1400, 70);
-  drawHexagon(W-150, 1500, 55);
-  drawHexagon(W/2, 1700, 40);
+  drawHexagon(W/2, 950, 40);
   
   // Connecting lines between geometric shapes
   ctx.beginPath(); ctx.moveTo(120, 600); ctx.lineTo(300, 500); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(W-100, 700); ctx.lineTo(W-200, 850); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(200, 1400); ctx.lineTo(350, 1300); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(W-150, 1500); ctx.lineTo(W-80, 1350); ctx.stroke();
   
   // Small circles at intersection points
   var geoCircles = [
-    {x:300,y:500,r:5},{x:W-200,y:850,r:4},{x:350,y:1300,r:5},
-    {x:W-80,y:1350,r:4},{x:80,y:300,r:3},{x:W-50,y:250,r:3},
-    {x:50,y:800,r:4},{x:W-300,y:1100,r:3}
+    {x:300,y:500,r:5},{x:W-200,y:850,r:4},
+    {x:80,y:300,r:3},{x:W-50,y:250,r:3},
+    {x:50,y:800,r:4}
   ];
   geoCircles.forEach(function(gc) {
     ctx.beginPath();
@@ -342,8 +334,6 @@ async function generateStory() {
   
   // Thin straight lines crossing the image
   ctx.beginPath(); ctx.moveTo(0, 500); ctx.lineTo(W, 450); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0, 1100); ctx.lineTo(W, 1050); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0, 1600); ctx.lineTo(W, 1650); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(W/2-200, 0); ctx.lineTo(W/2-100, H); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(W/2+200, 0); ctx.lineTo(W/2+100, H); ctx.stroke();
   
@@ -400,9 +390,9 @@ async function generateStory() {
   ctx.fillText(subtitleText, W / 2, 170);
 
   // ─── 3. MANNEQUIN SECTION (y: 200-850) ───
-  var mannH = 550;
-  var mannW = Math.round(mannH * 0.6);
-  var mannY = 220;
+  var mannH = 320;
+  var mannW = Math.round(mannH * 0.48);
+  var mannY = 180;
   var mannGap = 80;
   var mannLeftX = W / 2 - mannW - mannGap / 2;
   var mannRightX = W / 2 + mannGap / 2;
@@ -441,7 +431,7 @@ async function generateStory() {
   ctx.shadowColor = c.accent;
   ctx.shadowBlur = 25;
   ctx.fillStyle = c.accent;
-  ctx.fillText(volText, W / 2 - 200, 980);
+  ctx.fillText(volText, W / 2 - 200, 620);
   ctx.restore();
 
   // Duration - MASSIVE neon green right
@@ -451,20 +441,20 @@ async function generateStory() {
   ctx.shadowColor = c.accent;
   ctx.shadowBlur = 25;
   ctx.fillStyle = c.accent;
-  ctx.fillText(dur, W / 2 + 200, 980);
+  ctx.fillText(dur, W / 2 + 200, 620);
   ctx.restore();
 
   // Sub-labels below numbers
   ctx.textAlign = 'center';
   ctx.font = 'bold 28px Impact, Arial Black, sans-serif';
   ctx.fillStyle = c.text;
-  ctx.fillText('VOLUME TOTAL', W / 2 - 200, 1030);
-  ctx.fillText('DUR\u00c9E EXPLOSÉE', W / 2 + 200, 1030);
+  ctx.fillText('VOLUME TOTAL', W / 2 - 200, 670);
+  ctx.fillText('DUR\u00c9E EXPLOSÉE', W / 2 + 200, 670);
 
   // Neon green underline bars
   ctx.fillStyle = c.accent;
-  ctx.fillRect(W / 2 - 200 - 40, 1045, 80, 4);
-  ctx.fillRect(W / 2 + 200 - 40, 1045, 80, 4);
+  ctx.fillRect(W / 2 - 200 - 40, 685, 80, 4);
+  ctx.fillRect(W / 2 + 200 - 40, 685, 80, 4);
 
   // ─── 5. BRANDING (y: 1300-1450) ───
   ctx.save();
@@ -473,11 +463,11 @@ async function generateStory() {
   ctx.fillStyle = c.text;
   ctx.shadowColor = c.accent;
   ctx.shadowBlur = 10;
-  ctx.fillText('FITNESSTRACKER.BZH', W / 2, 1380);
+  ctx.fillText('FITNESSTRACKER.BZH', W / 2, 820);
   ctx.restore();
 
   // ─── 6. BOTTOM BUTTON (y: 1500-1650) ───
-  var btnW = 700, btnH = 100, btnX = (W - btnW) / 2, btnY = 1520;
+  var btnW = 700, btnH = 100, btnX = (W - btnW) / 2, btnY = 900;
   ctx.save();
   ctx.fillStyle = c.accent;
   roundRect(ctx, btnX, btnY, btnW, btnH, 30);
