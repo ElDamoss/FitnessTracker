@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MuscuTrack Pro — Documentation Application</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0c0a;color:#e8ece6;padding:40px 20px;line-height:1.7;}
+.container{max-width:900px;margin:0 auto;}
+h1{font-size:28px;margin-bottom:8px;color:#86f7b4;}
+h2{font-size:20px;margin:32px 0 12px;color:#3fa66b;border-bottom:1px solid #1f2921;padding-bottom:8px;}
+h3{font-size:16px;margin:20px 0 8px;color:#cfff5c;}
+p,li{font-size:14px;color:#c4cfc0;}
+ul,ol{padding-left:20px;margin:8px 0;}
+li{margin-bottom:6px;}
+strong{color:#eef1ec;}
+code{background:#151b14;border:1px solid #1f2921;border-radius:4px;padding:2px 6px;font-size:13px;color:#86f7b4;}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}
+.feature-card{background:#10140f;border:1px solid #1f2921;border-radius:12px;padding:16px;}
+.feature-card h4{font-size:14px;color:#86f7b4;margin-bottom:6px;}
+.feature-card p{font-size:12px;color:#92a599;}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;}
+.badge-done{background:rgba(63,166,107,.15);color:#86f7b4;border:1px solid #3fa66b;}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+th{background:#151b14;padding:10px 12px;text-align:left;color:#92a599;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #1f2921;}
+td{padding:10px 12px;border-bottom:1px solid #171f19;}
+.screenshot{background:#151b14;border:1px solid #1f2921;border-radius:8px;padding:12px;margin:8px 0;font-size:12px;color:#52604f;text-align:center;font-style:italic;}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid #1f2921;font-size:11px;color:#52604f;text-align:center;}
+@media(max-width:600px){.feature-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>📱 MuscuTrack Pro — Documentation Application</h1>
+<p>Guide complet de toutes les fonctionnalités de l'application et comment elle fonctionne.</p>
+
+<h2>1. Présentation</h2>
+<p><strong>MuscuTrack Pro</strong> est une application web mobile (PWA) de suivi de musculation conçue pour un usage familial. Chaque utilisateur a son propre compte et ne voit que ses données.</p>
+
+<div class="feature-grid">
+<div class="feature-card"><h4>📅 Programmes</h4><p>Crée tes programmes personnalisés avec des jours et des exercices</p></div>
+<div class="feature-card"><h4>🏋️ Mode entraînement</h4><p>Chrono, saisie poids/reps, timer repos automatique</p></div>
+<div class="feature-card"><h4>📊 Statistiques</h4><p>Graphiques charge max et répétitions par exercice</p></div>
+<div class="feature-card"><h4>📏 Mensurations</h4><p>Suivi poids, tours de bras, poitrine, cuisses, etc.</p></div>
+<div class="feature-card"><h4>🏆 Performances</h4><p>Historique détaillé + export rapport HTML</p></div>
+<div class="feature-card"><h4>🎨 Thèmes</h4><p>Sombre, Clair, Kitty (rose), Stitch (bleu)</p></div>
+</div>
+
+<h2>2. Connexion & Comptes</h2>
+<h3>Créer un compte</h3>
+<ol>
+<li>Ouvrir l'app (lien envoyé par le propriétaire)</li>
+<li>Cliquer "Créer un compte"</li>
+<li>Renseigner : prénom, email, mot de passe (6 caractères min)</li>
+<li>Le compte est actif immédiatement</li>
+</ol>
+
+<h3>Se connecter</h3>
+<ol>
+<li>Entrer email + mot de passe</li>
+<li>L'app charge les données personnelles</li>
+</ol>
+
+<h3>Se déconnecter</h3>
+<p>Cliquer sur le bouton <code>🚪</code> dans la sidebar (ou en bas du menu mobile).</p>
+
+<h2>3. Pages de l'application</h2>
+
+<h3>🏠 Tableau de bord (Accueil)</h3>
+<ul>
+<li><strong>Volume semaine</strong> — total kg soulevés cette semaine</li>
+<li><strong>Séances mois</strong> — nombre de séances ce mois</li>
+<li><strong>Records</strong> — nombre de PRs (meilleur poids par exercice)</li>
+<li><strong>Régularité</strong> — nombre de jours consécutifs d'entraînement</li>
+<li><strong>Graphique hebdomadaire</strong> — volume par jour (7 derniers jours)</li>
+<li><strong>Programme du jour</strong> — premier jour du premier programme avec bouton "Démarrer"</li>
+<li><strong>Dernières séances</strong> — les 4 plus récentes</li>
+<li><strong>Records personnels</strong> — top 4 des charges max</li>
+</ul>
+
+<h3>📅 Programmes</h3>
+<p>Organise tes séances en programmes avec des jours.</p>
+<ul>
+<li><strong>Créer un programme</strong> — nom + objectif (prise de masse, sèche, force...)</li>
+<li><strong>Ajouter des jours</strong> — Push, Pull, Legs, Lundi, Jour 1... au choix</li>
+<li><strong>Dans chaque jour</strong> — ajouter des exercices avec :
+  <ul>
+    <li>Nombre de séries</li>
+    <li>Objectif de reps (ex: "8-12")</li>
+    <li>Temps de repos en secondes</li>
+    <li>Commentaire/note (ex: "Siège sur 6", "Barre W")</li>
+    <li><strong>Tempo</strong> (V8) — texte libre décrivant la cadence du mouvement (ex: "3-0-1", "descente lente"), réaffiché pendant la séance</li>
+  </ul>
+</li>
+<li><strong>Réorganiser</strong> — glisser les exercices avec le handle ⠿ (animation fluide, tactile + souris)</li>
+<li><strong>Démarrer</strong> — bouton "▶ Start" → affiche d'abord le récap de ta dernière séance identique (poids/reps) puis lance</li>
+</ul>
+
+<h3>🏋️ Mode Entraînement (Workout)</h3>
+<p>Écran plein écran qui s'affiche quand tu démarres une séance.</p>
+<ul>
+<li><strong>Chrono global</strong> — durée totale de la séance</li>
+<li><strong>Échauffement</strong> — rappel en haut (5 min cardio + articulations)</li>
+<li><strong>Pour chaque exercice :</strong>
+  <ul>
+    <li>Séries avec champs kg et reps (ou <strong>secondes</strong> pour les exercices de type durée, ex: planche/gainage — V8)</li>
+    <li>Boutons +/- pour ajuster rapidement (±2.5 kg, ±1 rep)</li>
+    <li>Bouton <code>✓</code> pour valider la série</li>
+    <li><strong>Tempo</strong> (V8) — affiché sous le nom de l'exercice quand il est renseigné dans le programme</li>
+  </ul>
+</li>
+<li><strong>Charges habituelles</strong> (V8) — un bouton dans l'en-tête d'un exercice ouvre une bulle listant les charges déjà utilisées pour cet exercice (recherche par nom d'exercice). Message dédié si aucun historique.</li>
+<li><strong>Échanger un exercice</strong> (V8) — remplacer un exercice en cours de séance en le choisissant dans la bibliothèque ; le nom et le muscle sont mis à jour, les séries saisies conservées, et l'échange est reflété dans le récap et l'historique.</li>
+<li><strong>Réorganiser</strong> (V8) — monter/descendre un exercice pendant la séance ; séries, valeurs saisies et état "terminé" sont conservés.</li>
+<li><strong>Commentaire par exercice</strong> (V8) — champ note repliable par exercice, consultable ensuite dans l'historique.</li>
+<li><strong>Timer de repos</strong> — se lance automatiquement après validation
+  <ul>
+    <li>Un seul timer à la fois (les autres s'arrêtent)</li>
+    <li>Bouton ⏸ pour pause</li>
+    <li>Bouton ✕ pour stopper</li>
+    <li>Vibration quand le repos est terminé</li>
+  </ul>
+</li>
+<li><strong>+ Ajouter une série</strong> — bouton en bas de chaque exercice</li>
+<li><strong>Fin 🏁</strong> — affiche le récap</li>
+</ul>
+
+<h3>📋 Récap de séance</h3>
+<ul>
+<li>Volume total soulevé</li>
+<li>Durée de la séance</li>
+<li>Nombre de séries complétées</li>
+<li>Détail par exercice (tableau poids/reps/volume)</li>
+<li>Bouton <strong>"💾 Sauvegarder"</strong> → enregistre dans l'historique</li>
+<li>Bouton <strong>"Abandonner"</strong> → ne sauvegarde rien</li>
+</ul>
+
+<h3>📋 Historique</h3>
+<ul>
+<li>Liste de toutes les séances passées</li>
+<li><strong>Recherche</strong> — par nom de séance ou d'exercice</li>
+<li><strong>Filtre par mois</strong></li>
+<li><strong>Cliquer sur une séance</strong> → détail complet (exercices, sets, poids, volumes)</li>
+<li><strong>Commentaires visibles</strong> (V8) — le commentaire de séance et les commentaires par exercice sont affichés dans le détail (message dédié si absent) ; les séries en durée sont libellées en secondes</li>
+<li><strong>Supprimer</strong> une séance</li>
+</ul>
+
+<h3>📊 Progrès (Stats)</h3>
+<ul>
+<li><strong>Sélectionner un exercice</strong> → affiche 2 graphiques :
+  <ul>
+    <li>Charge max par séance (courbe)</li>
+    <li><strong>Reps max (série)</strong> (V8) — le maximum de répétitions réalisées sur une seule série, et non plus la somme des reps</li>
+  </ul>
+</li>
+<li><strong>Période</strong> — 30j, 3 mois, 1 an, tout</li>
+<li><strong>Records personnels</strong> — grille avec meilleur poids par exercice + date</li>
+</ul>
+
+<h3>📏 Mensurations</h3>
+<ul>
+<li><strong>10 mesures par défaut</strong> — Poids, Bras G/D, Poitrine, Taille, Hanches, Cuisse G/D, Mollet, Épaules</li>
+<li><strong>"Taille" vs "Tour de taille"</strong> (V8) — le champ "Taille" (hauteur) est distinct du "Tour de taille" ; les deux valeurs sont stockées séparément (<code>taille</code> et <code>tour_taille</code>) sans s'écraser</li>
+<li><strong>Zones personnalisées</strong> — bouton "+ Ajouter une zone" pour créer les tiennes</li>
+<li><strong>Résumé</strong> — dernière valeur + delta vs mesure précédente (↑ vert / ↓ rouge)</li>
+<li><strong>Graphique d'évolution</strong> — sélectionne une mesure, vois la courbe</li>
+<li><strong>Tableau historique</strong> — toutes les entrées avec deltas</li>
+<li><strong>Saisie</strong> — date (aujourd'hui par défaut) + toutes les valeurs pré-remplies</li>
+</ul>
+
+<h3>🏆 Performances</h3>
+<ul>
+<li><strong>Filtrer</strong> par exercice et période</li>
+<li><strong>Graphique charge max</strong> — évolution dans le temps</li>
+<li><strong>Graphique volume</strong> — évolution dans le temps</li>
+<li><strong>Tableau détaillé</strong> — date, exercice, séries, charge max, volume</li>
+<li><strong>Export rapport HTML</strong> — génère un fichier téléchargeable avec :
+  <ul>
+    <li>Le thème actif (sombre, clair, kitty ou stitch)</li>
+    <li>Résumé statistique</li>
+    <li>Tableau complet des performances</li>
+    <li>Peut être envoyé à un proche ou un coach</li>
+  </ul>
+</li>
+</ul>
+
+<h3>🏋️ Exercices (Bibliothèque)</h3>
+<ul>
+<li><strong>Exercices pré-chargés</strong> — 42 exercices par défaut (pecs, dos, épaules, biceps, triceps, jambes, abdos, fessiers)</li>
+<li><strong>Filtrer</strong> par catégorie musculaire (chips) ou par recherche texte</li>
+<li><strong>Créer</strong> ses propres exercices (nom + muscle + description + type de mesure <strong>reps ou secondes</strong> — V8)</li>
+<li><strong>Modifier / Supprimer</strong> ses exercices perso</li>
+<li><strong>Bulle info ℹ️</strong> — cliquer pour voir l'image de l'exercice (via API) + description détaillée</li>
+</ul>
+
+<h2>4. Thèmes disponibles</h2>
+<table>
+<thead><tr><th>Bouton</th><th>Thème</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>🌙 / ☀️</td><td>Sombre ↔ Clair</td><td>Noir/vert ou blanc/vert — alternance par clic</td></tr>
+<tr><td>🎀 / 🧵</td><td>Kitty ↔ Stitch</td><td>Rose Hello Kitty ou Bleu Stitch — alternance par clic</td></tr>
+</tbody>
+</table>
+
+<h2>5. Installation sur téléphone</h2>
+<h3>iPhone (Safari)</h3>
+<ol>
+<li>Ouvrir le lien dans Safari</li>
+<li>Bouton partage (↑) → "Sur l'écran d'accueil"</li>
+<li>L'app apparaît comme une vraie app avec icône</li>
+</ol>
+
+<h3>Android (Chrome)</h3>
+<ol>
+<li>Ouvrir le lien dans Chrome</li>
+<li>Menu (⋮) → "Ajouter à l'écran d'accueil"</li>
+<li>Ou accepter la bannière d'installation automatique</li>
+</ol>
+
+<h2>6. Exercices inclus par défaut</h2>
+<table>
+<thead><tr><th>Catégorie</th><th>Exercices</th></tr></thead>
+<tbody>
+<tr><td><strong>Pectoraux</strong></td><td>Presse Pectoraux, Presse Inclinée, Pecfly, Développé couché, Développé incliné</td></tr>
+<tr><td><strong>Dos</strong></td><td>Tirage Horizontal Guidé, Tirage Vertical Poulie Haute, Rowing Coude Ouvert, Extensions Banc Lombaire, Tractions, Rowing barre, Soulevé de terre</td></tr>
+<tr><td><strong>Épaules</strong></td><td>Élévations Latérales Haltères, Presse Épaules, Développé militaire</td></tr>
+<tr><td><strong>Biceps</strong></td><td>Curl Biceps, Curl Biceps Poulie Basse, Curl haltères</td></tr>
+<tr><td><strong>Triceps</strong></td><td>Extensions Triceps Poulie Haute, Dips triceps</td></tr>
+<tr><td><strong>Jambes</strong></td><td>V Squat, Presse Horizontale Unilatérale, Leg Extension, Leg Curl, Machine Abduction, Machine Adduction, Squat, Leg press, Fentes, Mollets machine</td></tr>
+<tr><td><strong>Abdominaux</strong></td><td>Crunch Swiss Ball, Gainage, Crunch, Planche</td></tr>
+<tr><td><strong>Fessiers</strong></td><td>Abduction avec élastique, Abduction debout, Abduction allongée, Donkey Kick, Élévations latérales jambes tendues, Hip Thrust, Hip Thrust barre, TRX Hip Thrust</td></tr>
+</tbody>
+</table>
+
+<h2>7. Données & Confidentialité</h2>
+<ul>
+<li>Chaque utilisateur ne voit <strong>que ses propres données</strong> (Row Level Security)</li>
+<li>Les exercices par défaut sont partagés (visibles par tous)</li>
+<li>Les exercices créés par un user ne sont visibles que par lui</li>
+<li>Mot de passe hashé côté Supabase (jamais stocké en clair)</li>
+<li>Connexion HTTPS chiffrée</li>
+<li><strong>Session non permanente</strong> (V8) — la session est stockée en <code>sessionStorage</code> ; à la fermeture du navigateur, une reconnexion est requise (plus de jeton conservé indéfiniment)</li>
+<li><strong>Protection anti-brute-force</strong> (V8) — les connexions sont bloquées temporairement côté serveur après plusieurs tentatives échouées pour une même adresse ; le compteur se remet à zéro après une connexion réussie ou une fois le délai écoulé</li>
+</ul>
+
+<h2>8. Limites actuelles</h2>
+<ul>
+<li>Pas de mode 100% offline (nécessite internet pour accéder aux données)</li>
+<li>Pas de récupération de mot de passe (à ajouter)</li>
+<li>Les zones custom de mensurations sont locales (pas synchronisées entre appareils)</li>
+<li>Images d'exercices dépendent de l'API wger.de (pas toujours disponible en français)</li>
+</ul>
+
+<h2>9. Changelog</h2>
+<p>Voir le fichier <code>docs/changelog.html</code> pour l'historique complet des versions et modifications.</p>
+
+<div class="footer">MuscuTrack Pro — Documentation fonctionnelle — Dernière mise à jour : août 2026 (V8)</div>
+
+</div>
+</body>
+</html>

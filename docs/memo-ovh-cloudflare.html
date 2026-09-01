@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mémo — OVH & Cloudflare : Troubleshooting</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#041e42;color:#e8eef5;padding:40px 20px;line-height:1.7;}
+.container{max-width:900px;margin:0 auto;}
+h1{font-size:28px;margin-bottom:8px;color:#4fc3f7;}
+h2{font-size:20px;margin:32px 0 12px;color:#00a3e0;border-bottom:2px solid #1a3a5c;padding-bottom:8px;}
+h3{font-size:16px;margin:20px 0 8px;color:#7dd3fc;}
+p,li{font-size:14px;color:#b8d4e8;}
+ul,ol{padding-left:20px;margin:8px 0;}
+li{margin-bottom:6px;}
+strong{color:#e8eef5;}
+code{background:#0a2a4a;border:1px solid #1a3a5c;border-radius:4px;padding:2px 6px;font-size:13px;color:#4fc3f7;font-family:'Consolas',monospace;}
+.box{background:#0a2a4a;border:1px solid #1a3a5c;border-radius:10px;padding:16px;margin:12px 0;}
+.box-ovh{border-left:4px solid #00a3e0;}
+.box-cf{border-left:4px solid #f6821f;}
+.box-warn{border-left:4px solid #f59e0b;background:#1a1500;}
+.box-fix{border-left:4px solid #22c55e;background:#0a1a0f;}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-right:4px;}
+.tag-ovh{background:rgba(0,163,224,.15);color:#4fc3f7;border:1px solid #00a3e0;}
+.tag-cf{background:rgba(246,130,31,.15);color:#f6821f;border:1px solid #f6821f;}
+.tag-fix{background:rgba(34,197,94,.15);color:#86efac;border:1px solid #22c55e;}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+th{background:#0a2a4a;padding:10px 12px;text-align:left;color:#7dd3fc;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #1a3a5c;}
+td{padding:10px 12px;border-bottom:1px solid #0d2e4d;}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid #1a3a5c;font-size:11px;color:#4a6a8a;text-align:center;}
+.logo-row{display:flex;align-items:center;gap:16px;margin-bottom:24px;}
+.logo-ovh{width:40px;height:40px;background:#00a3e0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;}
+.logo-cf{width:40px;height:40px;background:#f6821f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#fff;}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="logo-row">
+<div class="logo-ovh">OVH</div>
+<div class="logo-cf">CF</div>
+<h1>Mémo — OVH & Cloudflare</h1>
+</div>
+<p>Checklist de troubleshooting en cas de problème avec le domaine <code>fitnesstracker.bzh</code>.</p>
+
+<!-- ============================================ -->
+
+<h2>1. Architecture actuelle</h2>
+<table>
+<thead><tr><th>Service</th><th>Rôle</th><th>URL d'accès</th></tr></thead>
+<tbody>
+<tr><td><span class="tag tag-ovh">OVH</span> Registrar</td><td>Propriétaire du domaine <code>fitnesstracker.bzh</code></td><td><a href="https://www.ovh.com/manager/" style="color:#4fc3f7">ovh.com/manager</a></td></tr>
+<tr><td><span class="tag tag-cf">CF</span> DNS</td><td>Gère les nameservers + DNS</td><td><a href="https://dash.cloudflare.com" style="color:#f6821f">dash.cloudflare.com</a></td></tr>
+<tr><td><span class="tag tag-cf">CF</span> Pages</td><td>Héberge l'app (auto-deploy depuis GitHub)</td><td><code>fitnesstracker-4r3.pages.dev</code></td></tr>
+</tbody>
+</table>
+
+<div class="box box-ovh">
+<strong>Nameservers actuels (configurés chez OVH) :</strong><br/>
+<code>kanye.ns.cloudflare.com</code><br/>
+<code>melinda.ns.cloudflare.com</code>
+</div>
+
+<!-- ============================================ -->
+
+<h2>2. Problèmes fréquents & solutions</h2>
+
+<h3>❌ "Invalid nameservers" sur Cloudflare</h3>
+<div class="box box-warn">
+<strong>Symptôme :</strong> Cloudflare affiche "Waiting for registrar to propagate" ou "Invalid nameservers"
+</div>
+<div class="box box-fix">
+<strong>Checklist :</strong>
+<ol>
+<li><span class="tag tag-ovh">OVH</span> Vérifie que les nameservers sont bien <code>kanye.ns.cloudflare.com</code> + <code>melinda.ns.cloudflare.com</code> (OVH → Noms de domaine → fitnesstracker.bzh → Serveurs DNS)</li>
+<li><span class="tag tag-ovh">OVH</span> Vérifie que le statut est <strong>"Actif"</strong> (pas "En cours d'activation")</li>
+<li><span class="tag tag-ovh">OVH</span> Vérifie qu'il n'y a <strong>aucun DS Record</strong> (OVH → DS Records → tout supprimer)</li>
+<li><span class="tag tag-ovh">OVH</span> Désactive <strong>DNSSEC</strong> si activé</li>
+<li><span class="tag tag-cf">CF</span> Clique <strong>"Check nameservers now"</strong> dans Cloudflare</li>
+<li>Attends 10 min à 24h (propagation DNS)</li>
+</ol>
+</div>
+
+<h3>❌ Le site ne s'affiche pas sur fitnesstracker.bzh</h3>
+<div class="box box-warn">
+<strong>Symptôme :</strong> Page blanche, erreur DNS, ou "site not found"
+</div>
+<div class="box box-fix">
+<strong>Checklist :</strong>
+<ol>
+<li><span class="tag tag-cf">CF</span> Vérifie que le domaine est <strong>"Active"</strong> dans Cloudflare (pas "Pending")</li>
+<li><span class="tag tag-cf">CF</span> Va dans Workers & Pages → ton projet → <strong>Custom domains</strong> → vérifie que <code>fitnesstracker.bzh</code> est ajouté et actif</li>
+<li><span class="tag tag-cf">CF</span> Va dans <strong>DNS → Records</strong> → vérifie qu'il y a un enregistrement CNAME pour <code>fitnesstracker.bzh</code> pointant vers <code>fitnesstracker-4r3.pages.dev</code></li>
+<li>Si rien ne marche → le site est toujours accessible sur <code>https://fitnesstracker-4r3.pages.dev</code></li>
+</ol>
+</div>
+
+<h3>❌ Le deploy ne se fait pas après un push GitHub</h3>
+<div class="box box-warn">
+<strong>Symptôme :</strong> Tu pushes sur GitHub mais Cloudflare Pages ne build pas
+</div>
+<div class="box box-fix">
+<strong>Checklist :</strong>
+<ol>
+<li><span class="tag tag-cf">CF</span> Workers & Pages → ton projet → <strong>Deployments</strong> → vérifie s'il y a un build en erreur</li>
+<li><span class="tag tag-cf">CF</span> Vérifie que le repo GitHub est toujours connecté (Settings → Builds & deployments)</li>
+<li>Vérifie que le push est bien sur la branche <strong>main</strong></li>
+<li>Si besoin → clique <strong>"Retry deployment"</strong> sur le dernier build</li>
+</ol>
+</div>
+
+<h3>❌ Erreur SSL / HTTPS ne fonctionne pas</h3>
+<div class="box box-warn">
+<strong>Symptôme :</strong> "Your connection is not private" ou certificat invalide
+</div>
+<div class="box box-fix">
+<strong>Checklist :</strong>
+<ol>
+<li><span class="tag tag-cf">CF</span> Va dans <strong>SSL/TLS</strong> → mets le mode sur <strong>"Full"</strong> (pas "Flexible")</li>
+<li><span class="tag tag-cf">CF</span> Vérifie que le certificat est émis (SSL/TLS → Edge Certificates)</li>
+<li>Attends 15 min (le certificat se provisionne automatiquement)</li>
+<li>Si toujours KO → désactive et réactive le proxy orange ☁️ sur l'enregistrement DNS</li>
+</ol>
+</div>
+
+<h3>❌ "Email rate limit exceeded" (Supabase)</h3>
+<div class="box box-fix">
+<strong>Fix :</strong> Attends 10-15 min. Le plan gratuit Supabase limite à 4 emails/heure. Ou désactive la confirmation email dans Auth → Providers → Email.
+</div>
+
+<!-- ============================================ -->
+
+<h2>3. Accès rapides</h2>
+<table>
+<thead><tr><th>Quoi</th><th>Où</th></tr></thead>
+<tbody>
+<tr><td>Gérer le domaine</td><td><span class="tag tag-ovh">OVH</span> <a href="https://www.ovh.com/manager/" style="color:#4fc3f7">ovh.com/manager</a> → Noms de domaine → fitnesstracker.bzh</td></tr>
+<tr><td>Gérer le DNS</td><td><span class="tag tag-cf">CF</span> <a href="https://dash.cloudflare.com" style="color:#f6821f">dash.cloudflare.com</a> → fitnesstracker.bzh → DNS</td></tr>
+<tr><td>Gérer les déploiements</td><td><span class="tag tag-cf">CF</span> Workers & Pages → fitnesstracker → Deployments</td></tr>
+<tr><td>Ajouter/modifier le domaine custom</td><td><span class="tag tag-cf">CF</span> Workers & Pages → fitnesstracker → Custom domains</td></tr>
+<tr><td>Gérer l'auth + la BDD</td><td><a href="https://supabase.com/dashboard" style="color:#3fa66b">supabase.com/dashboard</a> → LDX PUMP</td></tr>
+<tr><td>Gérer le code source</td><td><a href="https://github.com/ElDamoss/FitnessTracker" style="color:#e8eef5">github.com/ElDamoss/FitnessTracker</a></td></tr>
+</tbody>
+</table>
+
+<!-- ============================================ -->
+
+<h2>4. Commandes utiles (terminal)</h2>
+<div class="box">
+<strong>Push une modification :</strong><br/>
+<code>cd c:\Users\dams2\Desktop\fitness-tracker\pwa</code><br/>
+<code>git add -A</code><br/>
+<code>git commit -m "description du changement"</code><br/>
+<code>git push</code><br/>
+<br/>
+<strong>Lancer en local pour tester :</strong><br/>
+<code>cd c:\Users\dams2\Desktop\fitness-tracker\pwa</code><br/>
+<code>python -m http.server 8080</code><br/>
+→ Ouvrir <code>http://localhost:8080</code>
+</div>
+
+<!-- ============================================ -->
+
+<h2>5. Si tu veux tout supprimer</h2>
+<table>
+<thead><tr><th>Étape</th><th>Où</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><span class="tag tag-cf">CF</span> Pages</td><td>Workers & Pages → fitnesstracker → Settings → Delete project</td></tr>
+<tr><td>2</td><td><span class="tag tag-cf">CF</span> Domain</td><td>Domains → fitnesstracker.bzh → Advanced → Remove from Cloudflare</td></tr>
+<tr><td>3</td><td><span class="tag tag-ovh">OVH</span></td><td>Remettre les nameservers OVH par défaut (dns106.ovh.net + ns106.ovh.net)</td></tr>
+<tr><td>4</td><td>Supabase</td><td>Settings → General → Delete project</td></tr>
+<tr><td>5</td><td>GitHub</td><td>Repo → Settings → Delete repository</td></tr>
+<tr><td>6</td><td>PC</td><td>Supprimer <code>c:\Users\dams2\Desktop\fitness-tracker\</code></td></tr>
+</tbody>
+</table>
+
+<div class="footer">FitnessTracker — Mémo OVH & Cloudflare — Dernière mise à jour : 2 août 2026</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,797 @@
+{
+  "pbtResults": {
+    "2.7 Write property test for compact day-session tile rendering": {
+      "status": "passed",
+      "lastRunTimestamp": 1788289687737
+    },
+    "5.4 Write property test: failed login increments counter": {
+      "status": "passed",
+      "lastRunTimestamp": 1788289746454
+    },
+    "5.5 Write property test: threshold blocks further attempts": {
+      "status": "passed",
+      "lastRunTimestamp": 1788289749654
+    },
+    "5.6 Write property test: success resets the counter": {
+      "status": "passed",
+      "lastRunTimestamp": 1788289752906
+    },
+    "5.7 Write property test: lock releases after window elapses": {
+      "status": "passed",
+      "lastRunTimestamp": 1788289756226
+    },
+    "7.7 Write property test for reordering": {
+      "status": "passed",
+      "lastRunTimestamp": 1788289914330
+    },
+    "7.5 Write property test for exercise swap": {
+      "status": "passed",
+      "lastRunTimestamp": 1788289916610
+    },
+    "7.3 Write property test for usual-weights query filtering": {
+      "status": "passed",
+      "lastRunTimestamp": 1788289927018
+    },
+    "7.9 Write property test for set-type routing": {
+      "status": "passed",
+      "lastRunTimestamp": 1788289931983
+    },
+    "7.12 Write property test for comment round-trip": {
+      "status": "passed",
+      "lastRunTimestamp": 1788290084322
+    },
+    "10.2 Write property test for tempo round-trip": {
+      "status": "passed",
+      "lastRunTimestamp": 1788290090125
+    },
+    "12.2 Write property test for the max-reps metric": {
+      "status": "passed",
+      "lastRunTimestamp": 1788290109169
+    },
+    "13.2 Write property test for history comment display": {
+      "status": "passed",
+      "lastRunTimestamp": 1788290198544
+    },
+    "14.2 Write property test for taille/tour_taille independence": {
+      "status": "passed",
+      "lastRunTimestamp": 1788290212063
+    }
+  },
+  "executionHistory": {
+    "1. Test framework setup": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115250
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284698607
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284964423
+      }
+    ],
+    "2.1 Port the 2.0 stylesheet into `src/index.css`": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115628
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284128513
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284247883
+      }
+    ],
+    "2.2 Convert `src/components/TiltCard.tsx` to static": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115687
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284252299
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284692945
+      }
+    ],
+    "2.4 Remove the mobile bottom navigation bar in `src/App.tsx`": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115726
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284253758
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284693898
+      }
+    ],
+    "2.6 Shrink Home-page day-session tiles in `src/pages/Home.tsx`": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115763
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284254711
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284695286
+      }
+    ],
+    "3. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115810
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289604415
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290448817
+      }
+    ],
+    "4.1 Add `set_measurement_type` column to `exercises` (USER RUNS IN SUPABASE)": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115843
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284130146
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289604461
+      }
+    ],
+    "4.2 Create `login_attempts` table and the three SECURITY DEFINER RPCs (USER RUNS IN SUPABASE)": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115881
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284131373
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289604496
+      }
+    ],
+    "5.1 Configure session storage in `src/lib/supabase.ts`": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115913
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284256093
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284696242
+      }
+    ],
+    "5.3 Implement brute-force client flow in `AuthScreen.handleSubmit` (`src/App.tsx`)": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115949
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284710791
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284963547
+      }
+    ],
+    "6. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284115977
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289604530
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290449703
+      }
+    ],
+    "7.1 Extend WorkoutSet and WorkoutExercise types and save payload": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116005
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285009461
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285168653
+      }
+    ],
+    "7.2 Implement the Usual_Weights_Panel": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116039
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285172545
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285295512
+      }
+    ],
+    "7.4 Implement the swap-from-library picker": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116075
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285296471
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285418621
+      }
+    ],
+    "7.6 Implement reorder up/down controls": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116107
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285420067
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285488957
+      }
+    ],
+    "7.8 Implement reps-vs-seconds set input and tempo display": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116138
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285498655
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285586917
+      }
+    ],
+    "7.11 Implement per-exercise comment field": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116169
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285595057
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788285669491
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788286577206
+      }
+    ],
+    "8. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116198
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289604570
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290451597
+      }
+    ],
+    "9.1 Add a Reps/Secondes select to the create/edit form": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116225
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284257500
+      },
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284697696
+      }
+    ],
+    "10.1 Standardize `repsTarget` to string and build the day/exercise editor": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116261
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788286597212
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287044494
+      }
+    ],
+    "10.3 Add optional tempo to default-program templates in `src/pages/DefaultPrograms.tsx`": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116292
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287067351
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287159183
+      }
+    ],
+    "10.4 Map tempo and measurement type into workout start": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116324
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287068131
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287161058
+      }
+    ],
+    "11. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116355
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289604613
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290452119
+      }
+    ],
+    "12.1 Add the \"Reps max (série)\" metric": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116399
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788286599072
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287040752
+      }
+    ],
+    "13.1 Render session notes, per-exercise comments, and seconds labels": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116431
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788286599561
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287042140
+      }
+    ],
+    "14.1 Verify taille / tour_taille wiring": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116462
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788286600954
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287043101
+      }
+    ],
+    "15. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116492
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289604648
+      },
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290453077
+      }
+    ],
+    "16.1 Update project docs and release note": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116523
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287199505
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287611212
+      }
+    ],
+    "16.2 Add the V8 changelog block to `src/pages/Updates.tsx`": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116552
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287169583
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287613854
+      }
+    ],
+    "16.3 Write GitHub-make-private instructions with consequences": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116582
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287200712
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287614082
+      }
+    ],
+    "17. Final verification": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284116616
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287619715
+      },
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287829871
+      }
+    ],
+    "2. Design and CSS foundation": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284695323
+      }
+    ],
+    "9. Exercises set-measurement-type field in `src/pages/Exercises.tsx`": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284697733
+      }
+    ],
+    "5. Security wiring": [
+      {
+        "executionId": "f34daf40-2315-4605-8ccc-191c9542b370",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788284963596
+      }
+    ],
+    "7. Workout features in `src/components/WorkoutScreen.tsx`": [
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788286577239
+      }
+    ],
+    "12. Stats max single-set reps metric in `src/pages/Stats.tsx`": [
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287040789
+      }
+    ],
+    "13. History comments and seconds label in `src/pages/History.tsx`": [
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287042229
+      }
+    ],
+    "14. Mensurations taille verification in `src/pages/Mensurations.tsx`": [
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287043128
+      }
+    ],
+    "10. Programs day/exercise editor in `src/pages/Programs.tsx`": [
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287161089
+      }
+    ],
+    "16. Documentation and changelog": [
+      {
+        "executionId": "67a48a47-dd25-4349-bf7e-e12ca564e205",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788287614124
+      }
+    ],
+    "2.3 Write unit test for TiltCard static behavior": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289777206
+      }
+    ],
+    "2.5 Write unit test for trimmed navigation": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289778201
+      }
+    ],
+    "2.7 Write property test for compact day-session tile rendering": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289779560
+      }
+    ],
+    "5.2 Write smoke test for session storage config": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289781015
+      }
+    ],
+    "5.4 Write property test: failed login increments counter": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289782194
+      }
+    ],
+    "5.5 Write property test: threshold blocks further attempts": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289783353
+      }
+    ],
+    "5.6 Write property test: success resets the counter": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289784255
+      }
+    ],
+    "5.7 Write property test: lock releases after window elapses": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289785488
+      }
+    ],
+    "5.8 Write integration test for the real throttle RPCs": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289973375
+      }
+    ],
+    "7.5 Write property test for exercise swap": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289974273
+      }
+    ],
+    "7.3 Write property test for usual-weights query filtering": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289976141
+      }
+    ],
+    "7.7 Write property test for reordering": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289976688
+      }
+    ],
+    "7.9 Write property test for set-type routing": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788289977692
+      }
+    ],
+    "7.10 Write property test for tempo display presence": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290136980
+      }
+    ],
+    "7.12 Write property test for comment round-trip": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290138823
+      }
+    ],
+    "9.2 Write unit test for the set-type select": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290139320
+      }
+    ],
+    "10.2 Write property test for tempo round-trip": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290140769
+      }
+    ],
+    "12.2 Write property test for the max-reps metric": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290141680
+      }
+    ],
+    "13.2 Write property test for history comment display": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290227292
+      }
+    ],
+    "14.2 Write property test for taille/tour_taille independence": [
+      {
+        "executionId": "af136089-affc-4080-8349-5191e4517db1",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290228674
+      }
+    ]
+  }
+}

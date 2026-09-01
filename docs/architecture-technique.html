@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MuscuTrack Pro — Architecture Technique</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0c0a;color:#e8ece6;padding:40px 20px;line-height:1.7;}
+.container{max-width:900px;margin:0 auto;}
+h1{font-size:28px;margin-bottom:8px;color:#86f7b4;}
+h2{font-size:20px;margin:32px 0 12px;color:#3fa66b;border-bottom:1px solid #1f2921;padding-bottom:8px;}
+h3{font-size:16px;margin:20px 0 8px;color:#cfff5c;}
+p,li{font-size:14px;color:#c4cfc0;}
+ul,ol{padding-left:20px;margin:8px 0;}
+li{margin-bottom:6px;}
+code{background:#151b14;border:1px solid #1f2921;border-radius:4px;padding:2px 6px;font-size:13px;color:#86f7b4;font-family:'Consolas',monospace;}
+pre{background:#0f1410;border:1px solid #1f2921;border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;color:#92a599;margin:12px 0;}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;}
+.badge-green{background:rgba(63,166,107,.15);color:#86f7b4;border:1px solid #3fa66b;}
+.badge-blue{background:rgba(33,150,243,.12);color:#90caf9;border:1px solid #2196f3;}
+.badge-red{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid #ef4444;}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+th{background:#151b14;padding:10px 12px;text-align:left;color:#92a599;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #1f2921;}
+td{padding:10px 12px;border-bottom:1px solid #171f19;}
+.schema{background:#0f1410;border:1px solid #1f2921;border-radius:12px;padding:24px;margin:16px 0;font-family:'Consolas',monospace;font-size:12px;line-height:2;white-space:pre;overflow-x:auto;color:#92a599;}
+.schema .highlight{color:#86f7b4;font-weight:600;}
+.schema .arrow{color:#3fa66b;}
+.schema .service{color:#cfff5c;}
+.warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:14px;margin:12px 0;font-size:13px;color:#fbbf24;}
+.danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:14px;margin:12px 0;font-size:13px;color:#fca5a5;}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid #1f2921;font-size:11px;color:#52604f;text-align:center;}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🏗️ Architecture Technique — MuscuTrack Pro</h1>
+<p>Documentation du flux technique complet, des services utilisés, et de la procédure de suppression.</p>
+
+<h2>1. Vue d'ensemble</h2>
+<p>L'application est une <strong>PWA (Progressive Web App)</strong> hébergée statiquement, connectée à un backend cloud.</p>
+
+<div class="schema">
+<span class="highlight">📱 Utilisateur (téléphone/PC)</span>
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+<span class="service">🌐 Netlify</span> (hébergement fichiers statiques)
+   URL : cosmic-bombolone-e3e71a.netlify.app
+        <span class="arrow">│</span>
+        <span class="arrow">│</span> Sert : index.html + CSS + JS
+        <span class="arrow">▼</span>
+<span class="highlight">🖥️ Navigateur</span> (exécute le JS côté client)
+        <span class="arrow">│</span>
+        <span class="arrow">│</span> Appels API (HTTPS)
+        <span class="arrow">▼</span>
+<span class="service">🗄️ Supabase</span> (Backend-as-a-Service)
+   ├── 🔐 Auth (comptes utilisateurs)
+   ├── 🗃️ PostgreSQL (données)
+   └── 🛡️ Row Level Security (isolation users)
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+<span class="highlight">💾 Base de données PostgreSQL</span>
+   ├── exercises (bibliothèque)
+   ├── programs (programmes + jours)
+   ├── sessions (historique séances)
+   └── mensurations (suivi corporel)
+</div>
+
+<h2>2. Services & Comptes</h2>
+
+<table>
+<thead><tr><th>Service</th><th>Rôle</th><th>Compte</th><th>URL</th></tr></thead>
+<tbody>
+<tr><td><span class="badge badge-green">GitHub</span></td><td>Héberge le code source (privé)</td><td>ElDamoss</td><td>github.com/ElDamoss/FitnessTracker</td></tr>
+<tr><td><span class="badge badge-blue">Cloudflare Pages</span></td><td>Héberge + déploie l'app (auto-deploy)</td><td>Damien.vigouroux@pro...</td><td>fitnesstracker-4r3.pages.dev → fitnesstracker.bzh</td></tr>
+<tr><td><span class="badge badge-green">Supabase</span></td><td>Base de données + Auth</td><td>Ton compte Supabase</td><td>hxlhdgfxusckralcjhbw.supabase.co</td></tr>
+<tr><td><span class="badge badge-blue">OVH</span></td><td>Registrar domaine (DNS délégué à Cloudflare)</td><td>Ton compte OVH</td><td>fitnesstracker.bzh</td></tr>
+</tbody>
+</table>
+
+<h2>3. Flux détaillé</h2>
+
+<h3>3.1 Inscription d'un utilisateur</h3>
+<ol>
+<li>L'user ouvre l'app → écran de login</li>
+<li>Clique "Créer un compte" → remplit email + mot de passe + prénom</li>
+<li>Le JS appelle <code>sb.auth.signUp()</code> → requête HTTPS vers Supabase Auth</li>
+<li>Supabase crée le compte dans <code>auth.users</code></li>
+<li>Session JWT retournée → stockée dans le navigateur</li>
+<li><code>seedDefaults()</code> ajoute les exercices manquants dans la base</li>
+<li>L'app affiche le dashboard</li>
+</ol>
+
+<h3>3.2 Connexion</h3>
+<ol>
+<li>L'user entre email + mot de passe</li>
+<li><code>sb.auth.signInWithPassword()</code> → Supabase vérifie</li>
+<li>JWT retourné → l'app charge les données de cet user uniquement (RLS)</li>
+</ol>
+
+<h3>3.3 Séance d'entraînement</h3>
+<ol>
+<li>L'user va dans Programmes → clique "Start" sur un jour</li>
+<li>L'écran workout s'affiche (chrono, exercices, sets)</li>
+<li>Il saisit poids/reps → clique ✓ → timer repos se lance</li>
+<li>À la fin → clique "Fin" → récap affiché</li>
+<li>"Sauvegarder" → <code>DB.addSession()</code> → INSERT dans Supabase table <code>sessions</code></li>
+</ol>
+
+<h3>3.4 Isolation des données (Row Level Security)</h3>
+<pre>
+-- Chaque user ne voit QUE ses propres données
+CREATE POLICY "Users manage own programs" ON programs
+  FOR ALL USING (auth.uid() = user_id);
+
+-- Les exercices par défaut sont visibles par tous
+CREATE POLICY "Users see default and own exercises" ON exercises
+  FOR SELECT USING (is_default = true OR auth.uid() = created_by);
+</pre>
+
+<h3>3.5 Déploiement automatique</h3>
+<div class="schema">
+<span class="highlight">Code modifié localement</span>
+        <span class="arrow">│</span>
+        <span class="arrow">│</span> git add + git commit + git push
+        <span class="arrow">▼</span>
+<span class="service">GitHub</span> (repo privé ElDamoss/FitnessTracker)
+        <span class="arrow">│</span>
+        <span class="arrow">│</span> Webhook automatique
+        <span class="arrow">▼</span>
+<span class="service">Cloudflare Pages</span> détecte le push
+        <span class="arrow">│</span>
+        <span class="arrow">│</span> Build + Deploy (~15 sec)
+        <span class="arrow">▼</span>
+<span class="highlight">App live mise à jour</span>
+   fitnesstracker.bzh (+ fitnesstracker-4r3.pages.dev)
+</div>
+
+<h2>4. Structure des fichiers</h2>
+<pre>
+pwa/
+├── index.html          — App complète (login + shell + modals)
+├── manifest.json       — Config PWA (nom, icônes, couleurs)
+├── sw.js               — Service Worker (cache offline)
+├── css/
+│   └── style.css       — Tout le CSS (thèmes dark/light/kitty/stitch)
+├── icons/
+│   ├── icon-192.png    — Icône PWA
+│   └── icon-512.png    — Icône PWA grande
+└── js/
+    ├── supabase.js     — Connexion + Auth + CRUD + Seed
+    ├── app.js          — Navigation + Dashboard + Theme + Boot
+    ├── programs.js     — Programmes + Jours + Workout engine
+    ├── exercises.js    — Bibliothèque exercices
+    ├── history.js      — Historique séances
+    ├── stats.js        — Statistiques + PRs
+    ├── mensuration.js  — Suivi mensurations
+    └── performances.js — Onglet performances + export rapport
+</pre>
+
+<h2>5. Base de données (tables Supabase)</h2>
+<table>
+<thead><tr><th>Table</th><th>Contenu</th><th>Clé de filtrage</th></tr></thead>
+<tbody>
+<tr><td><code>exercises</code></td><td>Bibliothèque d'exercices (partagés + perso) — colonne <code>set_measurement_type</code> (<code>reps</code> ou <code>seconds</code>) ajoutée en V8</td><td><code>created_by</code> ou <code>is_default</code></td></tr>
+<tr><td><code>programs</code></td><td>Programmes avec jours et exercices (JSONB) — champ <code>tempo</code> texte libre par exercice ajouté en V8</td><td><code>user_id</code></td></tr>
+<tr><td><code>sessions</code></td><td>Séances enregistrées (exercices + sets en JSONB) — les sets portent une valeur <code>reps</code> ou <code>duration</code> (secondes) + commentaires par exercice (V8)</td><td><code>user_id</code></td></tr>
+<tr><td><code>mensurations</code></td><td>Mesures corporelles — champs distincts <code>taille</code> (hauteur) et <code>tour_taille</code> (tour de taille)</td><td><code>user_id</code></td></tr>
+<tr><td><code>login_attempts</code></td><td>Compteur de tentatives de connexion (anti-brute-force, RPC SECURITY DEFINER) — ajoutée en V8</td><td><code>identifier</code></td></tr>
+</tbody>
+</table>
+
+<h3>5.1 Notes V8 (modèle de données & sécurité)</h3>
+<ul>
+<li><strong>Type de mesure</strong> — <code>exercises.set_measurement_type</code> vaut <code>reps</code> ou <code>seconds</code> (défaut <code>reps</code>) ; les exercices en secondes stockent la valeur du set dans <code>duration</code>.</li>
+<li><strong>Tempo</strong> — texte libre par exercice dans le JSONB <code>programs.days</code>, réaffiché pendant la séance.</li>
+<li><strong>Session non permanente</strong> — le client Supabase utilise <code>window.sessionStorage</code> pour la session : une reconnexion est requise après fermeture du navigateur.</li>
+<li><strong>Anti-brute-force</strong> — table <code>login_attempts</code> + RPC <code>check_login_gate</code> / <code>record_login_failure</code> / <code>record_login_success</code> ; blocage après un seuil de tentatives échouées pendant une fenêtre de verrouillage.</li>
+</ul>
+
+<div class="footer">MuscuTrack Pro — Documentation technique — Dernière mise à jour : août 2026 (V8)</div>
+
+</div>
+</body>
+</html>

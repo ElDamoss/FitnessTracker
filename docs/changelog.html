@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MuscuTrack Pro — Changelog</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0c0a;color:#e8ece6;padding:40px 20px;line-height:1.7;}
+.container{max-width:900px;margin:0 auto;}
+h1{font-size:28px;margin-bottom:8px;color:#86f7b4;}
+h2{font-size:18px;margin:28px 0 12px;color:#3fa66b;border-bottom:1px solid #1f2921;padding-bottom:8px;}
+p{font-size:14px;color:#c4cfc0;margin-bottom:4px;}
+ul{padding-left:20px;margin:8px 0 16px;}
+li{font-size:13px;color:#c4cfc0;margin-bottom:5px;}
+.version{font-family:'Consolas',monospace;font-size:13px;color:#cfff5c;background:#151b14;border:1px solid #1f2921;border-radius:6px;padding:2px 8px;margin-right:8px;}
+.date{font-size:12px;color:#52604f;margin-left:8px;}
+.tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600;margin-right:4px;}
+.tag-feat{background:rgba(63,166,107,.15);color:#86f7b4;border:1px solid #3fa66b;}
+.tag-fix{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid #ef4444;}
+.tag-ui{background:rgba(33,150,243,.12);color:#90caf9;border:1px solid #2196f3;}
+.tag-perf{background:rgba(207,255,92,.12);color:#cfff5c;border:1px solid #8fa;}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid #1f2921;font-size:11px;color:#52604f;text-align:center;}
+.stack{margin:12px 0;padding:14px;background:#10140f;border:1px solid #1f2921;border-radius:10px;}
+.stack-title{font-size:12px;color:#92a599;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;}
+.stack-list{display:flex;flex-wrap:wrap;gap:8px;}
+.stack-item{font-size:12px;padding:3px 10px;background:#151b14;border:1px solid #1f2921;border-radius:6px;color:#86f7b4;}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>📋 Changelog — MuscuTrack Pro</h1>
+<p>Journal des évolutions, corrections et versions de l'application.</p>
+
+<div class="stack">
+<div class="stack-title">Stack technique</div>
+<div class="stack-list">
+<span class="stack-item">HTML5 / CSS3</span>
+<span class="stack-item">JavaScript (Vanilla)</span>
+<span class="stack-item">Supabase (PostgreSQL + Auth)</span>
+<span class="stack-item">Chart.js 4.4</span>
+<span class="stack-item">PWA (Service Worker)</span>
+<span class="stack-item">Netlify (hosting)</span>
+<span class="stack-item">GitHub (versioning)</span>
+<span class="stack-item">API wger.de (images exercices)</span>
+</div>
+</div>
+
+<!-- ============================================ -->
+
+<h2><span class="version">v8.0.0</span>V8 — Refonte DA 2.0 + ergonomie séance + sécurité<span class="date">Août 2026</span></h2>
+<ul>
+<li><span class="tag tag-ui">UI</span> Nouvelle direction artistique <strong>2.0</strong> appliquée à toutes les pages (fond dégradé sportif, cartes à effet de lift statique)</li>
+<li><span class="tag tag-perf">PERF</span> Animations retirées : plus de rotation 3D des cartes au survol de la souris (effet de survol sobre et statique)</li>
+<li><span class="tag tag-ui">UI</span> Tuiles de séance de l'accueil rendues plus compactes (nom de séance + exercices restent lisibles, ligne des jours L M M J V S D inchangée)</li>
+<li><span class="tag tag-ui">UI</span> Barre de navigation mobile allégée : suppression des boutons "Accueil" et "Programme", seul le bouton flottant d'accueil (FAB) est conservé</li>
+<li><span class="tag tag-feat">FEAT</span> Panneau "charges habituelles" en séance : bulle ouvrable depuis l'en-tête d'un exercice affichant les charges déjà utilisées pour cet exercice (recherche par <strong>nom de machine/exercice</strong>)</li>
+<li><span class="tag tag-feat">FEAT</span> Échange d'exercice en cours de séance depuis la bibliothèque : le nom et le muscle sont mis à jour et l'échange est reflété dans le récap et l'historique</li>
+<li><span class="tag tag-feat">FEAT</span> Réorganisation des exercices pendant la séance (monter/descendre) en conservant séries, valeurs saisies et état de complétion</li>
+<li><span class="tag tag-feat">FEAT</span> Séries mesurées en <strong>répétitions ou en secondes</strong> (utile pour la planche/gainage) — choix par exercice, valeur affichée en secondes dans la séance et l'historique</li>
+<li><span class="tag tag-feat">FEAT</span> Champ <strong>tempo</strong> libre par exercice dans les programmes (ex: "3-0-1"), réaffiché pendant l'entraînement</li>
+<li><span class="tag tag-feat">FEAT</span> Commentaires par exercice + commentaire de séance désormais consultables dans le détail de l'historique</li>
+<li><span class="tag tag-fix">FIX</span> Progrès : la métrique de répétitions affiche le <strong>maximum de reps sur une série</strong> (et non plus la somme des reps)</li>
+<li><span class="tag tag-fix">FIX</span> Correction du libellé <strong>"Taille"</strong> (hauteur) distinct de "Tour de taille" — les deux valeurs ne s'écrasent plus</li>
+<li><span class="tag tag-feat">FEAT</span> Sécurité : session non permanente (stockée en <code>sessionStorage</code>, ré-authentification requise après fermeture du navigateur)</li>
+<li><span class="tag tag-feat">FEAT</span> Sécurité : protection anti-brute-force côté serveur sur les connexions (blocage temporaire après plusieurs tentatives échouées)</li>
+</ul>
+
+<h2><span class="version">v1.4.0</span>V3 — Refonte interface + export<span class="date">1 août 2026</span></h2>
+<ul>
+<li><span class="tag tag-ui">UI</span> Renommage MuscuTrack → <strong>FitnessTracker</strong> partout</li>
+<li><span class="tag tag-ui">UI</span> Suppression "Prêt" et smiley 💪 du hero dashboard</li>
+<li><span class="tag tag-feat">FEAT</span> Page d'accueil avec 6 boutons de navigation (dashboard, programmes, historique, progrès, mensurations, exercices)</li>
+<li><span class="tag tag-feat">FEAT</span> Tableau de bord revu : nb séances, dernier entraînement, bouton recap, prise de note, courbe du poids, évolution mensurations, volume hebdo</li>
+<li><span class="tag tag-feat">FEAT</span> Récap de fin de séance centré au milieu de l'écran avec animation pop</li>
+<li><span class="tag tag-feat">FEAT</span> Commentaire de fin de séance (ex: "j'aurais pu mettre 5kg de plus")</li>
+<li><span class="tag tag-feat">FEAT</span> Historique : sélection multiple (checkboxes) + export rapport HTML multi-séances thémé</li>
+<li><span class="tag tag-feat">FEAT</span> Clic sur une séance dans l'historique → rouvre le détail complet</li>
+<li><span class="tag tag-fix">FIX</span> Alignement inputs kg/reps avec boutons +/- (tous à 36px)</li>
+<li><span class="tag tag-fix">FIX</span> Mensuration : insert Supabase robuste avec catch + log d'erreur détaillé</li>
+<li><span class="tag tag-fix">FIX</span> Sidebar se ferme systématiquement à chaque changement de page</li>
+<li><span class="tag tag-ui">UI</span> Animation drag & drop renforcée (scale 1.04, shadow 28px, translateY 100%, cubic-bezier)</li>
+</ul>
+
+<h2><span class="version">v1.3.0</span>TacheV2 — Retours utilisateurs<span class="date">1 août 2026</span></h2>
+<ul>
+<li><span class="tag tag-feat">FEAT</span> Modal récap de la dernière séance identique avant de lancer un entraînement (affiche poids/reps précédents)</li>
+<li><span class="tag tag-ui">UI</span> Animation fluide lors du drag & drop des exercices (scale, shadow, slide up/down)</li>
+<li><span class="tag tag-feat">FEAT</span> Champ commentaire/notes sur chaque exercice dans les programmes (visible pendant le workout)</li>
+<li><span class="tag tag-feat">FEAT</span> Onglet Performances supprimé — bouton "Exporter rapport" déplacé sur la page Progrès</li>
+<li><span class="tag tag-feat">FEAT</span> Bulle info ℹ️ sur chaque exercice (image via API wger.de + description + muscle)</li>
+<li><span class="tag tag-fix">FIX</span> Mensuration : saisie fonctionnelle (filtrage colonnes custom vs colonnes Supabase)</li>
+<li><span class="tag tag-fix">FIX</span> Sidebar se ferme correctement à chaque changement de page</li>
+</ul>
+
+<h2><span class="version">v1.2.0</span>Retours utilisateurs V1<span class="date">1 août 2026</span></h2>
+<ul>
+<li><span class="tag tag-feat">FEAT</span> Thème Stitch 🧵 (couleurs bleu #2196f3 + accent orange #ff6b35)</li>
+<li><span class="tag tag-feat">FEAT</span> Thème Kitty 🎀 (rose Hello Kitty) — alterne avec Stitch via un bouton unique</li>
+<li><span class="tag tag-feat">FEAT</span> 8 exercices Fessiers ajoutés (Hip Thrust, Donkey Kick, Abductions...)</li>
+<li><span class="tag tag-feat">FEAT</span> Catégorie "Fessiers" dans les filtres et les sélecteurs</li>
+<li><span class="tag tag-feat">FEAT</span> Mensurations : zones personnalisées (l'user ajoute ses propres mesures)</li>
+<li><span class="tag tag-ui">UI</span> Alignement des inputs kg/reps avec les boutons +/- dans le workout</li>
+<li><span class="tag tag-feat">FEAT</span> Timer de repos : un seul actif à la fois + bouton pause ⏸ + bouton stop ✕</li>
+<li><span class="tag tag-feat">FEAT</span> Réorganisation des exercices dans un jour par glisser-déposer (touch + souris)</li>
+<li><span class="tag tag-feat">FEAT</span> Onglet Performances : historique poids/exercice + graphiques + export rapport HTML thémé</li>
+<li><span class="tag tag-fix">FIX</span> Seed exercices : ajoute les manquants même si d'autres existent déjà</li>
+<li><span class="tag tag-fix">FIX</span> Programme Vigouroux retiré du seed par défaut</li>
+</ul>
+
+<h2><span class="version">v1.1.0</span>PWA + Supabase<span class="date">23 juillet 2026</span></h2>
+<ul>
+<li><span class="tag tag-feat">FEAT</span> Conversion en PWA (installable sur téléphone)</li>
+<li><span class="tag tag-feat">FEAT</span> Connexion Supabase (auth email/password)</li>
+<li><span class="tag tag-feat">FEAT</span> Row Level Security — chaque user ne voit que ses données</li>
+<li><span class="tag tag-feat">FEAT</span> Service Worker avec cache offline (network-first)</li>
+<li><span class="tag tag-feat">FEAT</span> Déploiement auto GitHub → Netlify</li>
+<li><span class="tag tag-fix">FIX</span> authSignUp global scope (retrait 'use strict')</li>
+<li><span class="tag tag-fix">FIX</span> Bypass email confirmation on signup</li>
+</ul>
+
+<h2><span class="version">v1.0.0</span>Version initiale<span class="date">22 juillet 2026</span></h2>
+<ul>
+<li><span class="tag tag-feat">FEAT</span> Dashboard complet (volume, séances, streak, PRs, graphique hebdo)</li>
+<li><span class="tag tag-feat">FEAT</span> Programmes avec jours et exercices paramétrables (séries, reps, repos)</li>
+<li><span class="tag tag-feat">FEAT</span> Mode entraînement actif (chrono global, saisie poids/reps, timer repos auto)</li>
+<li><span class="tag tag-feat">FEAT</span> Récap de fin de séance avec sauvegarde</li>
+<li><span class="tag tag-feat">FEAT</span> Historique des séances (recherche, filtre par mois, vue détaillée)</li>
+<li><span class="tag tag-feat">FEAT</span> Statistiques (graphiques charge max + reps par exercice)</li>
+<li><span class="tag tag-feat">FEAT</span> Records personnels automatiques</li>
+<li><span class="tag tag-feat">FEAT</span> Bibliothèque de 34 exercices pré-chargés (7 catégories musculaires)</li>
+<li><span class="tag tag-feat">FEAT</span> Mensurations (10 mesures corporelles + graphique évolution)</li>
+<li><span class="tag tag-ui">UI</span> Design dark mode inspiré du template TemplateAPP.html</li>
+<li><span class="tag tag-ui">UI</span> Mode clair</li>
+<li><span class="tag tag-ui">UI</span> Responsive mobile-first (sidebar desktop + bottom nav mobile)</li>
+<li><span class="tag tag-ui">UI</span> Typographie Space Grotesk + IBM Plex Mono + Inter</li>
+<li><span class="tag tag-ui">UI</span> SVG icons custom</li>
+</ul>
+
+<div class="footer">MuscuTrack Pro — Changelog — Dernière mise à jour : août 2026 (V8)</div>
+
+</div>
+</body>
+</html>
