@@ -347,7 +347,7 @@ export default function App() {
 
   const renderPage = () => {
     switch (page) {
-      case 'page-home': return <PageHome navigate={navigate} />
+      case 'page-home': return <PageHome navigate={navigate} onStartWorkout={(w) => setWorkoutState(w)} />
       case 'page-dashboard': return <PageDashboard navigate={navigate} />
       case 'page-history': return <PageHistory />
       case 'page-stats': return <PageStats />

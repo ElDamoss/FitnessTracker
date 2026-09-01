@@ -350,10 +350,25 @@ nav { display: flex; flex-direction: column; gap: 2px; }
 .btn-icon:hover { border-color: var(--neon); color: var(--neon); }
 
 /* ── Home Page Grid ── */
+/* flex-shrink:0 empêche le parent flex (.page) de compresser le contenu :
+   la carte du jour garde sa hauteur réelle et .page défile normalement. */
 .home-container {
   display: flex; flex-direction: column; align-items: center;
-  justify-content: center; min-height: 70vh; padding: 32px 16px;
+  flex-shrink: 0; padding: 32px 16px 40px;
 }
+
+/* Bouton "Lancer la séance" (Home + Programmes) */
+.btn-train {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 16px; border-radius: 9px; border: none;
+  background: var(--neon); color: #0a0c0f;
+  font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.03em; text-transform: uppercase; cursor: pointer;
+  white-space: nowrap; transition: filter .15s, transform .15s;
+  box-shadow: 0 4px 12px rgba(var(--neon-rgb),0.25);
+}
+.btn-train:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.btn-train:active { transform: translateY(0); }
 .home-brand { text-align: center; margin-bottom: 32px; }
 .home-logo-wrap {
   width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 16px;

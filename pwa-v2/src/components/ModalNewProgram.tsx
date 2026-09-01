@@ -139,6 +139,20 @@ export default function ModalNewProgram({
     updateDay({ ...editingDay, exercises: editingDay.exercises.filter(e => e.name !== exName) })
   }
 
+  // Réordonne l'exercice à l'index `idx` en l'échangeant avec son voisin
+  // (dir = -1 monter, +1 descendre). L'ordre du tableau `exercises` définit
+  // l'ordre d'exécution : il est persisté tel quel et repris au lancement.
+  const moveEx = (idx: number, dir: -1 | 1) => {
+    if (!editingDay) return
+    const target = idx + dir
+    if (target < 0 || target >= editingDay.exercises.length) return
+    const next = [...editingDay.exercises]
+    const tmp = next[idx]
+    next[idx] = next[target]
+    next[target] = tmp
+    updateDay({ ...editingDay, exercises: next })
+  }
+
   const updateEx = (
     exName: string,
     field: 'sets' | 'reps' | 'mode' | 'time' | 'rpeEnabled' | 'rpe',
@@ -162,10 +176,39 @@ export default function ModalNewProgram({
   const canSave = canNext && days.length > 0
 
   // ── sous-composant : carte exercice ──
-  const ExCard = ({ ex }: { ex: ProgramExercise }) => (
+  const ExCard = ({ ex, index, total }: { ex: ProgramExercise; index: number; total: number }) => (
     <div style={{ background: 'var(--bg-raised)', borderRadius: 12, marginBottom: 8, border: '1px solid var(--line)', overflow: 'hidden' }}>
-      {/* ligne 1 : nom + séries + mode + valeur + suppr */}
+      {/* ligne 1 : réordonner + nom + séries + mode + valeur + suppr */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+        {/* Réordonner : monter / descendre (l'ordre = ordre d'exécution) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
+          <button
+            onClick={() => moveEx(index, -1)}
+            disabled={index === 0}
+            title="Monter"
+            aria-label="Monter l'exercice"
+            style={{
+              width: 24, height: 20, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--bg-panel)', border: '1px solid var(--line)', color: 'var(--ink-dim)',
+              cursor: index === 0 ? 'not-allowed' : 'pointer', opacity: index === 0 ? 0.3 : 1, lineHeight: 1,
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+          </button>
+          <button
+            onClick={() => moveEx(index, 1)}
+            disabled={index === total - 1}
+            title="Descendre"
+            aria-label="Descendre l'exercice"
+            style={{
+              width: 24, height: 20, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--bg-panel)', border: '1px solid var(--line)', color: 'var(--ink-dim)',
+              cursor: index === total - 1 ? 'not-allowed' : 'pointer', opacity: index === total - 1 ? 0.3 : 1, lineHeight: 1,
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.name}</div>
           <div style={{ fontSize: 11, color: 'var(--neon)', fontWeight: 600, marginTop: 2 }}>{ex.muscle}</div>
@@ -450,7 +493,7 @@ export default function ModalNewProgram({
                         Aucun exercice — ajoutes-en via le catalogue
                       </div>
                     )}
-                    {editingDay.exercises.map(ex => <ExCard key={ex.name} ex={ex} />)}
+                    {editingDay.exercises.map((ex, i) => <ExCard key={ex.id} ex={ex} index={i} total={editingDay.exercises.length} />)}
                     <button className="prog-back-btn" onClick={() => setMobilePanel('catalog')} style={{ display: 'flex', padding: '14px 0 0 0', color: 'var(--neon)', fontSize: 14, fontWeight: 700, gap: 8 }}>
                       <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--neon-soft)', border: '1px solid rgba(182,255,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, lineHeight: 1 }}>+</div>
                       Ajouter un exercice
