@@ -175,6 +175,11 @@
         "executionId": "af136089-affc-4080-8349-5191e4517db1",
         "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
         "timestamp": 1788289604461
+      },
+      {
+        "executionId": "37d5f713-1d5a-436b-863e-a02d5817eb7b",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290815085
       }
     ],
     "4.2 Create `login_attempts` table and the three SECURITY DEFINER RPCs (USER RUNS IN SUPABASE)": [
@@ -192,6 +197,11 @@
         "executionId": "af136089-affc-4080-8349-5191e4517db1",
         "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
         "timestamp": 1788289604496
+      },
+      {
+        "executionId": "37d5f713-1d5a-436b-863e-a02d5817eb7b",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290816376
       }
     ],
     "5.1 Configure session storage in `src/lib/supabase.ts`": [
@@ -791,6 +801,13 @@
         "executionId": "af136089-affc-4080-8349-5191e4517db1",
         "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
         "timestamp": 1788290228674
+      }
+    ],
+    "4. Data-model migrations (SQL — USER RUNS IN SUPABASE)": [
+      {
+        "executionId": "37d5f713-1d5a-436b-863e-a02d5817eb7b",
+        "chatSessionId": "sess_7234316b-425b-4eca-94d4-db635c474a3e",
+        "timestamp": 1788290816432
       }
     ]
   }

@@ -55,13 +55,13 @@ SQL tasks are executed by the user directly in the Supabase SQL editor and are c
 - [x] 3. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Data-model migrations (SQL — USER RUNS IN SUPABASE)
-  - [~] 4.1 Add `set_measurement_type` column to `exercises` (USER RUNS IN SUPABASE)
+- [x] 4. Data-model migrations (SQL — USER RUNS IN SUPABASE)
+  - [x] 4.1 Add `set_measurement_type` column to `exercises` (USER RUNS IN SUPABASE)
     - In the Supabase SQL editor, run the `alter table public.exercises add column if not exists set_measurement_type text not null default 'reps' check (set_measurement_type in ('reps','seconds'));` DDL from design.md
     - This is a manual Supabase step, not agent-run code
     - _Requirements: 11.2_
 
-  - [~] 4.2 Create `login_attempts` table and the three SECURITY DEFINER RPCs (USER RUNS IN SUPABASE)
+  - [x] 4.2 Create `login_attempts` table and the three SECURITY DEFINER RPCs (USER RUNS IN SUPABASE)
     - In the Supabase SQL editor, run the exact DDL from design.md: the `login_attempts` table (with RLS enabled, no policies) and functions `check_login_gate`, `record_login_failure`, `record_login_success`, plus the `grant execute ... to anon, authenticated` statements
     - Confirm `MAX_ATTEMPTS = 5` and `LOCK_WINDOW = interval '15 minutes'` constants
     - This is a manual Supabase step, not agent-run code
