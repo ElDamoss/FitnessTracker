@@ -19,6 +19,7 @@ export interface WorkoutExercise {
   completed: boolean
   measurementType: 'reps' | 'seconds'   // defaulted from exercise.set_measurement_type
   tempo?: string                        // free text from program exercise
+  rpeEnabled?: boolean                  // drives conditional RPE input display (§4)
   comment?: string                      // per-exercise note
   sets: WorkoutSet[]
 }
@@ -82,8 +83,10 @@ function formatTime(seconds: number): string {
 }
 
 // Query the user's recent session history for sets recorded under `name`
-// (the exercise's CURRENT name). Flattens all matching sets across the last
-// 30 sessions. Returns [] on any error or when there is no history. (Req 3)
+// (the exercise's CURRENT name). Returns the sets from ONLY the most recent
+// session that contains this exercise — not every past session. Sessions are
+// scanned newest-first; the first one containing a matching exercise wins and
+// its sets are returned. Returns [] on any error or when there is no history. (Req 3)
 export async function queryUsualWeights(name: string): Promise<UsualWeightRow[]> {
   try {
     const { data: { user } } = await supabase.auth.getUser()
@@ -95,17 +98,20 @@ export async function queryUsualWeights(name: string): Promise<UsualWeightRow[]>
       .order('date', { ascending: false })
       .limit(30)
     if (error) return []
-    const out: UsualWeightRow[] = []
+    // Iterate from most recent to oldest; return the sets from the FIRST
+    // session that contains an exercise with a matching name.
     for (const s of (data ?? []) as { date: string; exercises?: { name?: string; sets?: { weight?: string; reps?: string; duration?: string }[] }[] }[]) {
-      for (const ex of (s.exercises ?? [])) {
-        if (ex.name === name) {                    // keyed on current exercise NAME (Req 3.2)
-          for (const st of (ex.sets ?? [])) {
-            out.push({ date: s.date, weight: st.weight ?? '', reps: st.reps, duration: st.duration })
-          }
-        }
+      const match = (s.exercises ?? []).find(ex => ex.name === name)   // keyed on current exercise NAME (Req 3.2)
+      if (match) {
+        return (match.sets ?? []).map(st => ({
+          date: s.date,
+          weight: st.weight ?? '',
+          reps: st.reps,
+          duration: st.duration,
+        }))
       }
     }
-    return out                                     // [] → panel shows "no history" (Req 3.5)
+    return []                                       // [] → panel shows "no history" (Req 3.5)
   } catch {
     return []
   }
@@ -282,6 +288,42 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
     startRestTimer(exIdx, setIdx, restSec)
   }
 
+  // ── Add / remove sets during the workout ──────────────────────────────
+  // Appends a fresh empty set to this exercise, matching the WorkoutSet shape
+  // used everywhere else. New sets flow through handleSave normally (only
+  // `done` sets are saved — unchanged behavior).
+  function addSet(exIdx: number) {
+    setExercises(prev => {
+      const next = structuredClone(prev)
+      next[exIdx].sets.push({
+        weight: '', reps: '', duration: '', rpe: '',
+        done: false, restLeft: 0, restPaused: false,
+      })
+      return next
+    })
+  }
+
+  // Removes a specific set. Guard: never remove the last remaining set (keep at
+  // least 1). Also clears any running rest timer for this exercise so no
+  // interval keeps writing to a set index that shifted or no longer exists.
+  function removeSet(exIdx: number, setIdx: number) {
+    setExercises(prev => {
+      if (prev[exIdx].sets.length <= 1) return prev
+      const next = structuredClone(prev)
+      next[exIdx].sets.splice(setIdx, 1)
+      // Reset rest state on remaining sets of this exercise (indices shift).
+      next[exIdx].sets.forEach(s => { s.restLeft = 0; s.restPaused = false })
+      return next
+    })
+    // Clear any running rest intervals for this exercise to avoid dangling timers.
+    restRefs.current.forEach((interval, key) => {
+      if (key.startsWith(`${exIdx}-`)) {
+        clearInterval(interval)
+        restRefs.current.delete(key)
+      }
+    })
+  }
+
   function toggleExerciseComplete(exIdx: number) {
     setExercises(prev => {
       const next = structuredClone(prev)
@@ -294,6 +336,20 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
     setExercises(prev => {
       const next = structuredClone(prev)
       next[exIdx].name = name
+      return next
+    })
+  }
+
+  // ── Day-of reps/seconds toggle (Req 7.4) ───────────────────────────────
+  // Flips this exercise's measurementType between 'reps' and 'seconds' for the
+  // CURRENT session only (does not touch the saved program). The middle set
+  // input already switches on measurementType, and handleSave already routes
+  // the entered value to `reps` or `duration` based on it — so nothing else
+  // needs to change here.
+  function toggleMeasurementType(exIdx: number) {
+    setExercises(prev => {
+      const next = structuredClone(prev)
+      next[exIdx].measurementType = next[exIdx].measurementType === 'seconds' ? 'reps' : 'seconds'
       return next
     })
   }
@@ -490,12 +546,15 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
               transition: 'opacity 0.2s'
             }}
           >
-            {/* Exercise header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            {/* Exercise header — maquette style: name on its own line (full width,
+                no truncation), muscle · sets×target subtitle, then a compact
+                secondary row of action buttons so the name is never squeezed
+                (Req 5). All existing handlers stay wired. */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
               <button
                 onClick={() => toggleExerciseComplete(exIdx)}
                 style={{
-                  width: 24, height: 24, borderRadius: 6,
+                  width: 24, height: 24, borderRadius: 6, marginTop: 2,
                   background: ex.completed ? 'var(--neon)' : 'var(--bg-raised)',
                   border: `1px solid ${ex.completed ? 'var(--neon)' : 'var(--line)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -505,29 +564,67 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
               >
                 {ex.completed ? '✓' : ''}
               </button>
-              <input
-                type="text"
-                value={ex.name}
-                onChange={e => updateExerciseName(exIdx, e.target.value)}
-                style={{
-                  flex: 1, background: 'transparent', border: 'none',
-                  fontWeight: 700, fontSize: 15, color: 'var(--ink)',
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  padding: '4px 0'
-                }}
-              />
-              <span style={{
-                fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-                color: 'var(--neon)', background: 'var(--neon-soft)',
-                padding: '3px 8px', borderRadius: 12, letterSpacing: '0.04em'
+              {/* Name (full width, allowed to wrap — never truncated) + subtitle */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <input
+                  type="text"
+                  value={ex.name}
+                  onChange={e => updateExerciseName(exIdx, e.target.value)}
+                  style={{
+                    width: '100%', background: 'transparent', border: 'none',
+                    fontWeight: 700, fontSize: 15, color: 'var(--ink)',
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    padding: '2px 0'
+                  }}
+                />
+                <div style={{
+                  fontSize: 11, color: 'var(--neon)', marginTop: 1, fontWeight: 600
+                }}>
+                  {ex.muscle}
+                  {ex.sets.length > 0 && (
+                    <> · {ex.sets.length} série{ex.sets.length > 1 ? 's' : ''}
+                      {ex.measurementType === 'seconds' ? ' · temps (s)' : ' · reps'}</>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Compact actions row + day-of measurement toggle (Req 5, 7.4) */}
+            <div style={{
+              display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6,
+              marginBottom: 12
+            }}>
+              {/* Reps / Temps toggle — flips this exercise's measurementType for
+                  the current session only (Req 7.4). Same pill visual as maquette ExCard. */}
+              <div style={{
+                display: 'flex', borderRadius: 7, overflow: 'hidden',
+                border: '1px solid var(--line)', flexShrink: 0
               }}>
-                {ex.muscle}
-              </span>
+                {(['reps', 'seconds'] as const).map(m => (
+                  <button
+                    key={m}
+                    onClick={() => { if (ex.measurementType !== m) toggleMeasurementType(exIdx) }}
+                    title={m === 'reps' ? 'Répétitions' : 'Temps (secondes)'}
+                    style={{
+                      padding: '4px 10px', fontSize: 10, fontWeight: 700,
+                      letterSpacing: '0.06em', textTransform: 'uppercase',
+                      cursor: 'pointer', transition: 'all .15s', border: 'none',
+                      background: ex.measurementType === m ? 'var(--neon)' : 'transparent',
+                      color: ex.measurementType === m ? '#0a0c0f' : 'var(--ink-faint)'
+                    }}
+                  >
+                    {m === 'reps' ? 'Reps' : 'Temps'}
+                  </button>
+                ))}
+              </div>
+
+              <span style={{ flex: 1 }} />
+
               {/* Usual weights toggle (Req 3.1) */}
               <button
                 onClick={() => toggleUsualWeights(exIdx)}
-                title="Charges habituelles"
-                aria-label="Charges habituelles"
+                title="Dernière séance"
+                aria-label="Dernière séance"
                 style={{
                   width: 28, height: 28, borderRadius: 8, flexShrink: 0,
                   background: usualOpen === exIdx ? 'var(--neon-soft)' : 'var(--bg-raised)',
@@ -684,7 +781,7 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                     fontSize: 12, fontWeight: 700, color: 'var(--ink)',
                     textTransform: 'uppercase', letterSpacing: '0.04em'
                   }}>
-                    Charges habituelles
+                    Dernière séance
                   </span>
                   <button
                     onClick={() => setUsualOpen(null)}
@@ -708,6 +805,13 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {/* Date of the last session shown once at the top (all rows
+                        come from the same session). */}
+                    <div style={{
+                      fontSize: 11, color: 'var(--ink-faint)', marginBottom: 4
+                    }}>
+                      Séance du {usualRows[0].date}
+                    </div>
                     {usualRows.map((row, i) => (
                       <div key={i} style={{
                         display: 'flex', alignItems: 'center', gap: 8,
@@ -724,9 +828,6 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                         <span style={{ color: 'var(--ink-faint)' }}>×</span>
                         <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                           {row.duration ? `${row.duration}s` : `${row.reps ?? '0'} reps`}
-                        </span>
-                        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--ink-faint)' }}>
-                          {row.date}
                         </span>
                       </div>
                     ))}
@@ -864,20 +965,25 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                     </div>
                   )}
 
-                  {/* RPE (optional small input) */}
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={set.rpe}
-                    onChange={e => updateSet(exIdx, setIdx, 'rpe', e.target.value)}
-                    placeholder="RPE"
-                    style={{
-                      width: 38, textAlign: 'center', padding: '5px 2px',
-                      fontSize: 11, borderRadius: 6,
-                      background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                      color: 'var(--ink-dim)'
-                    }}
-                  />
+                  {/* RPE input — only rendered when the exercise has RPE enabled
+                      (Req 4.2/4.3). When rpeEnabled is false/undefined it is not
+                      rendered at all. The `rpe` value is still saved as-is in the
+                      payload regardless; only the input visibility changes. */}
+                  {ex.rpeEnabled === true && (
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={set.rpe}
+                      onChange={e => updateSet(exIdx, setIdx, 'rpe', e.target.value)}
+                      placeholder="RPE"
+                      style={{
+                        width: 38, textAlign: 'center', padding: '5px 2px',
+                        fontSize: 11, borderRadius: 6,
+                        background: 'var(--bg-raised)', border: '1px solid var(--line)',
+                        color: 'var(--ink-dim)'
+                      }}
+                    />
+                  )}
 
                   {/* Validate button */}
                   {!set.done && (
@@ -895,6 +1001,25 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                   )}
                   {set.done && set.restLeft === 0 && (
                     <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600 }}>✓</span>
+                  )}
+
+                  {/* Discreet per-set remove — only shown when >1 set so the
+                      last remaining set can't be removed (matches removeSet guard). */}
+                  {ex.sets.length > 1 && (
+                    <button
+                      onClick={() => removeSet(exIdx, setIdx)}
+                      title="Supprimer cette série"
+                      aria-label="Supprimer cette série"
+                      style={{
+                        marginLeft: 'auto', width: 22, height: 22, borderRadius: 6,
+                        flexShrink: 0, background: 'transparent',
+                        border: '1px solid var(--line)', color: 'var(--ink-faint)',
+                        fontSize: 11, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}
+                    >
+                      ✕
+                    </button>
                   )}
                 </div>
 
@@ -938,6 +1063,22 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                 )}
               </div>
             ))}
+
+            {/* Add a set during the workout — DA-styled affordance matching the
+                maquette's "+ Ajouter" style (neon-soft bg, dashed neon border,
+                var(--neon) text, full width). New sets flow through handleSave. */}
+            <button
+              onClick={() => addSet(exIdx)}
+              style={{
+                width: '100%', marginTop: 10, padding: '9px 12px', borderRadius: 8,
+                background: 'var(--neon-soft)', border: '1px dashed var(--neon)',
+                color: 'var(--neon)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                letterSpacing: '0.03em', textTransform: 'uppercase',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+              }}
+            >
+              + Ajouter une série
+            </button>
           </div>
         ))}
       </div>

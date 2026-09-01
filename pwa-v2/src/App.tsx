@@ -23,6 +23,14 @@ import PageDefaultPrograms from './pages/DefaultPrograms'
 
 const WORKOUT_STORAGE_KEY = 'ft_active_workout'
 
+// ── Theme switcher config ───────────────────────────────────────────────────
+const THEMES = [
+  { id: 'dark', label: 'Dark', emoji: '⚡' },
+  { id: 'light', label: 'Clair', emoji: '☀️' },
+  { id: 'girly', label: 'Egirl', emoji: '🌸' },
+  { id: 'stitch', label: 'Stitch', emoji: '🩵' },
+]
+
 // ── Nav config ─────────────────────────────────────────────────────────────
 const NAV = [
   { page: 'page-home', icon: icons.home, label: 'Accueil' },
@@ -281,15 +289,9 @@ export default function App() {
     localStorage.setItem('ft_theme', theme)
   }, [theme])
 
-  const toggleDarkLight = () => {
-    if (theme === 'light') setTheme('dark')
-    else setTheme('light')
-  }
-
-  const toggleFunTheme = () => {
-    if (theme === 'girly') setTheme('stitch')
-    else if (theme === 'stitch') setTheme('dark')
-    else setTheme('girly')
+  const cycleTheme = (dir: 1 | -1) => {
+    const idx = THEMES.findIndex(t => t.id === theme)
+    setTheme(THEMES[(idx + dir + THEMES.length) % THEMES.length].id)
   }
 
   useEffect(() => {
@@ -418,21 +420,18 @@ export default function App() {
               <div className="topbar-date mono">{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
             </div>
           </div>
-          <div className="topbar-actions">
-            <button className="theme-toggle" onClick={toggleDarkLight} title="Mode sombre / clair">
-              <span style={{ width: 14, height: 14, display: 'flex' }}>
-                {(theme === 'dark' || theme === 'stitch' || theme === 'girly') ? icons.moon : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
-                  </svg>
-                )}
-              </span>
-            </button>
-            <button className="theme-toggle" onClick={toggleFunTheme} title="Thème fun">
-              <span style={{ width: 14, height: 14, display: 'flex', fontSize: 14, alignItems: 'center', justifyContent: 'center' }}>
-                {theme === 'girly' ? '🎀' : theme === 'stitch' ? '🧵' : '✨'}
-              </span>
-            </button>
+          <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={() => cycleTheme(-1)} className="theme-toggle" title="Thème précédent" style={{ fontSize: 15 }}>‹</button>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 9,
+              background: 'var(--bg-raised)', border: '1px solid var(--line)', cursor: 'default',
+              fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', color: 'var(--neon)',
+              fontFamily: "'Barlow Condensed', sans-serif", userSelect: 'none',
+            }}>
+              <span>{THEMES.find(t => t.id === theme)?.emoji}</span>
+              <span>{THEMES.find(t => t.id === theme)?.label}</span>
+            </div>
+            <button onClick={() => cycleTheme(1)} className="theme-toggle" title="Thème suivant" style={{ fontSize: 15 }}>›</button>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import { LogoMark, icons } from '../components/Icons'
 import { supabase } from '../lib/supabase'
 
 const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+const DAY_FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 
 const HOME_CARDS = [
   { page: 'page-dashboard', icon: icons.grid, label: 'Tableau de bord' },
@@ -90,7 +91,7 @@ export default function PageHome({ navigate }: { navigate: (p: string) => void }
         {DAY_LABELS.map((d, i) => (
           <button
             key={i}
-            className={`home-day-bubble${daysWithSession.includes(i) ? ' active' : ''}${i === todayIndex ? ' today' : ''}`}
+            className={`home-day-bubble${daysWithSession.includes(i) ? ' active' : ''}${i === todayIndex ? ' today' : ''}${selectedDay === i ? ' selected' : ''}`}
             onClick={() => handleDayClick(i)}
           >
             {d}
@@ -98,34 +99,66 @@ export default function PageHome({ navigate }: { navigate: (p: string) => void }
         ))}
       </div>
 
+      {/* carte séance du jour sélectionné */}
       {selectedDay !== null && dayDetails[selectedDay] && dayDetails[selectedDay].length > 0 && (
-        <TiltCard className="home-day-card">
-          <h3 className="home-day-card-title">
-            Séances du {['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'][selectedDay]}
-          </h3>
-          {dayDetails[selectedDay].map((day, idx) => (
-            <div key={idx} className="home-day-session">
-              <div className="home-day-session-name">{day.name}</div>
+        dayDetails[selectedDay].map((day, idx) => (
+          <div key={idx} style={{
+            width: '100%', maxWidth: 420, marginBottom: 20, animation: 'fadeSlide .18s ease',
+            borderRadius: 14, overflow: 'hidden',
+            border: '1px solid rgba(var(--neon-rgb),0.25)',
+            background: 'var(--bg-panel)',
+          }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--neon)', marginBottom: 2 }}>
+                  {DAY_FULL[selectedDay]}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700 }}>
+                  {day.name}
+                </div>
+              </div>
             </div>
-          ))}
-        </TiltCard>
+            <div style={{ padding: '10px 16px 14px' }}>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-faint)', marginBottom: 8 }}>
+                Exercices prévus
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {(day.exercises || []).map((ex, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--neon)', flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>{ex.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))
       )}
 
       {selectedDay !== null && (!dayDetails[selectedDay] || dayDetails[selectedDay].length === 0) && (
-        <TiltCard className="home-day-card">
-          <p className="home-day-empty">
+        <div style={{
+          width: '100%', maxWidth: 420, marginBottom: 20, animation: 'fadeSlide .18s ease',
+          borderRadius: 14, overflow: 'hidden',
+          border: '1px solid var(--line)',
+          background: 'var(--bg-panel)',
+        }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--neon)', marginBottom: 2 }}>
+              {DAY_FULL[selectedDay]}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>Jour de repos</div>
+          </div>
+          <div style={{ padding: '16px', textAlign: 'center', color: 'var(--ink-faint)', fontSize: 13 }}>
             Aucune séance prévue ce jour
-          </p>
-        </TiltCard>
+          </div>
+        </div>
       )}
 
       <div className="home-grid">
         {HOME_CARDS.map((c, i) => (
-          <TiltCard key={i} className="home-card" style={{ padding: '28px 16px', background: 'var(--bg-panel)', border: '1px solid var(--line)', borderRadius: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
-            <button onClick={() => navigate(c.page)} style={{ display: 'contents' }}>
-              <span className="home-card-icon" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{c.icon}</span>
-              <span className="home-card-label">{c.label}</span>
-            </button>
+          <TiltCard key={i} className="home-card" onClick={() => navigate(c.page)} style={{ padding: '28px 16px', background: 'var(--bg-panel)', border: '1px solid var(--line)', borderRadius: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <span className="home-card-icon" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{c.icon}</span>
+            <span className="home-card-label">{c.label}</span>
           </TiltCard>
         ))}
       </div>

@@ -36,12 +36,74 @@ const FIELDS = [
 
 type FieldKey = typeof FIELDS[number]['key']
 
+function SimpleLineChart({ data }: { data: { x: string; y: number }[] }) {
+  if (data.length < 2) return <div style={{ height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-faint)', fontSize: 12 }}>Pas assez de données pour cette mesure.</div>
+
+  const maxY = Math.max(...data.map(d => d.y))
+  const minY = Math.min(...data.map(d => d.y))
+  const W = 500, H = 160, padX = 40, padY = 20
+  const range = maxY - minY || 1
+
+  const points = data.map((d, i) => {
+    const x = padX + (i / (data.length - 1)) * (W - padX * 2)
+    const y = H - padY - ((d.y - minY) / range) * (H - padY * 2)
+    return { x, y, label: d.x, value: d.y }
+  })
+
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+
+  // Gradient area
+  const areaD = pathD + ` L ${points[points.length - 1].x} ${H - padY} L ${points[0].x} ${H - padY} Z`
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 160 }}>
+      <defs>
+        <linearGradient id="mensuGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--neon)" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="var(--neon)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      {/* Grid lines */}
+      {[0, 0.25, 0.5, 0.75, 1].map((f) => {
+        const y = H - padY - f * (H - padY * 2)
+        const val = Math.round(minY + f * range)
+        return (
+          <g key={f}>
+            <line x1={padX} y1={y} x2={W - padX} y2={y} stroke="var(--line)" strokeWidth="0.5" />
+            <text x={padX - 5} y={y + 3} fontSize="8" fill="var(--ink-faint)" textAnchor="end">{val}</text>
+          </g>
+        )
+      })}
+
+      {/* Area fill */}
+      <path d={areaD} fill="url(#mensuGrad)" />
+
+      {/* Line */}
+      <path d={pathD} fill="none" stroke="var(--neon)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Points */}
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--neon)" />
+      ))}
+
+      {/* X labels (show first, middle, last) */}
+      {[0, Math.floor(points.length / 2), points.length - 1].map(i => (
+        <text key={i} x={points[i].x} y={H - 4} fontSize="8" fill="var(--ink-faint)" textAnchor="middle">
+          {points[i].label}
+        </text>
+      ))}
+    </svg>
+  )
+}
+
 export default function PageMensurations() {
   const [entries, setEntries] = useState<Mensuration[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [values, setValues] = useState<Record<string, string>>({})
+  const [selectedMeasure, setSelectedMeasure] = useState<FieldKey>('poids')
 
   useEffect(() => {
     fetchEntries()
@@ -107,6 +169,17 @@ export default function PageMensurations() {
     return delta.startsWith('+') ? 'up' : 'down'
   }
 
+  // Build chart data for the selected measure (entries chronological, null values filtered out)
+  const chartData: { x: string; y: number }[] = [...entries]
+    .reverse()
+    .map(entry => {
+      const val = entry[selectedMeasure] as number | null
+      if (val == null) return null
+      const d = new Date(entry.date)
+      return { x: `${d.getDate()}/${d.getMonth() + 1}`, y: val }
+    })
+    .filter((p): p is { x: string; y: number } => p !== null)
+
   return (
     <div>
       <div className="page-header">
@@ -170,6 +243,23 @@ export default function PageMensurations() {
           </form>
         </TiltCard>
       )}
+
+      {/* Evolution chart */}
+      <TiltCard style={{ padding: '18px 20px', marginBottom: 20 }}>
+        <div className="panel-head">
+          <div className="panel-title">Évolution</div>
+          <select
+            className="select-sm"
+            value={selectedMeasure}
+            onChange={e => setSelectedMeasure(e.target.value as FieldKey)}
+          >
+            {FIELDS.map(f => (
+              <option key={f.key} value={f.key}>{f.label}</option>
+            ))}
+          </select>
+        </div>
+        <SimpleLineChart data={chartData} />
+      </TiltCard>
 
       {/* History table */}
       {loading && <div className="empty-state">Chargement…</div>}
