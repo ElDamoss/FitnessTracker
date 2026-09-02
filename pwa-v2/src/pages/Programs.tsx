@@ -282,7 +282,7 @@ export default function PagePrograms({ onStartWorkout }: PageProgramsProps) {
                         className="btn-icon"
                         style={{
                           width: 30, height: 30, borderRadius: 8,
-                          background: 'var(--neon-soft)', border: '1px solid rgba(182,255,71,0.3)',
+                          background: 'var(--neon-soft)', border: '1px solid rgba(var(--neon-rgb),0.3)',
                           color: 'var(--neon)',
                         }}
                         title="Modifier ce jour"

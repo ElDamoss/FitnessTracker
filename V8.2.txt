@@ -1,0 +1,9 @@
+Plus la possibilité de stopper la scéance pour la reprendre après par exemple quand je veux retourner au menu pour aller voir les.programme la scéance s'efface et je dois tous refaire
+
+Quand je ne suis pas sur l'application le temps de repos ne se décompte pas j'ai limpression
+
+Sur certaines machine je ne vois pas les poids d'avant quand je clique sur le logo ils me dit qu'il n'y a rien
+
+Revoir les logo aussi lors de scéance car c'est trop classic et ne collent pas avec la DA, 
+
+Attention lors des choix de theme il y as encore des partie en vers sur les autre couleurs

@@ -122,9 +122,9 @@ body::before {
   content: "";
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background-image:
-    radial-gradient(ellipse 70% 50% at 100% 0%,   rgba(182,255,71,0.055) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 0%   100%, rgba(57,217,122,0.04)  0%, transparent 60%),
-    linear-gradient(160deg, rgba(182,255,71,0.018) 0%, transparent 40%),
+    radial-gradient(ellipse 70% 50% at 100% 0%,   rgba(var(--neon-rgb),0.055) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 0%   100%, rgba(var(--neon-rgb),0.04)  0%, transparent 60%),
+    linear-gradient(160deg, rgba(var(--neon-rgb),0.018) 0%, transparent 40%),
     radial-gradient(circle at center, rgba(255,255,255,0.022) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 100% 100%, 22px 22px;
 }
@@ -135,8 +135,8 @@ body::after {
     -55deg,
     transparent 0px,
     transparent 38px,
-    rgba(182,255,71,0.013) 38px,
-    rgba(182,255,71,0.013) 39px
+    rgba(var(--neon-rgb),0.013) 38px,
+    rgba(var(--neon-rgb),0.013) 39px
   );
 }
 #root { position: relative; z-index: 1; }
@@ -369,6 +369,39 @@ nav { display: flex; flex-direction: column; gap: 2px; }
 }
 .btn-train:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .btn-train:active { transform: translateY(0); }
+
+/* Barre flottante "séance en cours" (mode réduit, Point 1 V8.2) */
+.workout-resume-bar {
+  position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%); z-index: 900;
+  width: min(440px, calc(100vw - 32px));
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: 14px; cursor: pointer;
+  background: var(--bg-panel); border: 1px solid rgba(var(--neon-rgb),0.35);
+  box-shadow: 0 8px 28px -6px rgba(0,0,0,0.55), 0 0 20px rgba(var(--neon-rgb),0.12);
+  transition: border-color .2s, box-shadow .2s;
+  text-align: left;
+}
+.workout-resume-bar:hover { border-color: var(--neon); box-shadow: 0 10px 32px -6px rgba(0,0,0,0.6), 0 0 26px rgba(var(--neon-rgb),0.2); }
+.workout-resume-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  background: var(--neon); box-shadow: 0 0 8px var(--neon);
+  animation: resumePulse 1.4s ease-in-out infinite;
+}
+@keyframes resumePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+.workout-resume-text { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.workout-resume-text strong {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px;
+  letter-spacing: 0.02em; color: var(--ink);
+}
+.workout-resume-text span {
+  font-size: 11px; color: var(--ink-faint);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.workout-resume-cta {
+  flex-shrink: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 13px; letter-spacing: 0.03em; color: var(--neon);
+}
 .home-brand { text-align: center; margin-bottom: 32px; }
 .home-logo-wrap {
   width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 16px;
@@ -396,7 +429,7 @@ nav { display: flex; flex-direction: column; gap: 2px; }
 .home-day-bubble.today { border-color: rgba(var(--neon-rgb),0.4); color: var(--neon); background: var(--neon-soft); }
 .home-day-bubble.active { background: var(--neon); color: #0a0c0f; border-color: var(--neon); box-shadow: 0 4px 12px rgba(var(--neon-rgb),0.3); transform: scale(1.08); }
 .home-day-bubble.selected { outline: 2px solid var(--neon); outline-offset: 2px; }
-.home-day-bubble.has-session { border-color: rgba(57,217,122,0.4); color: var(--green); }
+.home-day-bubble.has-session { border-color: rgba(var(--neon-rgb),0.4); color: var(--green); }
 
 .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 420px; }
 .home-card {

@@ -8,8 +8,10 @@ export interface WorkoutSet {
   duration: string      // seconds value, used when measurementType === 'seconds'
   rpe: string
   done: boolean
-  restLeft: number
+  restLeft: number      // secondes restantes affichées (dérivé de restEndTs si actif)
   restPaused: boolean
+  restEndTs?: number     // timestamp (ms) de fin du repos ; source de vérité pour
+                         // recalculer restLeft même après mise en arrière-plan (Point 2 V8.2)
 }
 
 export interface WorkoutExercise {
@@ -71,6 +73,7 @@ function normalizeExercises(exercises: WorkoutExercise[]): WorkoutExercise[] {
       done: set.done ?? false,
       restLeft: set.restLeft ?? 0,
       restPaused: set.restPaused ?? false,
+      restEndTs: set.restEndTs,
     })),
   }))
 }
@@ -80,6 +83,18 @@ function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
   const s = seconds % 60
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+// Normalise un nom d'exercice pour comparer l'historique de façon tolérante :
+// minuscules, sans accents, espaces multiples réduits, trim. Ainsi "Presse
+// Pectoraux " et "presse pectoraux" correspondent (Point 3 V8.2).
+function normalizeName(name: string): string {
+  return (name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')   // retire les accents
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 // Query the user's recent session history for sets recorded under `name`
@@ -99,9 +114,12 @@ export async function queryUsualWeights(name: string): Promise<UsualWeightRow[]>
       .limit(30)
     if (error) return []
     // Iterate from most recent to oldest; return the sets from the FIRST
-    // session that contains an exercise with a matching name.
+    // session that contains an exercise with a matching name. Comparaison
+    // normalisée (casse/accents/espaces) pour éviter les faux "aucun
+    // historique" sur certaines machines (Point 3 V8.2).
+    const target = normalizeName(name)
     for (const s of (data ?? []) as { date: string; exercises?: { name?: string; sets?: { weight?: string; reps?: string; duration?: string }[] }[] }[]) {
-      const match = (s.exercises ?? []).find(ex => ex.name === name)   // keyed on current exercise NAME (Req 3.2)
+      const match = (s.exercises ?? []).find(ex => normalizeName(ex.name ?? '') === target)   // keyed on current exercise NAME (Req 3.2)
       if (match) {
         return (match.sets ?? []).map(st => ({
           date: s.date,
@@ -146,9 +164,12 @@ function showToast(msg: string, type: 'success' | 'error' | 'info' = 'info') {
 interface WorkoutScreenProps {
   workout: WorkoutState
   setWorkout: (w: WorkoutState | null) => void
+  // Réduit la séance : persiste l'état courant et masque l'écran sans le
+  // détruire, pour naviguer ailleurs puis reprendre (Point 1 V8.2).
+  onMinimize?: (w: WorkoutState) => void
 }
 
-export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProps) {
+export default function WorkoutScreen({ workout, setWorkout, onMinimize }: WorkoutScreenProps) {
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => normalizeExercises(workout.exercises))
   const [elapsed, setElapsed] = useState(Math.floor((Date.now() - workout.startTs) / 1000))
   const [showRecap, setShowRecap] = useState(false)
@@ -171,7 +192,6 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
   const [commentOpen, setCommentOpen] = useState<number | null>(null)
 
   const chronoRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const restRefs = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map())
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
 
@@ -194,69 +214,92 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
     return () => { if (autoSaveRef.current) clearInterval(autoSaveRef.current) }
   }, [persistState])
 
-  // ── Rest timer management ──────────────────────────────────────────────
+  // ── Rest timer management (timestamp-based, Point 2 V8.2) ──────────────
+  // Le repos n'est plus décrémenté seconde par seconde (fragile en
+  // arrière-plan) : on stocke restEndTs (fin visée) et on recalcule restLeft
+  // = ceil((restEndTs - now)/1000) à chaque tick ET au retour de visibilité.
+  // Une pause fige restEndTs en conservant restLeft comme "durée restante".
   function startRestTimer(exIdx: number, setIdx: number, restSec: number) {
-    const key = `${exIdx}-${setIdx}`
-    // clear if already running
-    if (restRefs.current.has(key)) {
-      clearInterval(restRefs.current.get(key)!)
-      restRefs.current.delete(key)
-    }
-
     setExercises(prev => {
       const next = structuredClone(prev)
-      next[exIdx].sets[setIdx].restLeft = restSec
-      next[exIdx].sets[setIdx].restPaused = false
+      const set = next[exIdx].sets[setIdx]
+      set.restLeft = restSec
+      set.restPaused = false
+      set.restEndTs = Date.now() + restSec * 1000
       return next
     })
-
-    const interval = setInterval(() => {
-      setExercises(prev => {
-        const next = structuredClone(prev)
-        const set = next[exIdx].sets[setIdx]
-        if (set.restPaused) return prev
-        if (set.restLeft <= 1) {
-          set.restLeft = 0
-          clearInterval(restRefs.current.get(key)!)
-          restRefs.current.delete(key)
-          return next
-        }
-        set.restLeft -= 1
-        return next
-      })
-    }, 1000)
-
-    restRefs.current.set(key, interval)
   }
 
   function toggleRestPause(exIdx: number, setIdx: number) {
     setExercises(prev => {
       const next = structuredClone(prev)
-      next[exIdx].sets[setIdx].restPaused = !next[exIdx].sets[setIdx].restPaused
+      const set = next[exIdx].sets[setIdx]
+      if (set.restPaused) {
+        // Reprise : recalcule une nouvelle fin à partir du restant figé.
+        set.restPaused = false
+        set.restEndTs = Date.now() + (set.restLeft || 0) * 1000
+      } else {
+        // Pause : fige le restant courant et efface la fin visée.
+        set.restPaused = true
+        set.restLeft = set.restEndTs
+          ? Math.max(0, Math.ceil((set.restEndTs - Date.now()) / 1000))
+          : set.restLeft
+        set.restEndTs = undefined
+      }
       return next
     })
   }
 
   function stopRestEarly(exIdx: number, setIdx: number) {
-    const key = `${exIdx}-${setIdx}`
-    if (restRefs.current.has(key)) {
-      clearInterval(restRefs.current.get(key)!)
-      restRefs.current.delete(key)
-    }
     setExercises(prev => {
       const next = structuredClone(prev)
-      next[exIdx].sets[setIdx].restLeft = 0
+      const set = next[exIdx].sets[setIdx]
+      set.restLeft = 0
+      set.restPaused = false
+      set.restEndTs = undefined
       return next
     })
   }
 
-  // ── Cleanup intervals on unmount ───────────────────────────────────────
-  useEffect(() => {
-    return () => {
-      restRefs.current.forEach(i => clearInterval(i))
-      restRefs.current.clear()
-    }
+  // Recalcule restLeft de tous les sets ayant un restEndTs actif. Appelé à
+  // chaque tick et au retour au premier plan. Ne touche pas aux repos en pause
+  // (restEndTs undefined) ni terminés.
+  const syncRestTimers = useCallback(() => {
+    setExercises(prev => {
+      let changed = false
+      const now = Date.now()
+      const next = prev.map(ex => ({
+        ...ex,
+        sets: ex.sets.map(set => {
+          if (set.restPaused || !set.restEndTs) return set
+          const remaining = Math.max(0, Math.ceil((set.restEndTs - now) / 1000))
+          if (remaining === set.restLeft && !(remaining === 0 && set.restEndTs)) return set
+          changed = true
+          return {
+            ...set,
+            restLeft: remaining,
+            restEndTs: remaining === 0 ? undefined : set.restEndTs,
+          }
+        }),
+      }))
+      return changed ? next : prev
+    })
   }, [])
+
+  // Tick global (1s) : source unique de décompte, indépendante du nombre de
+  // repos actifs. + resynchro immédiate quand l'app revient au premier plan
+  // (visibilitychange) pour rattraper le throttling des timers en arrière-plan.
+  useEffect(() => {
+    const interval = setInterval(syncRestTimers, 1000)
+    const onVisible = () => { if (!document.hidden) syncRestTimers() }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+    }
+  }, [syncRestTimers])
 
   // ── Set actions ────────────────────────────────────────────────────────
   function updateSet(exIdx: number, setIdx: number, field: 'weight' | 'reps' | 'duration' | 'rpe', value: string) {
@@ -312,15 +355,8 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
       const next = structuredClone(prev)
       next[exIdx].sets.splice(setIdx, 1)
       // Reset rest state on remaining sets of this exercise (indices shift).
-      next[exIdx].sets.forEach(s => { s.restLeft = 0; s.restPaused = false })
+      next[exIdx].sets.forEach(s => { s.restLeft = 0; s.restPaused = false; s.restEndTs = undefined })
       return next
-    })
-    // Clear any running rest intervals for this exercise to avoid dangling timers.
-    restRefs.current.forEach((interval, key) => {
-      if (key.startsWith(`${exIdx}-`)) {
-        clearInterval(interval)
-        restRefs.current.delete(key)
-      }
     })
   }
 
@@ -460,6 +496,14 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
     setShowRecap(true)
   }
 
+  // Réduit la séance : sauvegarde immédiate de l'état complet puis remonte au
+  // parent qui masque l'écran tout en gardant workoutState en mémoire (Point 1).
+  function handleMinimize() {
+    const state: WorkoutState = { ...workout, exercises }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    if (onMinimize) onMinimize(state)
+  }
+
   async function handleSave() {
     setSaving(true)
     try {
@@ -517,7 +561,23 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
     <div className="wk-screen">
       {/* Header */}
       <div className="wk-header">
-        <div style={{ flex: 1 }}>
+        {/* Réduire : garde la séance en cours et revient au menu (Point 1) */}
+        <button
+          onClick={handleMinimize}
+          title="Réduire (reprendre plus tard)"
+          aria-label="Réduire la séance"
+          style={{
+            width: 34, height: 34, borderRadius: 8, marginRight: 10, flexShrink: 0,
+            background: 'var(--bg-raised)', border: '1px solid var(--line)',
+            color: 'var(--ink-dim)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14" />
+          </svg>
+        </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div className="wk-day-name">{workout.dayName}</div>
           <div style={{ fontSize: 11, color: 'var(--ink-faint)' }}>{workout.progName}</div>
         </div>
@@ -630,11 +690,13 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                   background: usualOpen === exIdx ? 'var(--neon-soft)' : 'var(--bg-raised)',
                   border: `1px solid ${usualOpen === exIdx ? 'var(--neon)' : 'var(--line)'}`,
                   color: usualOpen === exIdx ? 'var(--neon)' : 'var(--ink-dim)',
-                  fontSize: 14, cursor: 'pointer',
+                  cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
-                🕑
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+                </svg>
               </button>
               {/* Swap / replace from library (Req 7.1) */}
               <button
@@ -646,11 +708,13 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                   background: swapOpen === exIdx ? 'var(--neon-soft)' : 'var(--bg-raised)',
                   border: `1px solid ${swapOpen === exIdx ? 'var(--neon)' : 'var(--line)'}`,
                   color: swapOpen === exIdx ? 'var(--neon)' : 'var(--ink-dim)',
-                  fontSize: 14, cursor: 'pointer',
+                  cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
-                🔄
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 014-4h14" /><path d="M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 01-4 4H3" />
+                </svg>
               </button>
               {/* Per-exercise comment toggle (Req 12.2) */}
               <button
@@ -662,11 +726,13 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                   background: commentOpen === exIdx || (ex.comment && ex.comment.trim() !== '') ? 'var(--neon-soft)' : 'var(--bg-raised)',
                   border: `1px solid ${commentOpen === exIdx ? 'var(--neon)' : 'var(--line)'}`,
                   color: commentOpen === exIdx || (ex.comment && ex.comment.trim() !== '') ? 'var(--neon)' : 'var(--ink-dim)',
-                  fontSize: 14, cursor: 'pointer',
+                  cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
-                💬
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+                </svg>
               </button>
               {/* Reorder up (Req 8.1) — disabled on the first exercise */}
               <button
@@ -679,12 +745,14 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                   background: 'var(--bg-raised)',
                   border: '1px solid var(--line)',
                   color: 'var(--ink-dim)',
-                  fontSize: 14, cursor: exIdx === 0 ? 'not-allowed' : 'pointer',
+                  cursor: exIdx === 0 ? 'not-allowed' : 'pointer',
                   opacity: exIdx === 0 ? 0.35 : 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
-                ▲
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 15l-6-6-6 6" />
+                </svg>
               </button>
               {/* Reorder down (Req 8.1) — disabled on the last exercise */}
               <button
@@ -697,12 +765,14 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                   background: 'var(--bg-raised)',
                   border: '1px solid var(--line)',
                   color: 'var(--ink-dim)',
-                  fontSize: 14, cursor: exIdx === exercises.length - 1 ? 'not-allowed' : 'pointer',
+                  cursor: exIdx === exercises.length - 1 ? 'not-allowed' : 'pointer',
                   opacity: exIdx === exercises.length - 1 ? 0.35 : 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
-                ▼
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
               </button>
             </div>
 
@@ -1040,13 +1110,20 @@ export default function WorkoutScreen({ workout, setWorkout }: WorkoutScreenProp
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
                       <button
                         onClick={() => toggleRestPause(exIdx, setIdx)}
+                        title={set.restPaused ? 'Reprendre le repos' : 'Mettre en pause'}
+                        aria-label={set.restPaused ? 'Reprendre le repos' : 'Mettre en pause'}
                         style={{
                           padding: '4px 10px', borderRadius: 6,
                           background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                          fontSize: 11, color: 'var(--ink)', cursor: 'pointer'
+                          color: 'var(--ink)', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}
                       >
-                        {set.restPaused ? '▶' : '⏸'}
+                        {set.restPaused ? (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z" /></svg>
+                        ) : (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                        )}
                       </button>
                       <button
                         onClick={() => stopRestEarly(exIdx, setIdx)}

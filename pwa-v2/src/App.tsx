@@ -265,6 +265,9 @@ export default function App() {
   const [page, setPage] = useState('page-home')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [workoutState, setWorkoutState] = useState<WorkoutState | null>(null)
+  // Séance réduite : l'overlay est masqué mais workoutState reste en mémoire,
+  // une barre "Reprendre" est affichée (Point 1 V8.2).
+  const [workoutMinimized, setWorkoutMinimized] = useState(false)
   const [showPasswordReset, setShowPasswordReset] = useState(false)
 
   const [theme, setTheme] = useState(() => localStorage.getItem('ft_theme') || 'dark')
@@ -277,6 +280,7 @@ export default function App() {
         const parsed = JSON.parse(saved) as WorkoutState
         if (parsed && parsed.startTs && parsed.exercises) {
           setWorkoutState(parsed)
+          setWorkoutMinimized(true)   // restaurée en mode réduit → barre "Reprendre" (Point 1)
         }
       }
     } catch {
@@ -345,14 +349,17 @@ export default function App() {
 
   const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User'
 
+  // Démarre une séance en plein écran (pas réduite).
+  const startWorkout = (w: WorkoutState) => { setWorkoutState(w); setWorkoutMinimized(false) }
+
   const renderPage = () => {
     switch (page) {
-      case 'page-home': return <PageHome navigate={navigate} onStartWorkout={(w) => setWorkoutState(w)} />
+      case 'page-home': return <PageHome navigate={navigate} onStartWorkout={startWorkout} />
       case 'page-dashboard': return <PageDashboard navigate={navigate} />
       case 'page-history': return <PageHistory />
       case 'page-stats': return <PageStats />
       case 'page-exercises': return <PageExercises />
-      case 'page-programs': return <PagePrograms onStartWorkout={(w) => setWorkoutState(w)} />
+      case 'page-programs': return <PagePrograms onStartWorkout={startWorkout} />
       case 'page-updates': return <PageUpdates />
       case 'page-mensuration': return <PageMensurations />
       case 'page-cardio': return <PageCardio />
@@ -440,8 +447,9 @@ export default function App() {
         </div>
       </div>
 
-      {/* FAB home */}
-      {page !== 'page-home' && (
+      {/* FAB home — masqué quand la barre "séance réduite" est visible pour
+          éviter le chevauchement en bas d'écran */}
+      {page !== 'page-home' && !(workoutState && workoutMinimized) && (
         <button className="home-fab" onClick={() => navigate('page-home')}>
           <span style={{ width: 20, height: 20 }}>{icons.home}</span>
         </button>
@@ -454,11 +462,28 @@ export default function App() {
         <PasswordResetModal onClose={() => setShowPasswordReset(false)} />
       )}
 
-      {/* Workout Screen overlay */}
-      {workoutState && (
+      {/* Barre "séance en cours" (mode réduit) — permet de reprendre (Point 1) */}
+      {workoutState && workoutMinimized && (
+        <button
+          className="workout-resume-bar"
+          onClick={() => setWorkoutMinimized(false)}
+          title="Reprendre la séance"
+        >
+          <span className="workout-resume-dot" />
+          <span className="workout-resume-text">
+            <strong>Séance en cours</strong>
+            <span>{workoutState.dayName} · {workoutState.progName}</span>
+          </span>
+          <span className="workout-resume-cta">Reprendre ▸</span>
+        </button>
+      )}
+
+      {/* Workout Screen overlay — monté seulement quand non réduit */}
+      {workoutState && !workoutMinimized && (
         <WorkoutScreen
           workout={workoutState}
-          setWorkout={setWorkoutState}
+          setWorkout={(w) => { setWorkoutState(w); if (w === null) setWorkoutMinimized(false) }}
+          onMinimize={() => setWorkoutMinimized(true)}
         />
       )}
     </div>

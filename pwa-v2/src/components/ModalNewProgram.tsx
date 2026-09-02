@@ -285,7 +285,7 @@ export default function ModalNewProgram({
             onChange={e => updateEx(ex.name, 'rpe', e.target.value)} autoFocus
             style={{
               flex: 1, padding: '6px 12px', fontSize: 13, fontWeight: 600, borderRadius: 8,
-              border: '1px solid rgba(182,255,71,0.3)', background: 'var(--bg-panel)', color: 'var(--neon)',
+              border: '1px solid rgba(var(--neon-rgb),0.3)', background: 'var(--bg-panel)', color: 'var(--neon)',
               fontFamily: "'JetBrains Mono', monospace", animation: 'fadeSlide .15s ease',
             }}
           />
@@ -330,7 +330,7 @@ export default function ModalNewProgram({
               </div>
               {added
                 ? <span style={{ color: 'var(--ink-faint)', fontSize: 12, fontWeight: 700 }}>✓</span>
-                : <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--neon-soft)', border: '1px solid rgba(182,255,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--neon)', fontSize: 20, fontWeight: 700, lineHeight: 1 }}>+</div>
+                : <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--neon-soft)', border: '1px solid rgba(var(--neon-rgb),0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--neon)', fontSize: 20, fontWeight: 700, lineHeight: 1 }}>+</div>
               }
             </div>
           )
@@ -401,7 +401,7 @@ export default function ModalNewProgram({
                 </div>
               </div>
               {name && (
-                <div style={{ padding: '16px 18px', borderRadius: 12, background: 'var(--neon-soft)', border: '1px solid rgba(182,255,71,0.2)', animation: 'fadeSlide .2s ease' }}>
+                <div style={{ padding: '16px 18px', borderRadius: 12, background: 'var(--neon-soft)', border: '1px solid rgba(var(--neon-rgb),0.2)', animation: 'fadeSlide .2s ease' }}>
                   <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--neon)', marginBottom: 6 }}>Aperçu</div>
                   <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 22 }}>{name}</div>
                   <div style={{ fontSize: 11, color: 'var(--neon)', fontWeight: 600, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{goal}</div>
@@ -423,7 +423,7 @@ export default function ModalNewProgram({
                   <div key={d.id} onClick={() => { selectDay(d); setMobilePanel('editor') }} style={{
                     padding: '12px 14px', borderRadius: 12, cursor: 'pointer', transition: 'all .15s',
                     background: editingDay?.id === d.id ? 'var(--neon-soft)' : 'var(--bg-raised)',
-                    border: `1px solid ${editingDay?.id === d.id ? 'rgba(182,255,71,0.35)' : 'var(--line)'}`,
+                    border: `1px solid ${editingDay?.id === d.id ? 'rgba(var(--neon-rgb),0.35)' : 'var(--line)'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2,
                   }}>
                     <div>
@@ -441,7 +441,7 @@ export default function ModalNewProgram({
                 ))}
                 <button onClick={addDay} style={{
                   padding: '12px 14px', borderRadius: 12, cursor: 'pointer', transition: 'all .15s', marginTop: 4,
-                  background: 'transparent', border: '1px dashed rgba(182,255,71,0.3)',
+                  background: 'transparent', border: '1px dashed rgba(var(--neon-rgb),0.3)',
                   color: 'var(--neon)', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8,
                 }}>
                   <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Ajouter un jour
@@ -495,7 +495,7 @@ export default function ModalNewProgram({
                     )}
                     {editingDay.exercises.map((ex, i) => <ExCard key={ex.id} ex={ex} index={i} total={editingDay.exercises.length} />)}
                     <button className="prog-back-btn" onClick={() => setMobilePanel('catalog')} style={{ display: 'flex', padding: '14px 0 0 0', color: 'var(--neon)', fontSize: 14, fontWeight: 700, gap: 8 }}>
-                      <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--neon-soft)', border: '1px solid rgba(182,255,71,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, lineHeight: 1 }}>+</div>
+                      <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--neon-soft)', border: '1px solid rgba(var(--neon-rgb),0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, lineHeight: 1 }}>+</div>
                       Ajouter un exercice
                     </button>
                   </>
