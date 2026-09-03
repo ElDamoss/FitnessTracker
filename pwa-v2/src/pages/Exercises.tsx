@@ -19,7 +19,18 @@ function getMeasurementType(ex: Pick<Exercise, 'set_measurement_type'>): SetMeas
   return ex.set_measurement_type === 'seconds' ? 'seconds' : 'reps'
 }
 
-const MUSCLES = ['Tous', 'Pectoraux', 'Dos', 'Épaules', 'Biceps', 'Triceps', 'Jambes', 'Fessiers', 'Abdos', 'Cardio']
+// Groupes musculaires pour le sélecteur de création (optgroup).
+// Bas du corps détaillé selon la demande V8.3.
+const MUSCLE_GROUPS: { label: string; muscles: string[] }[] = [
+  { label: 'Haut du corps', muscles: ['Pectoraux', 'Dos', 'Épaules', 'Biceps', 'Triceps', 'Avant-bras'] },
+  { label: 'Tronc', muscles: ['Abdominaux', 'Obliques', 'Lombaires'] },
+  { label: 'Jambes', muscles: ['Quadriceps', 'Ischio-jambiers', 'Mollets', 'Adducteurs', 'Abducteurs'] },
+  { label: 'Fessiers', muscles: ['Grand fessier', 'Moyen fessier', 'Petit fessier'] },
+  { label: 'Autre', muscles: ['Cardio', 'Full body'] },
+]
+
+// Liste plate (chips de filtre) : "Tous" + tous les muscles des groupes.
+const MUSCLES = ['Tous', ...MUSCLE_GROUPS.flatMap(g => g.muscles)]
 
 export default function PageExercises() {
   const [exercises, setExercises] = useState<Exercise[]>([])
@@ -209,8 +220,12 @@ export default function PageExercises() {
                 onChange={e => setNewMuscle(e.target.value)}
                 style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--bg)', color: 'var(--ink)', fontSize: 14 }}
               >
-                {MUSCLES.filter(m => m !== 'Tous').map(m => (
-                  <option key={m} value={m}>{m}</option>
+                {MUSCLE_GROUPS.map(g => (
+                  <optgroup key={g.label} label={g.label}>
+                    {g.muscles.map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

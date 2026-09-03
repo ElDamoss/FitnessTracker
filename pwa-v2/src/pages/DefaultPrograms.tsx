@@ -44,11 +44,11 @@ const DEFAULT_PROGRAMS: DefaultProgram[] = [
         { name: 'Curl haltères', muscle: 'Biceps', sets: 3, repsTarget: '12-15', restSec: 60 },
       ]},
       { name: 'Legs', weekdays: [3, 6], exercises: [
-        { name: 'Squat barre', muscle: 'Jambes', sets: 4, repsTarget: '6-10', restSec: 180, tempo: '3-1-1' },
-        { name: 'Presse', muscle: 'Jambes', sets: 4, repsTarget: '10-12', restSec: 120 },
-        { name: 'Leg Extension', muscle: 'Jambes', sets: 3, repsTarget: '12-15', restSec: 90 },
+        { name: 'Squat barre', muscle: 'Cuisses', sets: 4, repsTarget: '6-10', restSec: 180, tempo: '3-1-1' },
+        { name: 'Presse', muscle: 'Cuisses', sets: 4, repsTarget: '10-12', restSec: 120 },
+        { name: 'Leg Extension', muscle: 'Cuisses', sets: 3, repsTarget: '12-15', restSec: 90 },
         { name: 'Hip Thrust', muscle: 'Fessiers', sets: 4, repsTarget: '10-12', restSec: 90 },
-        { name: 'Mollets machine', muscle: 'Jambes', sets: 4, repsTarget: '12-20', restSec: 60 },
+        { name: 'Mollets machine', muscle: 'Mollets', sets: 4, repsTarget: '12-20', restSec: 60 },
       ]},
     ]
   },
@@ -57,7 +57,7 @@ const DEFAULT_PROGRAMS: DefaultProgram[] = [
     goal: 'Remise en forme / polyvalence',
     days: [
       { name: 'Jour A', weekdays: [1, 3, 5], exercises: [
-        { name: 'Squat barre', muscle: 'Jambes', sets: 4, repsTarget: '8-10', restSec: 150 },
+        { name: 'Squat barre', muscle: 'Cuisses', sets: 4, repsTarget: '8-10', restSec: 150 },
         { name: 'Développé couché', muscle: 'Pectoraux', sets: 4, repsTarget: '8-10', restSec: 120 },
         { name: 'Rowing barre', muscle: 'Dos', sets: 4, repsTarget: '8-10', restSec: 120 },
         { name: 'Développé militaire', muscle: 'Épaules', sets: 3, repsTarget: '10-12', restSec: 90 },
@@ -79,12 +79,12 @@ const DEFAULT_PROGRAMS: DefaultProgram[] = [
         { name: 'Extensions triceps', muscle: 'Triceps', sets: 3, repsTarget: '10-12', restSec: 60 },
       ]},
       { name: 'Lower A', weekdays: [2, 5], exercises: [
-        { name: 'Squat barre', muscle: 'Jambes', sets: 4, repsTarget: '6-8', restSec: 180 },
-        { name: 'Soulevé de terre roumain', muscle: 'Jambes', sets: 4, repsTarget: '8-10', restSec: 150 },
-        { name: 'Presse', muscle: 'Jambes', sets: 3, repsTarget: '10-12', restSec: 120 },
-        { name: 'Leg Curl', muscle: 'Jambes', sets: 3, repsTarget: '10-12', restSec: 90 },
+        { name: 'Squat barre', muscle: 'Cuisses', sets: 4, repsTarget: '6-8', restSec: 180 },
+        { name: 'Soulevé de terre roumain', muscle: 'Ischios', sets: 4, repsTarget: '8-10', restSec: 150 },
+        { name: 'Presse', muscle: 'Cuisses', sets: 3, repsTarget: '10-12', restSec: 120 },
+        { name: 'Leg Curl', muscle: 'Ischios', sets: 3, repsTarget: '10-12', restSec: 90 },
         { name: 'Hip Thrust', muscle: 'Fessiers', sets: 3, repsTarget: '10-12', restSec: 90 },
-        { name: 'Mollets machine', muscle: 'Jambes', sets: 4, repsTarget: '12-20', restSec: 60 },
+        { name: 'Mollets machine', muscle: 'Mollets', sets: 4, repsTarget: '12-20', restSec: 60 },
       ]},
     ]
   },

@@ -54,7 +54,7 @@ export interface LibraryExercise {
 }
 
 // Muscle-chip filter values, mirroring the pattern used in Exercises.tsx
-const SWAP_MUSCLES = ['Tous', 'Pectoraux', 'Dos', 'Épaules', 'Biceps', 'Triceps', 'Jambes', 'Fessiers', 'Abdos', 'Cardio']
+const SWAP_MUSCLES = ['Tous', 'Pectoraux', 'Dos', 'Épaules', 'Biceps', 'Triceps', 'Avant-bras', 'Abdominaux', 'Obliques', 'Lombaires', 'Quadriceps', 'Ischio-jambiers', 'Mollets', 'Adducteurs', 'Abducteurs', 'Grand fessier', 'Moyen fessier', 'Petit fessier', 'Cardio', 'Full body']
 
 export interface WorkoutState {
   progId: string
@@ -190,11 +190,35 @@ interface WorkoutScreenProps {
 }
 
 export default function WorkoutScreen({ workout, setWorkout, onMinimize }: WorkoutScreenProps) {
-  const [exercises, setExercises] = useState<WorkoutExercise[]>(() => normalizeExercises(workout.exercises))
+  // Au (re)montage — après avoir réduit la séance puis navigué — on reprend
+  // en priorité l'état sauvegardé dans localStorage (le plus récent : poids
+  // saisis, séries validées, repos en cours), à condition qu'il corresponde
+  // à LA MÊME séance (progId+dayId+startTs). Sinon on part du prop d'origine.
+  // Corrige la perte des poids/repos au retour depuis l'accueil.
+  const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved) as WorkoutState
+        const sameSession =
+          parsed &&
+          parsed.progId === workout.progId &&
+          parsed.dayId === workout.dayId &&
+          parsed.startTs === workout.startTs &&
+          Array.isArray(parsed.exercises)
+        if (sameSession) return normalizeExercises(parsed.exercises)
+      }
+    } catch { /* ignore, fallback au prop */ }
+    return normalizeExercises(workout.exercises)
+  })
   const [elapsed, setElapsed] = useState(Math.floor((Date.now() - workout.startTs) / 1000))
   const [showRecap, setShowRecap] = useState(false)
   const [comment, setComment] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // Overlay de repos réduit en pastille flottante (option A) : le décompte
+  // continue (logique timestamp), mais l'écran n'est plus bloqué.
+  const [restMinimized, setRestMinimized] = useState(false)
 
   // ── Usual weights panel (Req 3) ───────────────────────────────────────
   const [usualOpen, setUsualOpen] = useState<number | null>(null)
@@ -207,9 +231,6 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
   const [swapRows, setSwapRows] = useState<LibraryExercise[]>([])
   const [swapSearch, setSwapSearch] = useState('')
   const [swapMuscle, setSwapMuscle] = useState('Tous')
-
-  // ── Per-exercise comment field (Req 12.2, 12.3) ───────────────────────
-  const [commentOpen, setCommentOpen] = useState<number | null>(null)
 
   const chronoRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -249,6 +270,8 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
       set.restTotal = restSec
       return next
     })
+    // Nouveau repos → on ré-affiche l'overlay plein écran (option A).
+    setRestMinimized(false)
   }
 
   function toggleRestPause(exIdx: number, setIdx: number) {
@@ -329,17 +352,6 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
     setExercises(prev => {
       const next = structuredClone(prev)
       next[exIdx].sets[setIdx][field] = value
-      return next
-    })
-  }
-
-  function adjustValue(exIdx: number, setIdx: number, field: 'weight' | 'reps' | 'duration' | 'weightR' | 'repsR' | 'durationR', delta: number) {
-    setExercises(prev => {
-      const next = structuredClone(prev)
-      const current = parseFloat(next[exIdx].sets[setIdx][field] || '') || 0
-      const newVal = Math.max(0, current + delta)
-      const isWeight = field === 'weight' || field === 'weightR'
-      next[exIdx].sets[setIdx][field] = isWeight ? newVal.toString() : Math.round(newVal).toString()
       return next
     })
   }
@@ -434,11 +446,6 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
     })
   }
 
-  // Toggle the collapsible comment field for an exercise.
-  function toggleComment(exIdx: number) {
-    setCommentOpen(cur => (cur === exIdx ? null : exIdx))
-  }
-
   // ── Usual weights panel toggle (Req 3) ─────────────────────────────────
   // Always re-queries against the exercise's CURRENT name each time it opens,
   // so name changes/swaps surface the new name's history (Req 3.4).
@@ -506,7 +513,6 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
     // keyed by index, so close them to avoid pointing at the wrong exercise.
     setUsualOpen(null)
     setSwapOpen(null)
-    setCommentOpen(null)
   }
 
   function selectSwap(exIdx: number, lib: LibraryExercise) {
@@ -606,6 +612,9 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
 
   // ── Computed stats ─────────────────────────────────────────────────────
   const totalSets = exercises.reduce((acc, ex) => acc + ex.sets.filter(s => s.done).length, 0)
+  // Progression header/barre (V8.3) : séries validées vs total de toutes les séries
+  const doneSetsCount = totalSets
+  const allSetsCount = exercises.reduce((acc, ex) => acc + ex.sets.length, 0)
   const totalVolume = exercises.reduce((acc, ex) => {
     return acc + ex.sets.filter(s => s.done).reduce((sum, s) => {
       return sum + (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0)
@@ -637,14 +646,27 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
           <div className="wk-day-name">{workout.dayName}</div>
           <div style={{ fontSize: 11, color: 'var(--ink-faint)' }}>{workout.progName}</div>
         </div>
-        <div className="wk-chrono">{formatTime(elapsed)}</div>
+        {/* Bloc Durée avec label (aligné maquette V8.3) */}
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 9, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Durée</div>
+          <div className="wk-chrono mono">{formatTime(elapsed)}</div>
+        </div>
+        {/* Compteur de progression séries validées / total (aligné maquette V8.3) */}
+        <div style={{ fontSize: 11, color: 'var(--neon)', fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }}>
+          {doneSetsCount}/{allSetsCount}
+        </div>
         <button
-          className="btn-primary"
-          style={{ marginLeft: 12, padding: '8px 16px', fontSize: 13 }}
+          className="btn-primary btn-sm"
+          style={{ marginLeft: 4 }}
           onClick={handleEndClick}
         >
-          Fin
+          Fin ▸
         </button>
+      </div>
+
+      {/* Barre de progression globale (aligné maquette V8.3) */}
+      <div style={{ height: 3, background: 'var(--line)', flexShrink: 0 }}>
+        <div style={{ height: '100%', background: 'var(--neon)', width: `${allSetsCount ? (doneSetsCount / allSetsCount) * 100 : 0}%`, transition: 'width .3s ease' }} />
       </div>
 
       {/* Body */}
@@ -655,23 +677,24 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
             style={{
               background: 'var(--bg-panel)',
               border: '1px solid var(--line)',
-              borderRadius: 'var(--r)',
-              padding: 16,
-              marginBottom: 12,
+              borderRadius: 14,
+              overflow: 'hidden',
+              marginBottom: 14,
               opacity: ex.completed ? 0.5 : 1,
               transition: 'opacity 0.2s'
             }}
           >
-            {/* Exercise header — maquette style: name on its own line (full width,
-                no truncation), muscle · sets×target subtitle, then a compact
-                secondary row of action buttons so the name is never squeezed
-                (Req 5). All existing handlers stay wired. */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
+            {/* Bandeau d'en-tête (maquette V8.3) : nom + case complétée + toggles +
+                actions icônes + flèches d'ordre, sur fond var(--bg-raised). */}
+            <div style={{
+              background: 'var(--bg-raised)', padding: '10px 10px 10px 14px',
+              display: 'flex', alignItems: 'flex-start', gap: 10
+            }}>
               <button
                 onClick={() => toggleExerciseComplete(exIdx)}
                 style={{
                   width: 24, height: 24, borderRadius: 6, marginTop: 2,
-                  background: ex.completed ? 'var(--neon)' : 'var(--bg-raised)',
+                  background: ex.completed ? 'var(--neon)' : 'var(--bg-panel)',
                   border: `1px solid ${ex.completed ? 'var(--neon)' : 'var(--line)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: ex.completed ? '#0a0c0f' : 'var(--ink-faint)',
@@ -702,14 +725,39 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                       {ex.measurementType === 'seconds' ? ' · temps (s)' : ' · reps'}</>
                   )}
                 </div>
-              </div>
-            </div>
 
-            {/* Compact actions row + day-of measurement toggle (Req 5, 7.4) */}
-            <div style={{
-              display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6,
-              marginBottom: 12
-            }}>
+                {/* Toggle Unilatéral — switch glissant (maquette V8.3). Garde
+                    l'appel toggleUnilateral, saisie G/D séparée. */}
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, cursor: 'pointer', userSelect: 'none' }}>
+                  <div style={{
+                    position: 'relative', width: 32, height: 18, borderRadius: 9,
+                    background: ex.unilateral ? 'var(--neon)' : 'var(--line)',
+                    transition: 'background .2s', flexShrink: 0
+                  }}>
+                    <div style={{
+                      position: 'absolute', top: 2, left: ex.unilateral ? 16 : 2,
+                      width: 14, height: 14, borderRadius: '50%',
+                      background: ex.unilateral ? '#fff' : 'var(--ink-faint)',
+                      transition: 'left .2s'
+                    }} />
+                    <input
+                      type="checkbox"
+                      checked={!!ex.unilateral}
+                      onChange={() => toggleUnilateral(exIdx)}
+                      aria-label="Unilatéral"
+                      style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', margin: 0 }}
+                    />
+                  </div>
+                  <span style={{ fontSize: 11, color: ex.unilateral ? 'var(--neon)' : 'var(--ink-faint)', fontWeight: 600 }}>
+                    Unilatéral
+                  </span>
+                </label>
+
+                {/* Compact actions row + day-of measurement toggle (Req 5, 7.4) */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6,
+                  marginTop: 8
+                }}>
               {/* Reps / Temps toggle — flips this exercise's measurementType for
                   the current session only (Req 7.4). Same pill visual as maquette ExCard. */}
               <div style={{
@@ -734,23 +782,6 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                 ))}
               </div>
 
-              {/* Toggle Unilatéral — saisie gauche/droite séparée (V8.3) */}
-              <button
-                onClick={() => toggleUnilateral(exIdx)}
-                title="Exercice unilatéral (gauche / droite)"
-                aria-label="Unilatéral"
-                style={{
-                  padding: '4px 10px', borderRadius: 7, flexShrink: 0,
-                  fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
-                  cursor: 'pointer', transition: 'all .15s',
-                  background: ex.unilateral ? 'var(--neon)' : 'transparent',
-                  border: `1px solid ${ex.unilateral ? 'var(--neon)' : 'var(--line)'}`,
-                  color: ex.unilateral ? '#0a0c0f' : 'var(--ink-faint)'
-                }}
-              >
-                Unilat.
-              </button>
-
               <span style={{ flex: 1 }} />
 
               {/* Usual weights toggle (Req 3.1) */}
@@ -767,8 +798,8 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 15" />
                 </svg>
               </button>
               {/* Swap / replace from library (Req 7.1) */}
@@ -785,26 +816,9 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 014-4h14" /><path d="M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 01-4 4H3" />
-                </svg>
-              </button>
-              {/* Per-exercise comment toggle (Req 12.2) */}
-              <button
-                onClick={() => toggleComment(exIdx)}
-                title="Note sur l'exercice"
-                aria-label="Note sur l'exercice"
-                style={{
-                  width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                  background: commentOpen === exIdx || (ex.comment && ex.comment.trim() !== '') ? 'var(--neon-soft)' : 'var(--bg-raised)',
-                  border: `1px solid ${commentOpen === exIdx ? 'var(--neon)' : 'var(--line)'}`,
-                  color: commentOpen === exIdx || (ex.comment && ex.comment.trim() !== '') ? 'var(--neon)' : 'var(--ink-dim)',
-                  cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="16 3 21 3 21 8" /><line x1="4" y1="20" x2="21" y2="3" />
+                  <polyline points="21 16 21 21 16 21" /><line x1="15" y1="15" x2="21" y2="21" />
                 </svg>
               </button>
               {/* Reorder up (Req 8.1) — disabled on the first exercise */}
@@ -847,8 +861,12 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </button>
-            </div>
+                </div>{/* fin actions row */}
+              </div>{/* fin colonne nom */}
+            </div>{/* fin bandeau d'en-tête */}
 
+            {/* Contenu de la carte (padding latéral 14px) */}
+            <div style={{ padding: '4px 14px 0' }}>
             {/* Tempo chip (Req 13.4) — shown only when the exercise has a
                 non-empty tempo; omitted otherwise (Req 13.5) */}
             {ex.tempo && ex.tempo.trim() !== '' && (
@@ -866,55 +884,10 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
               </div>
             )}
 
-            {/* Per-exercise comment field (Req 12.2, 12.3) — collapsible;
-                bound to ex.comment. Included in the save payload when present. */}
-            {commentOpen === exIdx && (
-              <div style={{
-                background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                borderRadius: 8, padding: 12, marginBottom: 12
-              }}>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8
-                }}>
-                  <span style={{
-                    fontSize: 12, fontWeight: 700, color: 'var(--ink)',
-                    textTransform: 'uppercase', letterSpacing: '0.04em'
-                  }}>
-                    Note
-                  </span>
-                  <button
-                    onClick={() => setCommentOpen(null)}
-                    aria-label="Fermer"
-                    title="Fermer"
-                    style={{
-                      marginLeft: 'auto', width: 22, height: 22, borderRadius: 6,
-                      background: 'transparent', border: '1px solid var(--line)',
-                      color: 'var(--ink-faint)', fontSize: 12, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-                <textarea
-                  value={ex.comment ?? ''}
-                  onChange={e => updateExerciseComment(exIdx, e.target.value)}
-                  placeholder="Note sur cet exercice…"
-                  style={{
-                    width: '100%', minHeight: 56, resize: 'vertical',
-                    padding: '8px 10px', borderRadius: 6,
-                    background: 'var(--bg)', border: '1px solid var(--line)',
-                    color: 'var(--ink)', fontSize: 13,
-                    fontFamily: 'inherit', boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Usual weights panel (Req 3) */}
+            {/* Usual weights panel (Req 3) — cartes horizontales S1/S2/S3 (maquette V8.3) */}
             {usualOpen === exIdx && (
               <div style={{
-                background: 'var(--bg-raised)', border: '1px solid var(--line)',
+                background: 'rgba(var(--neon-rgb),0.04)', border: '1px solid var(--line)',
                 borderRadius: 8, padding: 12, marginBottom: 12
               }}>
                 <div style={{
@@ -926,6 +899,11 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                   }}>
                     Dernière séance
                   </span>
+                  {!usualLoading && usualRows.length > 0 && (
+                    <span style={{ fontSize: 11, color: 'var(--ink-faint)' }}>
+                      · {usualRows[0].date}
+                    </span>
+                  )}
                   <button
                     onClick={() => setUsualOpen(null)}
                     aria-label="Fermer"
@@ -947,41 +925,37 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                     Aucun historique pour cet exercice.
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {/* Date of the last session shown once at the top (all rows
-                        come from the same session). */}
-                    <div style={{
-                      fontSize: 11, color: 'var(--ink-faint)', marginBottom: 4
-                    }}>
-                      Séance du {usualRows[0].date}
-                    </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     {usualRows.map((row, i) => {
                       const isUni = (row.weightR != null && row.weightR !== '') || (row.repsR != null && row.repsR !== '') || (row.durationR != null && row.durationR !== '')
-                      const fmtSide = (w?: string, reps?: string, dur?: string) =>
-                        `${w || '0'} kg × ${dur ? `${dur}s` : `${reps ?? '0'} reps`}`
+                      const valTxt = (reps?: string, dur?: string) => dur ? `${dur}s` : `${reps ?? '0'} reps`
                       return (
                         <div key={i} style={{
-                          display: 'flex', alignItems: 'center', gap: 8,
-                          fontSize: 12, color: 'var(--ink-dim)',
-                          padding: '3px 0',
-                          borderTop: i > 0 ? '1px solid var(--line-soft)' : 'none'
+                          flex: 1, background: 'var(--bg-panel)', border: '1px solid var(--line)',
+                          borderRadius: 8, padding: '8px 10px', textAlign: 'center'
                         }}>
+                          <div style={{ fontSize: 9, color: 'var(--ink-faint)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            S{i + 1}
+                          </div>
                           {isUni ? (
-                            <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                              <span style={{ color: 'var(--ink-faint)' }}>G </span>
-                              <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{fmtSide(row.weight, row.reps, row.duration)}</span>
-                              <span style={{ color: 'var(--ink-faint)' }}>  ·  D </span>
-                              <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{fmtSide(row.weightR, row.repsR, row.durationR)}</span>
-                            </span>
+                            <>
+                              <div style={{ fontSize: 9, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>G</div>
+                              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--ink-dim)', lineHeight: 1 }}>
+                                {row.weight || '0'}<span style={{ fontSize: 10, color: 'var(--ink-faint)' }}>kg</span>
+                              </div>
+                              <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }}>{valTxt(row.reps, row.duration)}</div>
+                              <div style={{ fontSize: 9, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 }}>D</div>
+                              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--ink-dim)', lineHeight: 1 }}>
+                                {row.weightR || '0'}<span style={{ fontSize: 10, color: 'var(--ink-faint)' }}>kg</span>
+                              </div>
+                              <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }}>{valTxt(row.repsR, row.durationR)}</div>
+                            </>
                           ) : (
                             <>
-                              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: 'var(--ink)' }}>
-                                {row.weight || '0'} kg
-                              </span>
-                              <span style={{ color: 'var(--ink-faint)' }}>×</span>
-                              <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                                {row.duration ? `${row.duration}s` : `${row.reps ?? '0'} reps`}
-                              </span>
+                              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--ink-dim)', lineHeight: 1 }}>
+                                {row.weight || '0'}<span style={{ fontSize: 10, color: 'var(--ink-faint)' }}>kg</span>
+                              </div>
+                              <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 3 }}>{valTxt(row.reps, row.duration)}</div>
                             </>
                           )}
                         </div>
@@ -999,16 +973,16 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '8px 0', borderTop: setIdx > 0 ? '1px solid var(--line-soft)' : 'none'
                 }}>
-                  {/* Set number */}
+                  {/* Set number — badge rond (maquette V8.3) */}
                   <div style={{
-                    width: 24, height: 24, borderRadius: 6,
-                    background: set.done ? 'var(--neon-soft)' : 'var(--bg-raised)',
-                    border: '1px solid var(--line)',
+                    width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                    background: set.done ? 'var(--neon)' : 'var(--bg-raised)',
+                    border: `1px solid ${set.done ? 'var(--neon)' : 'var(--line)'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 700, color: set.done ? 'var(--neon)' : 'var(--ink-faint)',
-                    flexShrink: 0
+                    fontSize: 11, fontWeight: 700, color: set.done ? '#fff' : 'var(--ink-faint)',
+                    transition: 'all .15s'
                   }}>
-                    {setIdx + 1}
+                    {set.done ? '✓' : setIdx + 1}
                   </div>
 
                   {/* Unilatéral (V8.3) : deux blocs compacts Gauche / Droite,
@@ -1019,45 +993,40 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                         { side: 'G', wField: 'weight' as const, vField: ex.measurementType === 'seconds' ? 'duration' as const : 'reps' as const, wVal: set.weight, vVal: ex.measurementType === 'seconds' ? set.duration : set.reps },
                         { side: 'D', wField: 'weightR' as const, vField: ex.measurementType === 'seconds' ? 'durationR' as const : 'repsR' as const, wVal: set.weightR ?? '', vVal: ex.measurementType === 'seconds' ? (set.durationR ?? '') : (set.repsR ?? '') },
                       ]).map(col => (
-                        <div key={col.side} style={{ flex: 1, background: 'var(--neon-soft)', borderRadius: 8, padding: '6px 8px' }}>
-                          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--neon)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>
-                            {col.side === 'G' ? 'Gauche' : 'Droite'}
+                        <div key={col.side} style={{ flex: 1, background: 'rgba(var(--neon-rgb),0.06)', borderRadius: 10, padding: '6px 8px' }}>
+                          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--neon)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>
+                            {col.side}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <input
-                              type="number" inputMode="decimal" value={col.wVal}
-                              onChange={e => updateSet(exIdx, setIdx, col.wField, e.target.value)}
-                              placeholder="0"
-                              style={{ width: 46, textAlign: 'center', padding: '5px 2px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: 'var(--bg-raised)', border: '1px solid var(--line)', fontFamily: "'JetBrains Mono', monospace" }}
-                            />
-                            <span style={{ fontSize: 9, color: 'var(--ink-faint)' }}>kg</span>
-                            <span style={{ color: 'var(--line)', fontSize: 13 }}>×</span>
-                            <input
-                              type="number" inputMode="numeric" value={col.vVal}
-                              onChange={e => updateSet(exIdx, setIdx, col.vField, e.target.value)}
-                              placeholder="0"
-                              style={{ width: 40, textAlign: 'center', padding: '5px 2px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: 'var(--bg-raised)', border: '1px solid var(--line)', fontFamily: "'JetBrains Mono', monospace" }}
-                            />
-                            <span style={{ fontSize: 9, color: 'var(--ink-faint)' }}>{ex.measurementType === 'seconds' ? 's' : 'reps'}</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                              <input
+                                type="number" inputMode="decimal" value={col.wVal}
+                                onChange={e => updateSet(exIdx, setIdx, col.wField, e.target.value)}
+                                placeholder="0"
+                                style={{ width: 46, textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 15, padding: '6px 2px', borderRadius: 8, background: 'var(--bg-raised)', border: '1px solid var(--line)' }}
+                              />
+                              <span style={{ fontSize: 9, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>kg</span>
+                            </div>
+                            <span style={{ color: 'var(--line)', fontSize: 14 }}>×</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                              <input
+                                type="number" inputMode="numeric" value={col.vVal}
+                                onChange={e => updateSet(exIdx, setIdx, col.vField, e.target.value)}
+                                placeholder="0"
+                                style={{ width: 46, textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 15, padding: '6px 2px', borderRadius: 8, background: 'var(--bg-raised)', border: '1px solid var(--line)' }}
+                              />
+                              <span style={{ fontSize: 9, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{ex.measurementType === 'seconds' ? 'sec' : 'reps'}</span>
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {/* Weight */}
+                  {/* Saisie standard (maquette V8.3) : kg × reps/sec, sans steppers */}
                   {!ex.unilateral && (
                   <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <button
-                      onClick={() => adjustValue(exIdx, setIdx, 'weight', -2.5)}
-                      style={{
-                        width: 26, height: 26, borderRadius: 6,
-                        background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                        color: 'var(--ink-dim)', fontSize: 14, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}
-                    >−</button>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     <input
                       type="number"
                       inputMode="decimal"
@@ -1065,37 +1034,20 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                       onChange={e => updateSet(exIdx, setIdx, 'weight', e.target.value)}
                       placeholder="0"
                       style={{
-                        width: 52, textAlign: 'center', padding: '5px 4px',
-                        fontSize: 14, fontWeight: 600, borderRadius: 6,
-                        background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                        fontFamily: "'JetBrains Mono', monospace"
+                        width: 54, textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 700, fontSize: 15, padding: '6px 2px', borderRadius: 8,
+                        background: 'var(--bg-raised)', border: '1px solid var(--line)'
                       }}
                     />
-                    <button
-                      onClick={() => adjustValue(exIdx, setIdx, 'weight', 2.5)}
-                      style={{
-                        width: 26, height: 26, borderRadius: 6,
-                        background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                        color: 'var(--ink-dim)', fontSize: 14, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}
-                    >+</button>
-                    <span style={{ fontSize: 10, color: 'var(--ink-faint)', marginLeft: 2 }}>kg</span>
+                    <span style={{ fontSize: 9, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>kg</span>
                   </div>
+
+                  <span style={{ color: 'var(--line)', fontSize: 16 }}>×</span>
 
                   {/* Middle value column: reps OR seconds (duration) depending
                       on the exercise's measurementType (Req 11.3, 11.4) */}
                   {ex.measurementType === 'seconds' ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <button
-                        onClick={() => adjustValue(exIdx, setIdx, 'duration', -5)}
-                        style={{
-                          width: 26, height: 26, borderRadius: 6,
-                          background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                          color: 'var(--ink-dim)', fontSize: 14, cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}
-                      >−</button>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                       <input
                         type="number"
                         inputMode="numeric"
@@ -1103,34 +1055,15 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                         onChange={e => updateSet(exIdx, setIdx, 'duration', e.target.value)}
                         placeholder="0"
                         style={{
-                          width: 42, textAlign: 'center', padding: '5px 4px',
-                          fontSize: 14, fontWeight: 600, borderRadius: 6,
-                          background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                          fontFamily: "'JetBrains Mono', monospace"
+                          width: 54, textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif",
+                          fontWeight: 700, fontSize: 15, padding: '6px 2px', borderRadius: 8,
+                          background: 'var(--bg-raised)', border: '1px solid var(--line)'
                         }}
                       />
-                      <button
-                        onClick={() => adjustValue(exIdx, setIdx, 'duration', 5)}
-                        style={{
-                          width: 26, height: 26, borderRadius: 6,
-                          background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                          color: 'var(--ink-dim)', fontSize: 14, cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}
-                      >+</button>
-                      <span style={{ fontSize: 10, color: 'var(--ink-faint)', marginLeft: 2 }}>s</span>
+                      <span style={{ fontSize: 9, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>sec</span>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <button
-                        onClick={() => adjustValue(exIdx, setIdx, 'reps', -1)}
-                        style={{
-                          width: 26, height: 26, borderRadius: 6,
-                          background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                          color: 'var(--ink-dim)', fontSize: 14, cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}
-                      >−</button>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                       <input
                         type="number"
                         inputMode="numeric"
@@ -1138,22 +1071,12 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                         onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
                         placeholder="0"
                         style={{
-                          width: 42, textAlign: 'center', padding: '5px 4px',
-                          fontSize: 14, fontWeight: 600, borderRadius: 6,
-                          background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                          fontFamily: "'JetBrains Mono', monospace"
+                          width: 54, textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif",
+                          fontWeight: 700, fontSize: 15, padding: '6px 2px', borderRadius: 8,
+                          background: 'var(--bg-raised)', border: '1px solid var(--line)'
                         }}
                       />
-                      <button
-                        onClick={() => adjustValue(exIdx, setIdx, 'reps', 1)}
-                        style={{
-                          width: 26, height: 26, borderRadius: 6,
-                          background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                          color: 'var(--ink-dim)', fontSize: 14, cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}
-                      >+</button>
-                      <span style={{ fontSize: 10, color: 'var(--ink-faint)', marginLeft: 2 }}>reps</span>
+                      <span style={{ fontSize: 9, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>reps</span>
                     </div>
                   )}
                   </>
@@ -1179,23 +1102,21 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                     />
                   )}
 
-                  {/* Validate button */}
-                  {!set.done && (
-                    <button
-                      onClick={() => validateSet(exIdx, setIdx)}
-                      style={{
-                        padding: '5px 10px', borderRadius: 6,
-                        background: 'var(--neon)', color: '#0a0c0f',
-                        fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      ✓
-                    </button>
-                  )}
-                  {set.done && set.restLeft === 0 && (
-                    <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600 }}>✓</span>
-                  )}
+                  {/* Validate button — libellé "OK" / "✓" (maquette V8.3) */}
+                  <button
+                    onClick={() => { if (!set.done) validateSet(exIdx, setIdx) }}
+                    disabled={set.done}
+                    style={{
+                      marginLeft: 'auto', padding: '7px 14px', borderRadius: 8, flexShrink: 0,
+                      background: set.done ? 'var(--neon)' : 'var(--bg-raised)',
+                      border: `1px solid ${set.done ? 'var(--neon)' : 'var(--line)'}`,
+                      color: set.done ? 'var(--bg)' : 'var(--ink-dim)',
+                      fontSize: 12, fontWeight: 700, transition: 'all .15s',
+                      cursor: set.done ? 'default' : 'pointer', whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {set.done ? '✓' : 'OK'}
+                  </button>
 
                   {/* Discreet per-set remove — only shown when >1 set so the
                       last remaining set can't be removed (matches removeSet guard). */}
@@ -1205,7 +1126,7 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                       title="Supprimer cette série"
                       aria-label="Supprimer cette série"
                       style={{
-                        marginLeft: 'auto', width: 22, height: 22, borderRadius: 6,
+                        width: 22, height: 22, borderRadius: 6,
                         flexShrink: 0, background: 'transparent',
                         border: '1px solid var(--line)', color: 'var(--ink-faint)',
                         fontSize: 11, cursor: 'pointer',
@@ -1237,6 +1158,28 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
             >
               + Ajouter une série
             </button>
+            </div>{/* fin contenu carte */}
+
+            {/* Commentaire par exercice — toujours visible (maquette V8.3).
+                Bindé sur ex.comment via updateExerciseComment ; inclus dans le
+                payload de sauvegarde quand présent. */}
+            <div style={{ padding: '0 14px 12px' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px',
+                background: 'var(--bg-raised)', borderRadius: 10, border: '1px solid var(--line)'
+              }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                <input
+                  type="text"
+                  value={ex.comment ?? ''}
+                  onChange={e => updateExerciseComment(exIdx, e.target.value)}
+                  placeholder="Note / commentaire…"
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--ink)', padding: 0 }}
+                />
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -1244,7 +1187,7 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
       {/* Overlay timer de repos — anneau plein écran (V8.3). S'appuie sur la
           logique timestamp V8.2 (restLeft recalculé par syncRestTimers, donc
           continue en arrière-plan). Pause/Stop réutilisent les handlers par-set. */}
-      {activeRest && (() => {
+      {activeRest && !restMinimized && (() => {
         const pct = activeRest.total > 0 ? activeRest.left / activeRest.total : 0
         const R = 54, CIRC = 2 * Math.PI * R
         const mm = String(Math.floor(activeRest.left / 60)).padStart(2, '0')
@@ -1256,6 +1199,23 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
             background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)',
             animation: 'fadeSlide .18s ease',
           }}>
+            {/* Bouton Réduire (option A) : bascule en pastille flottante, le repos continue */}
+            <button
+              onClick={() => setRestMinimized(true)}
+              title="Réduire"
+              aria-label="Réduire le minuteur de repos"
+              style={{
+                position: 'absolute', top: 'calc(16px + env(safe-area-inset-top, 0px))', right: 16,
+                width: 40, height: 40, borderRadius: 10,
+                background: 'var(--bg-panel)', border: '1px solid var(--line)',
+                color: 'var(--ink-dim)', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" />
+              </svg>
+            </button>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-dim)', marginBottom: 22 }}>
               Temps de repos
             </div>
@@ -1302,6 +1262,61 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                 Passer ›
               </button>
             </div>
+          </div>
+        )
+      })()}
+
+      {/* Pastille flottante de repos (option A) : affichée quand l'overlay est
+          réduit. Mini-anneau + temps, tap pour ré-agrandir, bouton Passer rapide. */}
+      {activeRest && restMinimized && (() => {
+        const pct = activeRest.total > 0 ? activeRest.left / activeRest.total : 0
+        const r = 15, circ = 2 * Math.PI * r
+        const mm = String(Math.floor(activeRest.left / 60)).padStart(2, '0')
+        const ss = String(activeRest.left % 60).padStart(2, '0')
+        return (
+          <div
+            onClick={() => setRestMinimized(false)}
+            title="Agrandir le minuteur de repos"
+            style={{
+              position: 'fixed', left: '50%', bottom: 'calc(18px + env(safe-area-inset-bottom, 0px))',
+              transform: 'translateX(-50%)', zIndex: 400, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '8px 10px 8px 8px', borderRadius: 999,
+              background: 'var(--bg-panel)', border: '1px solid rgba(var(--neon-rgb),0.35)',
+              boxShadow: '0 8px 28px -6px rgba(0,0,0,0.55), 0 0 20px rgba(var(--neon-rgb),0.12)',
+            }}
+          >
+            {/* mini-anneau */}
+            <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
+              <svg width="40" height="40" viewBox="0 0 40 40" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="20" cy="20" r={r} fill="none" stroke="var(--line)" strokeWidth="4" />
+                <circle cx="20" cy="20" r={r} fill="none" stroke="var(--neon)" strokeWidth="4"
+                  strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)}
+                  strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s linear' }} />
+              </svg>
+              {activeRest.paused && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--neon)"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, minWidth: 0 }}>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 16, color: 'var(--neon)' }}>{mm}:{ss}</span>
+              <span style={{ fontSize: 10, color: 'var(--ink-faint)' }}>repos</span>
+            </div>
+            {/* Passer (stop) sans agrandir */}
+            <button
+              onClick={(e) => { e.stopPropagation(); stopRestEarly(activeRest!.exIdx, activeRest!.setIdx) }}
+              title="Passer le repos"
+              aria-label="Passer le repos"
+              style={{
+                flexShrink: 0, padding: '6px 12px', borderRadius: 999,
+                background: 'var(--neon-soft)', border: '1px solid rgba(var(--neon-rgb),0.35)',
+                color: 'var(--neon)', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+              }}
+            >
+              Passer ›
+            </button>
           </div>
         )
       })()}

@@ -206,7 +206,7 @@ export default function PageHome({ navigate, onStartWorkout }: PageHomeProps) {
         <div className="home-logo-wrap">
           <LogoMark size={44} />
         </div>
-        <h1 className="home-title">FITNESS<span>TRACKER</span></h1>
+        <h1 className="home-title"><span className="home-title-ft">FITNESS</span><span className="home-title-track">TRACKER</span></h1>
         <p className="home-sub">Ton suivi musculation personnel</p>
       </div>
 

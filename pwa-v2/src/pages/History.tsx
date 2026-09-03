@@ -49,6 +49,16 @@ function formatDuration(minutes?: number): string {
   return `${minutes} min`
 }
 
+// Normalize a name for case/accent-insensitive comparison
+function normName(s?: string): string {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+}
+
+// Volume of a single exercise (sum of weight*reps over its sets)
+function exVolume(ex: { sets: Array<{ weight?: string; reps?: string }> }): number {
+  return (ex.sets || []).reduce((t, st) => t + (parseFloat(st.weight || '0') || 0) * (parseInt(st.reps || '0') || 0), 0)
+}
+
 // ── Mannequin SVG Data (from V1) ──
 const FRONT_PATHS: Record<string, string> = {
   chest_L: 'M272.91 422.84c-18.95-17.19-22-57-12.64-78.79 5.57-12.99 26.54-24.37 39.97-25.87q20.36-2.26 37.02.75c9.74 1.76 16.13 15.64 18.41 25.04 3.99 16.48 3.23 31.38 1.67 48.06q-1.35 14.35-2.05 16.89c-6.52 23.5-38.08 29.23-58.28 24.53-9.12-2.12-17.24-4.38-24.1-10.61z',
@@ -84,8 +94,22 @@ const MAP_FRONT: Record<string, string[]> = {
   'Biceps': ['biceps_L','biceps_R'],
   'Triceps': [],
   'Abdos': ['abs_L1','abs_R1'],
+  'Abdominaux': ['abs_L1','abs_R1'],
+  'Obliques': [],
+  'Lombaires': [],
+  'Avant-bras': [],
+  'Quadriceps': ['quadriceps_L1','quadriceps_R1'],
+  'Ischio-jambiers': [],
+  'Mollets': [],
+  'Adducteurs': [],
+  'Abducteurs': [],
+  'Cuisses': ['quadriceps_L1','quadriceps_R1'],
+  'Ischios': [],
   'Jambes': ['quadriceps_L1','quadriceps_R1'],
   'Fessiers': [],
+  'Grand fessier': [],
+  'Moyen fessier': [],
+  'Petit fessier': [],
   'Dos': ['trapezius_L','trapezius_R']
 }
 
@@ -95,8 +119,22 @@ const MAP_BACK: Record<string, string[]> = {
   'Biceps': [],
   'Triceps': [],
   'Abdos': [],
+  'Abdominaux': [],
+  'Obliques': [],
+  'Lombaires': [],
+  'Avant-bras': [],
+  'Quadriceps': [],
+  'Ischio-jambiers': ['hamstring_L3','hamstring_R1'],
+  'Mollets': [],
+  'Adducteurs': [],
+  'Abducteurs': ['gluteal_L2'],
+  'Cuisses': [],
+  'Ischios': ['hamstring_L3','hamstring_R1'],
   'Jambes': ['hamstring_L3','hamstring_R1'],
   'Fessiers': ['gluteal_L2','gluteal_R2'],
+  'Grand fessier': ['gluteal_L2','gluteal_R2'],
+  'Moyen fessier': ['gluteal_L2','gluteal_R2'],
+  'Petit fessier': ['gluteal_L2','gluteal_R2'],
   'Dos': ['trapezius_L','trapezius_R','upperback_L1','upperback_R1']
 }
 
@@ -267,6 +305,252 @@ export default function PageHistory() {
     const theme = document.documentElement.getAttribute('data-theme') || 'dark'
     exportSessions(selected, theme)
     setSelectedIds([])
+  }
+
+  // Find the sets of the same exercise in the most recent session ANTERIOR to `s`.
+  // Returns null if no earlier session contains an exercise with the same name.
+  function findPrevExerciseSets(s: SessionData, exName: string): Array<{ weight?: string; reps?: string }> | null {
+    const target = normName(exName)
+    const curTime = new Date(s.date).getTime()
+    // sessions are loaded ordered by date desc; filter anterior and sort desc by date
+    const anterior = sessions
+      .filter(o => o.id !== s.id && new Date(o.date).getTime() < curTime)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    for (const o of anterior) {
+      const match = (o.exercises || []).find(ex => normName(ex.name) === target)
+      if (match) return match.sets || []
+    }
+    return null
+  }
+
+  // Individual per-session PDF report (auto-printed A4), ported from Figma V8.3 mockup.
+  function downloadSession(s: SessionData) {
+    const cs = getComputedStyle(document.documentElement)
+    const neon     = cs.getPropertyValue('--neon').trim()
+    const neonRgb  = cs.getPropertyValue('--neon-rgb').trim()
+    const bg       = cs.getPropertyValue('--bg').trim()
+    const bgPanel  = cs.getPropertyValue('--bg-panel').trim()
+    const inkDim   = cs.getPropertyValue('--ink-dim').trim()
+    const ink      = cs.getPropertyValue('--ink').trim()
+    const inkFaint = cs.getPropertyValue('--ink-faint').trim()
+    const line     = cs.getPropertyValue('--line').trim()
+    const themeAttr = document.documentElement.getAttribute('data-theme')
+    const isDark   = !themeAttr || themeAttr === '' || themeAttr === 'dark'
+
+    const exercises = s.exercises || []
+    const totalVol   = sesVol(s)
+    const totalSets  = exercises.reduce((t, ex) => t + (ex.sets || []).length, 0)
+    const exVols     = exercises.map(ex => exVolume(ex))
+    const maxExVol   = Math.max(...(exVols.length ? exVols : [0]))
+    const allWeights = exercises.flatMap(ex => (ex.sets || []).map(st => parseFloat(st.weight || '0') || 0))
+    const maxCharge  = allWeights.length ? Math.max(...allWeights) : 0
+    const dateStr    = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    const printDate  = new Date().toLocaleDateString('fr-FR')
+
+    const logoSvg = `<svg width="56" height="60" viewBox="0 0 64 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="12" y1="26" x2="52" y2="26" stroke="${neon}" stroke-width=".5" opacity=".3"/>
+      <line x1="32" y1="6" x2="32" y2="46" stroke="${neon}" stroke-width=".5" opacity=".3"/>
+      <circle cx="32" cy="26" r="20" stroke="${neon}" stroke-width=".8" opacity=".2"/>
+      <circle cx="32" cy="26" r="14" stroke="${neon}" stroke-width=".9" opacity=".35"/>
+      <circle cx="32" cy="26" r="8" stroke="${neon}" stroke-width="1.1" opacity=".55"/>
+      <circle cx="32" cy="26" r="3.5" stroke="${neon}" stroke-width="1" opacity=".7"/>
+      <path d="M 32 26 L 41.5 8.2 A 20 20 0 0 1 48.6 14.6 Z" fill="${neon}" opacity=".15"/>
+      <line x1="32" y1="26" x2="48" y2="13.5" stroke="${neon}" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="48" cy="13.5" r="2.6" fill="${neon}"/>
+      <circle cx="48" cy="13.5" r="4.5" fill="${neon}" opacity=".2"/>
+      <circle cx="18" cy="18" r="1.6" fill="${neon}" opacity=".6"/>
+      <circle cx="32" cy="26" r="2.2" fill="${neon}"/>
+      <rect x="4" y="55.5" width="56" height="3" rx="1.5" fill="${neon}" opacity=".9"/>
+      <rect x="2" y="45" width="8" height="19" rx="2" fill="${neon}" opacity=".95"/>
+      <rect x="54" y="45" width="8" height="19" rx="2" fill="${neon}" opacity=".95"/>
+      <rect x="11" y="48.5" width="5" height="12" rx="1.4" fill="${neon}" opacity=".7"/>
+      <rect x="48" y="48.5" width="5" height="12" rx="1.4" fill="${neon}" opacity=".7"/>
+      <rect x="17" y="51.5" width="3" height="6" rx=".8" fill="${neon}" opacity=".5"/>
+      <rect x="44" y="51.5" width="3" height="6" rx=".8" fill="${neon}" opacity=".5"/>
+    </svg>`
+
+    // ── Détail des exercices (tableaux de séries) ──
+    const exercisesHtml = exercises.map((ex, idx) => {
+      const exVol   = exVols[idx]
+      const barPct  = maxExVol > 0 ? Math.round((exVol / maxExVol) * 100) : 0
+      const setW    = (ex.sets || []).map(st => parseFloat(st.weight || '0') || 0)
+      const maxSet  = setW.length ? Math.max(...setW) : 0
+      const setsHtml = (ex.sets || []).map((st, i) => {
+        const kg   = parseFloat(st.weight || '0') || 0
+        const reps = parseInt(st.reps || '0') || 0
+        const isTop = kg === maxSet && maxSet > 0
+        return `
+        <td style="padding:10px 14px;text-align:center;vertical-align:middle;border-right:1px solid ${line}">
+          <div style="font-size:9px;color:${inkFaint};text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">S${i + 1}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:${isTop ? neon : ink};line-height:1">${kg > 0 ? kg : 'PDC'}<span style="font-size:11px;font-weight:500;color:${inkFaint}">${kg > 0 ? 'kg' : ''}</span></div>
+          <div style="font-size:12px;color:${inkDim};margin-top:4px;font-weight:600">${reps}<span style="font-size:10px;font-weight:400;color:${inkFaint}"> reps</span></div>
+          ${kg > 0 ? `<div style="margin-top:6px;background:rgba(${neonRgb},0.12);border-radius:4px;padding:3px 6px;font-size:10px;color:${neon};font-weight:700">${kg * reps} kg</div>` : ''}
+        </td>`
+      }).join('')
+
+      return `
+      <div style="margin-bottom:20px;break-inside:avoid">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(${neonRgb},0.15);border:1px solid rgba(${neonRgb},0.3);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:${neon};flex-shrink:0">${idx + 1}</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:16px;color:${ink}">${ex.name}</div>
+            ${ex.muscle ? `<div style="font-size:11px;color:${neon};font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px">${ex.muscle}</div>` : ''}
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:${neon};line-height:1">${formatVolume(exVol)}</div>
+            <div style="font-size:10px;color:${inkFaint};text-transform:uppercase;letter-spacing:.06em">volume</div>
+          </div>
+        </div>
+        <div style="height:4px;background:rgba(${neonRgb},0.1);border-radius:2px;margin-bottom:12px;overflow:hidden">
+          <div style="height:100%;width:${barPct}%;background:linear-gradient(90deg,rgba(${neonRgb},0.5),${neon});border-radius:2px"></div>
+        </div>
+        <div style="border:1px solid ${line};border-radius:12px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+            <tbody><tr>${setsHtml}</tr></tbody>
+          </table>
+        </div>
+      </div>`
+    }).join('')
+
+    // ── Évolution vs séance précédente ──
+    const chartData = exercises.map((ex, idx) => {
+      const curVol = exVols[idx]
+      const prevSets = findPrevExerciseSets(s, ex.name)
+      const prevVol = prevSets ? prevSets.reduce((t, st) => t + (parseFloat(st.weight || '0') || 0) * (parseInt(st.reps || '0') || 0), 0) : 0
+      return { name: ex.name, curVol, prevVol, hasPrev: prevSets !== null && prevVol > 0 }
+    })
+    const maxVol = Math.max(...chartData.map(c => Math.max(c.curVol, c.prevVol)), 1)
+    const chartRows = chartData.map(c => {
+      const delta = c.hasPrev && c.prevVol > 0 ? Math.round(((c.curVol - c.prevVol) / c.prevVol) * 100) : null
+      const curW  = Math.round((c.curVol / maxVol) * 260)
+      const prevW = c.prevVol > 0 ? Math.round((c.prevVol / maxVol) * 260) : 0
+      const deltaColor = delta === null ? inkFaint : delta >= 0 ? neon : '#e05050'
+      const deltaStr   = delta === null ? 'N/A' : delta >= 0 ? `+${delta}%` : `${delta}%`
+      return `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <div style="width:150px;flex-shrink:0">
+            <div style="font-size:12px;font-weight:700;color:${ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
+            <div style="font-size:10px;color:${inkFaint};margin-top:2px">${formatVolume(c.curVol)}</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+            ${c.hasPrev ? `<div style="display:flex;align-items:center;gap:6px">
+              <div style="width:30px;font-size:9px;color:${inkFaint};text-align:right;flex-shrink:0">Préc.</div>
+              <div style="height:10px;background:rgba(${neonRgb},0.15);border-radius:3px;width:${prevW}px;max-width:260px"></div>
+              <div style="font-size:10px;color:${inkFaint}">${formatVolume(c.prevVol)}</div>
+            </div>` : ''}
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:30px;font-size:9px;color:${neon};text-align:right;flex-shrink:0;font-weight:700">Actuel</div>
+              <div style="height:14px;background:linear-gradient(90deg,rgba(${neonRgb},0.6),${neon});border-radius:4px;width:${curW}px;max-width:260px"></div>
+              <div style="font-size:11px;font-weight:700;color:${neon}">${formatVolume(c.curVol)}</div>
+            </div>
+          </div>
+          <div style="width:50px;text-align:right;flex-shrink:0">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:${deltaColor};line-height:1">${deltaStr}</div>
+          </div>
+        </div>`
+    }).join('')
+
+    const statsHtml = [
+      { label: 'Volume total', val: formatVolume(totalVol), sub: `${totalSets} séries` },
+      { label: 'Exercices', val: String(exercises.length), sub: 'groupes musculaires' },
+      { label: 'Charge max', val: `${maxCharge} kg`, sub: 'sur la séance' },
+    ].map((m, i) => `
+      <div style="padding:22px 28px;${i < 2 ? `border-right:1px solid ${line};` : ''}text-align:center">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:34px;color:${neon};line-height:1">${m.val}</div>
+        <div style="font-size:13px;font-weight:700;color:${ink};margin-top:4px">${m.label}</div>
+        <div style="font-size:11px;color:${inkFaint};margin-top:2px">${m.sub}</div>
+      </div>`).join('')
+
+    const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Séance · ${s.name}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:${bg};color:${ink};font-family:'Barlow',sans-serif;font-size:14px}
+  @page{size:A4;margin:0}
+  @media print{
+    body{background:${bg}!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .no-print{display:none!important}
+    .page{page-break-after:always}
+  }
+</style>
+</head>
+<body>
+
+<div class="page" style="width:210mm;min-height:297mm;padding:0;position:relative;overflow:hidden;background:${bg}">
+
+  <div style="background:${isDark ? `linear-gradient(135deg,#0a0d06 0%,rgba(${neonRgb},0.18) 100%)` : `linear-gradient(135deg,rgba(${neonRgb},0.12) 0%,rgba(${neonRgb},0.04) 100%)`};padding:36px 40px 32px;position:relative;overflow:hidden;border-bottom:2px solid rgba(${neonRgb},0.25)">
+    <div style="position:absolute;right:-60px;top:-60px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(${neonRgb},0.18),transparent 65%);pointer-events:none"></div>
+    <div style="position:absolute;right:100px;bottom:-80px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(${neonRgb},0.10),transparent 65%);pointer-events:none"></div>
+
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;position:relative">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          ${logoSvg}
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.06em;color:${ink}">
+              <span style="color:${neon}">FITNESS</span> TRACKER
+            </div>
+            <div style="font-size:10px;color:${inkFaint};letter-spacing:.1em;text-transform:uppercase;margin-top:1px">Performance Report</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:${neon};font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">${dateStr}</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:38px;letter-spacing:.02em;color:${ink};line-height:1;margin-bottom:4px">${s.name}</div>
+        <div style="font-size:13px;color:${inkFaint}">${exercises.length} exercices · ${totalSets} séries au total</div>
+      </div>
+      <div style="background:rgba(${neonRgb},0.12);border:1px solid rgba(${neonRgb},0.3);border-radius:16px;padding:16px 22px;text-align:center;flex-shrink:0">
+        <div style="font-size:10px;color:${inkFaint};text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Durée</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:${neon};line-height:1">${formatDuration(s.duration)}</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-bottom:1px solid ${line}">
+    ${statsHtml}
+  </div>
+
+  <div style="padding:28px 40px">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:${inkFaint};margin-bottom:20px;display:flex;align-items:center;gap:10px">
+      <span>Détail des exercices</span>
+      <div style="flex:1;height:1px;background:${line}"></div>
+    </div>
+    ${exercisesHtml || `<div style="font-size:13px;color:${inkFaint}">Aucun exercice enregistré</div>`}
+  </div>
+
+  ${chartData.length ? `<div style="margin-top:28px;padding:0 40px 40px;break-inside:avoid">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:${inkFaint};margin-bottom:18px;display:flex;align-items:center;gap:10px">
+      <span>Évolution vs séance précédente</span>
+      <div style="flex:1;height:1px;background:${line}"></div>
+    </div>
+    <div style="background:${bgPanel};border:1px solid ${line};border-radius:14px;padding:20px 22px">
+      ${chartRows}
+      <div style="display:flex;gap:20px;margin-top:16px;padding-top:14px;border-top:1px solid ${line}">
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:20px;height:8px;border-radius:2px;background:rgba(${neonRgb},0.2)"></div><span style="font-size:10px;color:${inkFaint}">Séance précédente</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:20px;height:10px;border-radius:2px;background:${neon}"></div><span style="font-size:10px;color:${inkFaint}">Cette séance</span></div>
+      </div>
+    </div>
+  </div>` : ''}
+
+  <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 40px;border-top:1px solid ${line};display:flex;align-items:center;justify-content:space-between;background:${bgPanel}">
+    <div style="font-size:10px;color:${inkFaint}">Généré par <strong style="color:${neon}">FITNESS TRACKER</strong> · ${printDate}</div>
+    <div style="font-size:10px;color:${inkFaint}">Confidentiel · Usage personnel</div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', () => setTimeout(() => window.print(), 600))
+</script>
+</body>
+</html>`
+
+    const w = window.open('', '_blank')
+    if (w) { w.document.write(html); w.document.close() }
   }
 
   // Build month options from sessions
@@ -446,32 +730,93 @@ export default function PageHistory() {
                 {(s.exercises || []).length === 0 ? (
                   <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>Aucun exercice enregistré</div>
                 ) : (
-                  (s.exercises || []).map((ex, idx) => (
-                    <div key={idx} style={{ marginBottom: idx < (s.exercises || []).length - 1 ? 10 : 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>{ex.name}</div>
-                      {ex.comment && (
-                        <div style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--ink-faint)', marginBottom: 4 }}>
-                          {ex.comment}
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {(ex.sets || []).map((st, si) => (
-                          <span key={si} style={{
-                            fontSize: 11,
-                            background: 'var(--bg)',
-                            border: '1px solid var(--line)',
-                            borderRadius: 6,
-                            padding: '2px 8px',
-                            color: 'var(--ink-faint)',
-                          }}>
-                            {(st.weightR != null && st.weightR !== '') || (st.repsR != null && st.repsR !== '') || (st.durationR != null && st.durationR !== '')
-                              ? `G ${st.weight || '0'}kg×${st.duration ? `${st.duration}s` : (st.reps || '?')} · D ${st.weightR || '0'}kg×${st.durationR ? `${st.durationR}s` : (st.repsR || '?')}`
-                              : st.weight ? `${st.weight}kg × ${st.reps || '?'}` : st.duration ? `${st.duration}s` : `Set ${si + 1}`}
-                          </span>
-                        ))}
-                      </div>
+                  <>
+                    {/* Barre d'action : nb exercices + Télécharger */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--line)',
+                    }}>
+                      <span style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 600 }}>
+                        {(s.exercises || []).length} exercice{(s.exercises || []).length > 1 ? 's' : ''} réalisé{(s.exercises || []).length > 1 ? 's' : ''}
+                      </span>
+                      <button
+                        className="btn-primary btn-sm"
+                        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                        onClick={(e) => { e.stopPropagation(); downloadSession(s) }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Télécharger
+                      </button>
                     </div>
-                  ))
+
+                    {/* Liste des exercices */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      {(s.exercises || []).map((ex, idx) => {
+                        const exVol = exVolume(ex)
+                        return (
+                          <div key={idx}>
+                            {/* en-tête exercice */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{ex.name}</div>
+                                {ex.muscle && (
+                                  <div style={{ fontSize: 11, color: 'var(--neon)', fontWeight: 700, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ex.muscle}</div>
+                                )}
+                                {ex.comment && (
+                                  <div style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--ink-faint)', marginTop: 3 }}>{ex.comment}</div>
+                                )}
+                              </div>
+                              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--neon)', lineHeight: 1 }}>{formatVolume(exVol)}</div>
+                                <div style={{ fontSize: 10, color: 'var(--ink-faint)', marginTop: 2 }}>volume total</div>
+                              </div>
+                            </div>
+
+                            {/* cartes de séries */}
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                              {(ex.sets || []).map((st, si) => {
+                                const kg   = parseFloat(st.weight || '0') || 0
+                                const reps = parseInt(st.reps || '0') || 0
+                                const isUnilat = (st.weightR != null && st.weightR !== '') || (st.repsR != null && st.repsR !== '') || (st.durationR != null && st.durationR !== '')
+                                const kgR   = parseFloat(st.weightR || '0') || 0
+                                const repsR = parseInt(st.repsR || '0') || 0
+                                return (
+                                  <div key={si} style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', minWidth: 80, textAlign: 'center' }}>
+                                    <div style={{ fontSize: 9, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Sér. {si + 1}</div>
+                                    {isUnilat ? (
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>
+                                          G {kg > 0 ? `${kg} kg` : 'PDC'} × {st.durationR != null && st.duration ? `${st.duration}s` : reps}
+                                        </div>
+                                        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>
+                                          D {kgR > 0 ? `${kgR} kg` : 'PDC'} × {st.durationR ? `${st.durationR}s` : repsR}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 20, color: 'var(--ink)', lineHeight: 1 }}>
+                                          {kg > 0 ? kg : 'PDC'}<span style={{ fontSize: 11, fontWeight: 400, color: 'var(--ink-faint)' }}>{kg > 0 ? ' kg' : ''}</span>
+                                        </div>
+                                        <div style={{ fontSize: 12, color: 'var(--ink-dim)', marginTop: 3, fontWeight: 600 }}>
+                                          {st.duration ? `${st.duration}s` : `${reps} reps`}
+                                        </div>
+                                        {kg > 0 && (
+                                          <div style={{ fontSize: 10, color: 'var(--ink-faint)', marginTop: 3, borderTop: '1px solid var(--line)', paddingTop: 4 }}>= {kg * reps} kg</div>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+
+                            {/* séparateur entre exercices */}
+                            {idx < (s.exercises || []).length - 1 && <div style={{ height: 1, background: 'var(--line)', marginTop: 16 }} />}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
                 )}
 
                 {/* Session notes / comment (Req 12.1, 12.4) */}

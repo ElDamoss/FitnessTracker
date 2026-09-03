@@ -155,12 +155,12 @@ export default function ModalNewProgram({
 
   const updateEx = (
     exName: string,
-    field: 'sets' | 'reps' | 'mode' | 'time' | 'rpeEnabled' | 'rpe',
+    field: 'sets' | 'reps' | 'mode' | 'time' | 'rpeEnabled' | 'rpe' | 'rest',
     val: string | number | boolean
   ) => {
     if (!editingDay) return
-    // maquette 'reps' maps to prod 'repsTarget'
-    const prodField = field === 'reps' ? 'repsTarget' : field
+    // maquette 'reps' -> prod 'repsTarget' ; 'rest' -> prod 'restSec'
+    const prodField = field === 'reps' ? 'repsTarget' : field === 'rest' ? 'restSec' : field
     updateDay({
       ...editingDay,
       exercises: editingDay.exercises.map(e => e.name === exName ? { ...e, [prodField]: val } : e),
@@ -264,7 +264,27 @@ export default function ModalNewProgram({
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--ink-faint)')}
         >✕</button>
       </div>
-      {/* ligne 2 : RPE */}
+      {/* ligne 2a : temps de repos entre séries (aligné maquette V8.3) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 14px 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 15" />
+          </svg>
+          <input
+            type="number" min={0} max={600}
+            value={ex.restSec ?? 90}
+            onChange={e => updateEx(ex.name, 'rest', parseInt(e.target.value) || 0)}
+            style={{
+              width: 56, textAlign: 'center', padding: '4px 6px', fontSize: 13, fontWeight: 700,
+              borderRadius: 8, border: '1px solid var(--line)', background: 'var(--bg-panel)',
+              color: 'var(--ink)', fontFamily: "'JetBrains Mono', monospace",
+            }}
+          />
+          <span style={{ fontSize: 11, color: 'var(--ink-faint)' }}>s repos</span>
+        </div>
+      </div>
+
+      {/* ligne 2b : RPE */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 14px 12px' }}>
         <div onClick={() => updateEx(ex.name, 'rpeEnabled', !ex.rpeEnabled)} style={{
           display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', userSelect: 'none',

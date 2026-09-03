@@ -111,9 +111,25 @@ const MAP_FRONT: Record<string, string[]> = {
   'Épaules': ['deltoids_L','deltoids_R'],
   'Biceps': ['biceps_L','biceps_R','forearm_L','forearm_R'],
   'Triceps': ['triceps_L','triceps_R'],
+  'Avant-bras': ['forearm_L','forearm_R'],
   'Abdos': ['abs_L1','abs_R1','abs_L2','abs_R2','abs_L3','abs_R3','abs_L4','abs_R4','obliques_L1','obliques_L2','obliques_L3','obliques_R1','obliques_R2','obliques_R3'],
+  'Abdominaux': ['abs_L1','abs_R1','abs_L2','abs_R2','abs_L3','abs_R3','abs_L4','abs_R4'],
+  'Obliques': ['obliques_L1','obliques_L2','obliques_L3','obliques_R1','obliques_R2','obliques_R3'],
+  'Lombaires': [],
+  // Jambes détaillées (V8.3)
+  'Quadriceps': ['quadriceps_L1','quadriceps_L2','quadriceps_L3','quadriceps_R1','quadriceps_R2','quadriceps_R3'],
+  'Ischio-jambiers': [],
+  'Mollets': ['calves_L1','calves_L2','calves_R1','calves_R2','tibialis_L','tibialis_R'],
+  'Adducteurs': ['adductors_L','adductors_R'],
+  'Abducteurs': [],
+  // Fallbacks legacy
+  'Cuisses': ['quadriceps_L1','quadriceps_L2','quadriceps_L3','quadriceps_R1','quadriceps_R2','quadriceps_R3','adductors_L','adductors_R'],
+  'Ischios': [],
   'Jambes': ['quadriceps_L1','quadriceps_L2','quadriceps_L3','quadriceps_R1','quadriceps_R2','quadriceps_R3','adductors_L','adductors_R','calves_L1','calves_L2','calves_R1','calves_R2','tibialis_L','tibialis_R'],
   'Fessiers': [],
+  'Grand fessier': [],
+  'Moyen fessier': [],
+  'Petit fessier': [],
   'Dos': ['trapezius_L','trapezius_R'],
 }
 
@@ -122,9 +138,25 @@ const MAP_BACK: Record<string, string[]> = {
   'Épaules': ['deltoids_L','deltoids_R'],
   'Biceps': [],
   'Triceps': ['triceps_L1','triceps_L2','triceps_L3','triceps_R1','triceps_R2','triceps_R3','forearm_L1','forearm_L2','forearm_L3','forearm_L4','forearm_R1','forearm_R2','forearm_R3','forearm_R4'],
+  'Avant-bras': ['forearm_L1','forearm_L2','forearm_L3','forearm_L4','forearm_R1','forearm_R2','forearm_R3','forearm_R4'],
   'Abdos': [],
+  'Abdominaux': [],
+  'Obliques': [],
+  'Lombaires': ['lowerback_L1','lowerback_L2','lowerback_R1','lowerback_R2'],
+  // Jambes détaillées (V8.3)
+  'Quadriceps': [],
+  'Ischio-jambiers': ['hamstring_L1','hamstring_L2','hamstring_L3','hamstring_L4','hamstring_R1','hamstring_R2','hamstring_R3','hamstring_R4'],
+  'Mollets': ['calves_L1','calves_L2','calves_L3','calves_L4','calves_R1','calves_R2','calves_R3','calves_R4'],
+  'Adducteurs': [],
+  'Abducteurs': ['gluteal_L1','gluteal_R1'],
+  // Fallbacks legacy
+  'Cuisses': [],
+  'Ischios': ['hamstring_L1','hamstring_L2','hamstring_L3','hamstring_L4','hamstring_R1','hamstring_R2','hamstring_R3','hamstring_R4'],
   'Jambes': ['hamstring_L1','hamstring_L2','hamstring_L3','hamstring_L4','hamstring_R1','hamstring_R2','hamstring_R3','hamstring_R4','calves_L1','calves_L2','calves_L3','calves_L4','calves_R1','calves_R2','calves_R3','calves_R4'],
   'Fessiers': ['gluteal_L1','gluteal_L2','gluteal_R1','gluteal_R2'],
+  'Grand fessier': ['gluteal_L2','gluteal_R2'],
+  'Moyen fessier': ['gluteal_L1','gluteal_R1'],
+  'Petit fessier': ['gluteal_L1','gluteal_R1'],
   'Dos': ['trapezius_L','trapezius_R','upperback_L1','upperback_L2','upperback_L3','upperback_R1','upperback_R2','upperback_R3','lowerback_L1','lowerback_L2','lowerback_R1','lowerback_R2'],
 }
 
