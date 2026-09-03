@@ -14,7 +14,8 @@ interface SessionData {
     muscle?: string
     comment?: string
     measurementType?: 'reps' | 'seconds'
-    sets: Array<{ weight?: string; reps?: string; duration?: string; rpe?: string }>
+    unilateral?: boolean
+    sets: Array<{ weight?: string; reps?: string; duration?: string; rpe?: string; weightR?: string; repsR?: string; durationR?: string }>
   }>
   duration?: number
   calories?: number
@@ -463,7 +464,9 @@ export default function PageHistory() {
                             padding: '2px 8px',
                             color: 'var(--ink-faint)',
                           }}>
-                            {st.weight ? `${st.weight}kg × ${st.reps || '?'}` : st.duration ? `${st.duration}s` : `Set ${si + 1}`}
+                            {(st.weightR != null && st.weightR !== '') || (st.repsR != null && st.repsR !== '') || (st.durationR != null && st.durationR !== '')
+                              ? `G ${st.weight || '0'}kg×${st.duration ? `${st.duration}s` : (st.reps || '?')} · D ${st.weightR || '0'}kg×${st.durationR ? `${st.durationR}s` : (st.repsR || '?')}`
+                              : st.weight ? `${st.weight}kg × ${st.reps || '?'}` : st.duration ? `${st.duration}s` : `Set ${si + 1}`}
                           </span>
                         ))}
                       </div>

@@ -12,6 +12,12 @@ export interface WorkoutSet {
   restPaused: boolean
   restEndTs?: number     // timestamp (ms) de fin du repos ; source de vérité pour
                          // recalculer restLeft même après mise en arrière-plan (Point 2 V8.2)
+  restTotal?: number     // durée totale du repos (s), pour l'anneau de progression (V8.3)
+  // Côté DROIT pour les exercices unilatéraux (V8.3). weight/reps/duration
+  // ci-dessus servent alors au côté GAUCHE. Ignorés si l'exo n'est pas unilatéral.
+  weightR?: string
+  repsR?: string
+  durationR?: string
 }
 
 export interface WorkoutExercise {
@@ -23,6 +29,7 @@ export interface WorkoutExercise {
   tempo?: string                        // free text from program exercise
   rpeEnabled?: boolean                  // drives conditional RPE input display (§4)
   comment?: string                      // per-exercise note
+  unilateral?: boolean                  // saisie gauche/droite séparée (V8.3)
   sets: WorkoutSet[]
 }
 
@@ -31,6 +38,11 @@ export interface UsualWeightRow {
   weight: string
   reps?: string
   duration?: string
+  // Côté droit (exercices unilatéraux, V8.3) — présents seulement si l'historique
+  // a été enregistré en unilatéral.
+  weightR?: string
+  repsR?: string
+  durationR?: string
 }
 
 // A row from the exercise library (`exercises` table) used by the swap picker (Req 7)
@@ -65,6 +77,7 @@ function normalizeExercises(exercises: WorkoutExercise[]): WorkoutExercise[] {
     measurementType: ex.measurementType === 'seconds' ? 'seconds' : 'reps',
     tempo: ex.tempo,
     comment: ex.comment,
+    unilateral: ex.unilateral ?? false,
     sets: (ex.sets ?? []).map(set => ({
       weight: set.weight ?? '',
       reps: set.reps ?? '',
@@ -74,6 +87,10 @@ function normalizeExercises(exercises: WorkoutExercise[]): WorkoutExercise[] {
       restLeft: set.restLeft ?? 0,
       restPaused: set.restPaused ?? false,
       restEndTs: set.restEndTs,
+      restTotal: set.restTotal,
+      weightR: set.weightR ?? '',
+      repsR: set.repsR ?? '',
+      durationR: set.durationR ?? '',
     })),
   }))
 }
@@ -118,7 +135,7 @@ export async function queryUsualWeights(name: string): Promise<UsualWeightRow[]>
     // normalisée (casse/accents/espaces) pour éviter les faux "aucun
     // historique" sur certaines machines (Point 3 V8.2).
     const target = normalizeName(name)
-    for (const s of (data ?? []) as { date: string; exercises?: { name?: string; sets?: { weight?: string; reps?: string; duration?: string }[] }[] }[]) {
+    for (const s of (data ?? []) as { date: string; exercises?: { name?: string; sets?: { weight?: string; reps?: string; duration?: string; weightR?: string; repsR?: string; durationR?: string }[] }[] }[]) {
       const match = (s.exercises ?? []).find(ex => normalizeName(ex.name ?? '') === target)   // keyed on current exercise NAME (Req 3.2)
       if (match) {
         return (match.sets ?? []).map(st => ({
@@ -126,6 +143,9 @@ export async function queryUsualWeights(name: string): Promise<UsualWeightRow[]>
           weight: st.weight ?? '',
           reps: st.reps,
           duration: st.duration,
+          weightR: st.weightR,
+          repsR: st.repsR,
+          durationR: st.durationR,
         }))
       }
     }
@@ -226,6 +246,7 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
       set.restLeft = restSec
       set.restPaused = false
       set.restEndTs = Date.now() + restSec * 1000
+      set.restTotal = restSec
       return next
     })
   }
@@ -302,7 +323,9 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
   }, [syncRestTimers])
 
   // ── Set actions ────────────────────────────────────────────────────────
-  function updateSet(exIdx: number, setIdx: number, field: 'weight' | 'reps' | 'duration' | 'rpe', value: string) {
+  type SetField = 'weight' | 'reps' | 'duration' | 'rpe' | 'weightR' | 'repsR' | 'durationR'
+
+  function updateSet(exIdx: number, setIdx: number, field: SetField, value: string) {
     setExercises(prev => {
       const next = structuredClone(prev)
       next[exIdx].sets[setIdx][field] = value
@@ -310,12 +333,22 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
     })
   }
 
-  function adjustValue(exIdx: number, setIdx: number, field: 'weight' | 'reps' | 'duration', delta: number) {
+  function adjustValue(exIdx: number, setIdx: number, field: 'weight' | 'reps' | 'duration' | 'weightR' | 'repsR' | 'durationR', delta: number) {
     setExercises(prev => {
       const next = structuredClone(prev)
-      const current = parseFloat(next[exIdx].sets[setIdx][field]) || 0
+      const current = parseFloat(next[exIdx].sets[setIdx][field] || '') || 0
       const newVal = Math.max(0, current + delta)
-      next[exIdx].sets[setIdx][field] = field === 'weight' ? newVal.toString() : Math.round(newVal).toString()
+      const isWeight = field === 'weight' || field === 'weightR'
+      next[exIdx].sets[setIdx][field] = isWeight ? newVal.toString() : Math.round(newVal).toString()
+      return next
+    })
+  }
+
+  // Bascule l'exercice en unilatéral (saisie G/D) pour la séance courante (V8.3).
+  function toggleUnilateral(exIdx: number) {
+    setExercises(prev => {
+      const next = structuredClone(prev)
+      next[exIdx].unilateral = !next[exIdx].unilateral
       return next
     })
   }
@@ -521,11 +554,19 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
           muscle: ex.muscle,
           measurementType: ex.measurementType,
           ...(ex.comment ? { comment: ex.comment } : {}),
-          sets: ex.sets.filter(s => s.done).map(s => (
-            ex.measurementType === 'seconds'
+          ...(ex.unilateral ? { unilateral: true } : {}),
+          sets: ex.sets.filter(s => s.done).map(s => {
+            // Champs de base (côté gauche si unilatéral, sinon valeur unique)
+            const base = ex.measurementType === 'seconds'
               ? { weight: s.weight, duration: s.duration, rpe: s.rpe || '' }
               : { weight: s.weight, reps: s.reps, rpe: s.rpe || '' }
-          ))
+            if (!ex.unilateral) return base
+            // Ajoute le côté droit pour l'historique/récap (V8.3)
+            const right = ex.measurementType === 'seconds'
+              ? { weightR: s.weightR || '', durationR: s.durationR || '' }
+              : { weightR: s.weightR || '', repsR: s.repsR || '' }
+            return { ...base, ...right }
+          })
         }))
       }
 
@@ -546,6 +587,21 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
   function handleDiscard() {
     localStorage.removeItem(STORAGE_KEY)
     setWorkout(null)
+  }
+
+  // ── Repos actif (pour l'overlay anneau V8.3) ──────────────────────────
+  // On ne gère qu'un repos à la fois : on prend le premier set en cours de
+  // repos (restLeft > 0). Renvoie ses index + total pour l'anneau.
+  let activeRest: { exIdx: number; setIdx: number; exName: string; left: number; total: number; paused: boolean } | null = null
+  for (let ei = 0; ei < exercises.length && !activeRest; ei++) {
+    const ex = exercises[ei]
+    for (let si = 0; si < ex.sets.length; si++) {
+      const s = ex.sets[si]
+      if (s.restLeft > 0) {
+        activeRest = { exIdx: ei, setIdx: si, exName: ex.name, left: s.restLeft, total: s.restTotal || ex.restSec || s.restLeft, paused: s.restPaused }
+        break
+      }
+    }
   }
 
   // ── Computed stats ─────────────────────────────────────────────────────
@@ -677,6 +733,23 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                   </button>
                 ))}
               </div>
+
+              {/* Toggle Unilatéral — saisie gauche/droite séparée (V8.3) */}
+              <button
+                onClick={() => toggleUnilateral(exIdx)}
+                title="Exercice unilatéral (gauche / droite)"
+                aria-label="Unilatéral"
+                style={{
+                  padding: '4px 10px', borderRadius: 7, flexShrink: 0,
+                  fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                  cursor: 'pointer', transition: 'all .15s',
+                  background: ex.unilateral ? 'var(--neon)' : 'transparent',
+                  border: `1px solid ${ex.unilateral ? 'var(--neon)' : 'var(--line)'}`,
+                  color: ex.unilateral ? '#0a0c0f' : 'var(--ink-faint)'
+                }}
+              >
+                Unilat.
+              </button>
 
               <span style={{ flex: 1 }} />
 
@@ -882,25 +955,38 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                     }}>
                       Séance du {usualRows[0].date}
                     </div>
-                    {usualRows.map((row, i) => (
-                      <div key={i} style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        fontSize: 12, color: 'var(--ink-dim)',
-                        padding: '3px 0',
-                        borderTop: i > 0 ? '1px solid var(--line-soft)' : 'none'
-                      }}>
-                        <span style={{
-                          fontFamily: "'JetBrains Mono', monospace",
-                          fontWeight: 700, color: 'var(--ink)'
+                    {usualRows.map((row, i) => {
+                      const isUni = (row.weightR != null && row.weightR !== '') || (row.repsR != null && row.repsR !== '') || (row.durationR != null && row.durationR !== '')
+                      const fmtSide = (w?: string, reps?: string, dur?: string) =>
+                        `${w || '0'} kg × ${dur ? `${dur}s` : `${reps ?? '0'} reps`}`
+                      return (
+                        <div key={i} style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          fontSize: 12, color: 'var(--ink-dim)',
+                          padding: '3px 0',
+                          borderTop: i > 0 ? '1px solid var(--line-soft)' : 'none'
                         }}>
-                          {row.weight || '0'} kg
-                        </span>
-                        <span style={{ color: 'var(--ink-faint)' }}>×</span>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                          {row.duration ? `${row.duration}s` : `${row.reps ?? '0'} reps`}
-                        </span>
-                      </div>
-                    ))}
+                          {isUni ? (
+                            <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                              <span style={{ color: 'var(--ink-faint)' }}>G </span>
+                              <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{fmtSide(row.weight, row.reps, row.duration)}</span>
+                              <span style={{ color: 'var(--ink-faint)' }}>  ·  D </span>
+                              <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{fmtSide(row.weightR, row.repsR, row.durationR)}</span>
+                            </span>
+                          ) : (
+                            <>
+                              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: 'var(--ink)' }}>
+                                {row.weight || '0'} kg
+                              </span>
+                              <span style={{ color: 'var(--ink-faint)' }}>×</span>
+                              <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                                {row.duration ? `${row.duration}s` : `${row.reps ?? '0'} reps`}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -925,7 +1011,43 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                     {setIdx + 1}
                   </div>
 
+                  {/* Unilatéral (V8.3) : deux blocs compacts Gauche / Droite,
+                      chacun avec kg + reps/sec. weight/reps = gauche, weightR/repsR = droite. */}
+                  {ex.unilateral && (
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {([
+                        { side: 'G', wField: 'weight' as const, vField: ex.measurementType === 'seconds' ? 'duration' as const : 'reps' as const, wVal: set.weight, vVal: ex.measurementType === 'seconds' ? set.duration : set.reps },
+                        { side: 'D', wField: 'weightR' as const, vField: ex.measurementType === 'seconds' ? 'durationR' as const : 'repsR' as const, wVal: set.weightR ?? '', vVal: ex.measurementType === 'seconds' ? (set.durationR ?? '') : (set.repsR ?? '') },
+                      ]).map(col => (
+                        <div key={col.side} style={{ flex: 1, background: 'var(--neon-soft)', borderRadius: 8, padding: '6px 8px' }}>
+                          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--neon)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>
+                            {col.side === 'G' ? 'Gauche' : 'Droite'}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <input
+                              type="number" inputMode="decimal" value={col.wVal}
+                              onChange={e => updateSet(exIdx, setIdx, col.wField, e.target.value)}
+                              placeholder="0"
+                              style={{ width: 46, textAlign: 'center', padding: '5px 2px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: 'var(--bg-raised)', border: '1px solid var(--line)', fontFamily: "'JetBrains Mono', monospace" }}
+                            />
+                            <span style={{ fontSize: 9, color: 'var(--ink-faint)' }}>kg</span>
+                            <span style={{ color: 'var(--line)', fontSize: 13 }}>×</span>
+                            <input
+                              type="number" inputMode="numeric" value={col.vVal}
+                              onChange={e => updateSet(exIdx, setIdx, col.vField, e.target.value)}
+                              placeholder="0"
+                              style={{ width: 40, textAlign: 'center', padding: '5px 2px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: 'var(--bg-raised)', border: '1px solid var(--line)', fontFamily: "'JetBrains Mono', monospace" }}
+                            />
+                            <span style={{ fontSize: 9, color: 'var(--ink-faint)' }}>{ex.measurementType === 'seconds' ? 's' : 'reps'}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Weight */}
+                  {!ex.unilateral && (
+                  <>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <button
                       onClick={() => adjustValue(exIdx, setIdx, 'weight', -2.5)}
@@ -1034,6 +1156,8 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                       <span style={{ fontSize: 10, color: 'var(--ink-faint)', marginLeft: 2 }}>reps</span>
                     </div>
                   )}
+                  </>
+                  )}
 
                   {/* RPE input — only rendered when the exercise has RPE enabled
                       (Req 4.2/4.3). When rpeEnabled is false/undefined it is not
@@ -1093,51 +1217,8 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
                   )}
                 </div>
 
-                {/* Rest timer */}
-                {set.done && set.restLeft > 0 && (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '8px 12px', marginTop: 4, marginBottom: 4,
-                    background: 'var(--neon-soft)', borderRadius: 8
-                  }}>
-                    <span style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 18, fontWeight: 700, color: 'var(--neon)'
-                    }}>
-                      {formatTime(set.restLeft)}
-                    </span>
-                    <span style={{ fontSize: 11, color: 'var(--ink-dim)' }}>repos</span>
-                    <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-                      <button
-                        onClick={() => toggleRestPause(exIdx, setIdx)}
-                        title={set.restPaused ? 'Reprendre le repos' : 'Mettre en pause'}
-                        aria-label={set.restPaused ? 'Reprendre le repos' : 'Mettre en pause'}
-                        style={{
-                          padding: '4px 10px', borderRadius: 6,
-                          background: 'var(--bg-raised)', border: '1px solid var(--line)',
-                          color: 'var(--ink)', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}
-                      >
-                        {set.restPaused ? (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z" /></svg>
-                        ) : (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => stopRestEarly(exIdx, setIdx)}
-                        style={{
-                          padding: '4px 10px', borderRadius: 6,
-                          background: 'rgba(240,68,68,0.1)', border: '1px solid rgba(240,68,68,0.2)',
-                          fontSize: 11, color: 'var(--danger)', cursor: 'pointer'
-                        }}
-                      >
-                        Stop
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {/* Le décompte de repos s'affiche désormais dans un overlay
+                    plein écran avec anneau (V8.3), rendu au niveau du composant. */}
               </div>
             ))}
 
@@ -1159,6 +1240,71 @@ export default function WorkoutScreen({ workout, setWorkout, onMinimize }: Worko
           </div>
         ))}
       </div>
+
+      {/* Overlay timer de repos — anneau plein écran (V8.3). S'appuie sur la
+          logique timestamp V8.2 (restLeft recalculé par syncRestTimers, donc
+          continue en arrière-plan). Pause/Stop réutilisent les handlers par-set. */}
+      {activeRest && (() => {
+        const pct = activeRest.total > 0 ? activeRest.left / activeRest.total : 0
+        const R = 54, CIRC = 2 * Math.PI * R
+        const mm = String(Math.floor(activeRest.left / 60)).padStart(2, '0')
+        const ss = String(activeRest.left % 60).padStart(2, '0')
+        return (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 400,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)',
+            animation: 'fadeSlide .18s ease',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-dim)', marginBottom: 22 }}>
+              Temps de repos
+            </div>
+            <div style={{ position: 'relative', width: 160, height: 160, marginBottom: 26 }}>
+              <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="80" cy="80" r={R} fill="none" stroke="rgba(255,255,255,0.09)" strokeWidth="9" />
+                <circle cx="80" cy="80" r={R} fill="none" stroke="var(--neon)" strokeWidth="9"
+                  strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - pct)}
+                  strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s linear' }} />
+              </svg>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 40, color: 'var(--ink)', lineHeight: 1 }}>
+                  {mm}:{ss}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 6, maxWidth: 140, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {activeRest.exName}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => toggleRestPause(activeRest!.exIdx, activeRest!.setIdx)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '11px 24px', borderRadius: 12,
+                  background: 'var(--bg-panel)', border: '1px solid var(--line)',
+                  color: 'var(--ink)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                {activeRest.paused ? (
+                  <><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z" /></svg> Reprendre</>
+                ) : (
+                  <><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg> Pause</>
+                )}
+              </button>
+              <button
+                onClick={() => stopRestEarly(activeRest!.exIdx, activeRest!.setIdx)}
+                style={{
+                  padding: '11px 28px', borderRadius: 12,
+                  background: 'var(--bg-panel)', border: '1px solid rgba(var(--neon-rgb),0.35)',
+                  color: 'var(--neon)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                Passer ›
+              </button>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Swap-from-library picker modal (Req 7.2) */}
       {swapOpen !== null && (

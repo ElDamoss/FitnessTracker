@@ -62,49 +62,66 @@
 /* ===== MODE STITCH (bleu sombre, aligné maquette) ===== */
 [data-theme="stitch"] {
   --bg: #060c14;
-  --bg-panel: #0c1624;
-  --bg-raised: #121f30;
-  --line: rgba(80,160,255,0.08);
-  --line-soft: rgba(80,160,255,0.04);
-  --ink: #d8e8ff;
-  --ink-dim: #7aaad4;
-  --ink-faint: #3a5a7a;
-  --neon-rgb: 79,179,255;
-  --neon: #4fb3ff;
-  --neon-soft: rgba(79,179,255,0.12);
-  --green: #4fb3ff;
-  --green-soft: rgba(79,179,255,0.1);
-  --danger: #ff5060;
+  --bg-panel: #ffffff;
+  --bg-raised: #eef3ff;
+  --line: rgba(0,80,220,0.10);
+  --line-soft: rgba(0,80,220,0.05);
+  --ink: #060e28;
+  --ink-dim: #1a3070;
+  --ink-faint: #5060a0;
+  --neon-rgb: 0,90,255;
+  --neon: #005aff;
+  --neon-soft: rgba(0,90,255,0.14);
+  --green: #005aff;
+  --green-soft: rgba(0,90,255,0.10);
+  --danger: #d93030;
+  --warn: #c47a00;
 }
 
-/* ===== MODE GIRLY (egirl rose sombre, aligné maquette) ===== */
+/* ===== MODE GIRLY (egirl rose fuchsia clair, aligné maquette V8.3) ===== */
 [data-theme="girly"] {
-  --bg: #0f0810;
-  --bg-panel: #1a0f1e;
-  --bg-raised: #221528;
-  --line: rgba(255,100,200,0.08);
-  --line-soft: rgba(255,100,200,0.04);
-  --ink: #f5dff8;
-  --ink-dim: #c084d0;
-  --ink-faint: #7a4a82;
-  --neon-rgb: 255,110,199;
-  --neon: #ff6ec7;
-  --neon-soft: rgba(255,110,199,0.12);
-  --green: #ff6ec7;
-  --green-soft: rgba(255,110,199,0.1);
-  --danger: #ff4466;
+  --bg: #fdf5fb;
+  --bg-panel: #ffffff;
+  --bg-raised: #fff0f9;
+  --line: rgba(200,0,140,0.10);
+  --line-soft: rgba(200,0,140,0.05);
+  --ink: #1a0612;
+  --ink-dim: #5a1840;
+  --ink-faint: #9a5080;
+  --neon-rgb: 224,0,150;
+  --neon: #e00096;
+  --neon-soft: rgba(224,0,150,0.14);
+  --green: #e00096;
+  --green-soft: rgba(224,0,150,0.10);
+  --danger: #cc0033;
+  --warn: #c47a00;
 }
 
-/* Theme button adjustments (light est le seul thème clair ; stitch/girly sont sombres comme la maquette) */
-[data-theme="light"] .btn-primary { color: #fff; }
+/* Theme button adjustments — light, stitch et girly sont des thèmes CLAIRS
+   (aligné maquette V8.3) : texte blanc sur les surfaces d'accent. */
+[data-theme="light"] .btn-primary,
+[data-theme="stitch"] .btn-primary,
+[data-theme="girly"] .btn-primary { color: #fff; }
 
 [data-theme="light"] .user-avatar { background: linear-gradient(135deg, var(--neon), #1a8a40); }
+[data-theme="stitch"] .user-avatar,
+[data-theme="girly"] .user-avatar { background: linear-gradient(135deg, var(--neon), var(--neon)); color: #fff; }
 
-[data-theme="light"] .home-day-bubble.active { color: #fff; }
+[data-theme="light"] .home-day-bubble.active,
+[data-theme="stitch"] .home-day-bubble.active,
+[data-theme="girly"] .home-day-bubble.active { color: #fff; }
 
-[data-theme="light"] .chip.active { color: #fff; }
+[data-theme="light"] .chip.active,
+[data-theme="stitch"] .chip.active,
+[data-theme="girly"] .chip.active { color: #fff; }
 
-[data-theme="light"] .toast.success { color: #fff; }
+[data-theme="light"] .toast.success,
+[data-theme="stitch"] .toast.success,
+[data-theme="girly"] .toast.success { color: #fff; }
+
+/* Scrollbars adaptées aux thèmes clairs */
+[data-theme="stitch"] ::-webkit-scrollbar-thumb,
+[data-theme="girly"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
