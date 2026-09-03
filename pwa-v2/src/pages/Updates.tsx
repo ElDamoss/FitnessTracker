@@ -6,6 +6,58 @@ export default function PageUpdates() {
       <div className="page-header"><h2 className="page-h1 display">Mises à jour</h2></div>
       {[
         {
+          v: 'v8.3', date: '22 juillet 2026', title: 'Design Figma, séance repensée & muscles détaillés',
+          feats: [
+            'Thèmes clairs Stitch (bleu) et Girly (fuchsia) alignés sur la maquette',
+            'Logo hexagonal + nouveau wordmark FITNESS TRACKER',
+            'Exercices unilatéraux : saisie gauche / droite par série',
+            'Minuteur de repos réductible en pastille (continue en fond)',
+            'Historique : téléchargement d\u2019un rapport PDF par séance (avec évolution)',
+            'Temps de repos réglable par exercice dans l\u2019éditeur de programme',
+            'Groupes musculaires détaillés (Quadriceps, Ischios, Mollets, Adducteurs, Abducteurs, fessiers…)',
+          ],
+          fixes: [
+            'Les poids et le repos en cours sont conservés quand on réduit la séance',
+            'Icônes de séance conformes à la maquette (changer d\u2019exercice, séance précédente)',
+          ],
+          ui: [
+            'Page séance : barre de progression, badges ronds, panneau S1/S2/S3, commentaire toujours visible',
+            'Historique : cartes de séries repensées',
+          ],
+        },
+        {
+          v: 'v8.2', date: '22 juillet 2026', title: 'Reprise de séance, repos en arrière-plan & finitions',
+          feats: [
+            'Reprendre une séance réduite (barre « Séance en cours »)',
+            'Le minuteur de repos continue même en arrière-plan',
+          ],
+          fixes: [
+            'Poids précédents retrouvés même si le nom variait (casse/accents)',
+            'Thèmes : suppression du vert résiduel sur les autres couleurs',
+          ],
+          ui: [
+            'Icônes de séance en SVG cohérents avec la DA',
+          ],
+        },
+        {
+          v: 'v8.1', date: '22 juillet 2026', title: 'Accueil, édition des programmes & thèmes',
+          feats: [
+            'Lancer la séance du jour depuis l\u2019accueil',
+            'Édition d\u2019un jour de programme via le crayon',
+            'RPE optionnel par exercice',
+            'Graphique d\u2019évolution des mensurations',
+            'Réorganisation des exercices (monter / descendre)',
+          ],
+          fixes: [
+            'Ajout / suppression de séries en cours de séance',
+            'Historique machine : seulement la dernière séance de la même machine',
+          ],
+          ui: [
+            'Tuiles d\u2019accueil en un seul clic',
+            'Carte de séance du jour enrichie (durée estimée)',
+          ],
+        },
+        {
           v: 'v8.0', date: '22 juillet 2026', title: 'Nouvelle DA 2.0, séances enrichies & sécurité renforcée',
           feats: [
             'Nouvelle direction artistique 2.0 (animations retirées)',
